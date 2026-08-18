@@ -84,6 +84,7 @@ Completed:
 - Desktop/mobile player identity markup is shared through a tested Phlex component.
 - Picks now broadcast targeted Turbo updates for the clock frame, recent picks, draft board, and drafted player rows; completion transitions through a stable Turbo content frame.
 - Pick events also replace the shared flash region, preserving the pick announcement without a full-page navigation.
+- Multi-viewer integration coverage verifies pick convergence, stale duplicate rejection, Turbo-frame responses, and timer refresh broadcasts.
 - Stable Turbo Frames added around draft-room regions and admin league team/draft sections.
 - Existing Stimulus filtering, timer, form submissions, authorization, and HTML fallbacks preserved.
 
