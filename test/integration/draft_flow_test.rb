@@ -9,6 +9,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", drafts(:one).name
     assert_select "turbo-frame#draft-sunday-draft-header"
+    assert_select "turbo-frame#draft-sunday-draft-content"
     assert_select "turbo-frame#draft-sunday-draft-room"
     assert_select "p", text: /You're up now/
     assert_select "a", text: /Export/, count: 0
@@ -33,6 +34,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "[data-controller='draft-filter']"
     assert_select "[data-draft-filter-target='all'][aria-pressed='true']", text: "All"
     assert_select "[data-draft-filter-target='position']", count: Player::POSITIONS.size
+    assert_select "[data-draft-player-id='#{players(:one).id}']", minimum: 1
     assert_select "form[data-controller='draft-pick']", minimum: 1 do
       assert_select "button[type='button'][data-action='draft-pick#prepare']", "Draft"
       assert_select "button[type='submit'][data-draft-pick-target='confirm']", "✓"

@@ -8,7 +8,7 @@ class Components::Drafts::RecentPicks < Components::Base
   end
 
   def view_template
-    section(class: "w-full overflow-hidden rounded-xl border border-white/10 bg-slate-900") do
+    section(id: "draft-#{@draft.public_id}-recent-picks", class: "w-full overflow-hidden rounded-xl border border-white/10 bg-slate-900") do
       div(class: "border-b border-white/10") do
         p(class: "border-b border-white/10 px-3 py-1.5 text-[.65rem] font-bold uppercase tracking-wider text-slate-400") { "Recent picks · #{@picks.size}/#{@draft.total_picks}" }
         ol(class: "grid max-h-32 grid-cols-2 overflow-y-auto sm:grid-cols-4") do
@@ -22,7 +22,7 @@ class Components::Drafts::RecentPicks < Components::Base
   private
 
   def pick_item(pick)
-    elapsed = @pick_elapsed_seconds.fetch(pick.id, 0)
+    elapsed = @pick_elapsed_seconds.fetch(pick.id) { @pick_elapsed_seconds.fetch(pick.id.to_s, 0) }
     li(class: "flex min-w-0 items-center gap-2 border-b border-r border-white/5 px-2 py-1.5 text-[.65rem] sm:text-xs", data: { recent_pick: "" }) do
       div(class: "flex size-8 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800") do
         if pick.player.headshot.attached?

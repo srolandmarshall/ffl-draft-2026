@@ -11,9 +11,11 @@
   </nav>
 
   <div class="flex flex-wrap items-start justify-end gap-2">
-  <%= render Components::Drafts::Clock.new(draft:, selected_team:, picks_until_selected_team:, picks:, current_pick_elapsed_seconds:, current_user:) %>
+  <%= turbo_frame_tag "draft-#{draft.public_id}-clock" do %>
+    <%= render Components::Drafts::Clock.new(draft:, selected_team:, picks_until_selected_team:, picks:, current_pick_elapsed_seconds:, current_user:) %>
+  <% end %>
 
-  <%= render Components::Drafts::RecentPicks.new(draft:, picks:, pick_elapsed_seconds:) %>
+  <%= render "recent_picks", draft:, picks:, pick_elapsed_seconds: %>
   </div>
 
   <section class="min-w-0">
@@ -35,7 +37,7 @@
                 <% league_fantasy_points = league_score&.points %>
                 <% stat_groups = player.position == "DST" ? (league_score&.dst_stat_groups || []) : player.draft_stat_groups %>
                 <% touchdown_stats = player.position == "DST" ? (league_score&.dst_touchdown_stats || []) : player.draft_touchdown_stats %>
-                <tr class="hover:bg-white/[.03]" data-draft-filter-target="row" data-layout="desktop" data-player-name="<%= player.name.downcase %>" data-player-position="<%= player.position %>" data-player-team="<%= player.pro_team %>">
+                <tr class="hover:bg-white/[.03]" data-draft-filter-target="row" data-layout="desktop" data-draft-player-id="<%= player.id %>" data-player-name="<%= player.name.downcase %>" data-player-position="<%= player.position %>" data-player-team="<%= player.pro_team %>">
                   <td class="px-3 py-2.5">
                     <div class="flex items-center gap-2.5">
                       <div class="flex size-10 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800">
@@ -89,7 +91,7 @@
               <% league_fantasy_points = league_score&.points %>
               <% stat_groups = player.position == "DST" ? (league_score&.dst_stat_groups || []) : player.draft_stat_groups %>
               <% touchdown_stats = player.position == "DST" ? (league_score&.dst_touchdown_stats || []) : player.draft_touchdown_stats %>
-              <article class="p-3" data-draft-filter-target="row" data-layout="mobile" data-player-name="<%= player.name.downcase %>" data-player-position="<%= player.position %>" data-player-team="<%= player.pro_team %>">
+              <article class="p-3" data-draft-filter-target="row" data-layout="mobile" data-draft-player-id="<%= player.id %>" data-player-name="<%= player.name.downcase %>" data-player-position="<%= player.position %>" data-player-team="<%= player.pro_team %>">
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex min-w-0 gap-2.5">
                     <div class="flex size-11 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800">

@@ -64,7 +64,7 @@ class Components::Drafts::Board < Components::Base
   end
 
   def drafted_cell(pick)
-    elapsed = @pick_elapsed_seconds.fetch(pick.id, 0)
+    elapsed = @pick_elapsed_seconds.fetch(pick.id) { @pick_elapsed_seconds.fetch(pick.id.to_s, 0) }
     div(class: "flex size-6 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/15 bg-slate-800 sm:size-7") do
       if pick.player.headshot.attached?
         img(src: url_for(player_headshot(pick.player, size: 56)), alt: "", loading: "lazy", class: "h-full w-full object-cover object-top")
