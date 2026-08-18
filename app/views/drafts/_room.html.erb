@@ -44,31 +44,8 @@
                   <td class="px-2 py-2.5 text-center"><span class="font-bold tabular-nums text-slate-300"><%= player.bye_week || "—" %></span></td>
                   <td class="px-2 py-2.5 text-right"><span class="text-base font-black tabular-nums text-lime-400"><%= league_fantasy_points ? number_with_precision(league_fantasy_points, precision: 1) : "—" %></span></td>
                   <td class="px-2 py-2.5 text-center"><span class="font-bold tabular-nums text-slate-200"><%= player.draft_games || "—" %></span></td>
-                  <td class="px-2 py-2.5 text-center">
-                    <% if touchdown_stats.any? %>
-                      <dl class="flex justify-center gap-2">
-                        <% touchdown_stats.each do |label, value| %>
-                          <div class="flex flex-col"><dt class="order-2 mt-1 text-[.5rem] font-bold uppercase tracking-wide text-slate-500"><%= label %></dt><dd class="order-1 font-black tabular-nums leading-none text-slate-100"><%= value %></dd></div>
-                        <% end %>
-                      </dl>
-                    <% else %><span class="text-slate-600">—</span><% end %>
-                  </td>
-                  <td class="px-3 py-2.5">
-                    <% if stat_groups.any? %>
-                      <div class="grid grid-cols-2 gap-3">
-                        <% stat_groups.each do |group| %>
-                          <div class="border-l border-white/10 pl-3 first:border-l-0 first:pl-0 <%= "col-span-2" if stat_groups.one? %>">
-                            <p class="mb-1 text-[.55rem] font-bold uppercase tracking-wider text-slate-500"><%= group[:label] %></p>
-                            <dl class="flex gap-2.5">
-                              <% group[:stats].each do |label, value| %>
-                                <div class="flex flex-col text-center"><dt class="order-2 mt-1 text-[.5rem] font-bold uppercase tracking-wide text-slate-500"><%= label %></dt><dd class="order-1 font-black tabular-nums leading-none text-slate-100"><%= value %></dd></div>
-                              <% end %>
-                            </dl>
-                          </div>
-                        <% end %>
-                      </div>
-                    <% else %><span class="text-slate-500">No prior-season stats</span><% end %>
-                  </td>
+                  <td class="px-2 py-2.5 text-center"><%= render Components::Drafts::Touchdowns.new(stats: touchdown_stats) %></td>
+                  <td class="px-3 py-2.5"><%= render Components::Drafts::ProductionGroups.new(groups: stat_groups) %></td>
                   <td class="px-3 py-2.5 text-right">
                     <%= render "draft_action", draft:, player:, can_make_pick: %>
                   </td>
@@ -93,30 +70,8 @@
                   <div class="border-l border-white/10 pl-4"><dt class="text-[.6rem] font-bold uppercase tracking-wider text-lime-300"><%= draft.league.season - 1 %> FP</dt><dd class="text-xl font-black tabular-nums text-lime-300"><%= league_fantasy_points ? number_with_precision(league_fantasy_points, precision: 1) : "—" %></dd></div>
                   <div class="border-l border-white/10 pl-4"><dt class="text-[.6rem] font-bold uppercase tracking-wider text-slate-500">Games</dt><dd class="text-xl font-black tabular-nums text-slate-100"><%= player.draft_games || "—" %></dd></div>
                 </dl>
-                <% if stat_groups.any? %>
-                  <div class="mt-2 divide-y divide-white/10">
-                    <% if touchdown_stats.any? %>
-                      <div class="flex items-center gap-5 py-2 first:pt-0">
-                        <p class="mr-auto text-[.6rem] font-bold uppercase tracking-wider text-slate-400">Touchdowns</p>
-                        <dl class="flex gap-5">
-                          <% touchdown_stats.each do |label, value| %>
-                            <div class="flex flex-col text-center"><dt class="order-2 mt-1 text-[.55rem] font-bold uppercase tracking-wide text-slate-500"><%= label %></dt><dd class="order-1 text-base font-black tabular-nums leading-none text-slate-100"><%= value %></dd></div>
-                          <% end %>
-                        </dl>
-                      </div>
-                    <% end %>
-                    <% stat_groups.each do |group| %>
-                      <section class="py-2 first:pt-0">
-                        <h3 class="mb-2 text-[.6rem] font-bold uppercase tracking-wider text-slate-400"><%= group[:label] %></h3>
-                        <dl class="flex min-w-0 justify-between">
-                          <% group[:stats].each do |label, value| %>
-                            <div class="flex min-w-0 flex-col text-center"><dt class="order-2 mt-1 text-[.55rem] font-bold uppercase tracking-wide text-slate-500"><%= label %></dt><dd class="order-1 text-base font-black tabular-nums leading-none text-slate-100"><%= value %></dd></div>
-                          <% end %>
-                        </dl>
-                      </section>
-                    <% end %>
-                  </div>
-                <% else %><p class="mt-2 text-xs text-slate-500">No prior-season stats</p><% end %>
+                <%= render Components::Drafts::Touchdowns.new(stats: touchdown_stats, variant: :mobile) %>
+                <%= render Components::Drafts::ProductionGroups.new(groups: stat_groups, variant: :mobile) %>
               </article>
             <% end %>
             <div class="hidden px-5 py-10 text-center text-sm text-slate-500" data-draft-filter-target="empty">No players match those filters.</div>
