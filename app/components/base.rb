@@ -5,6 +5,7 @@ class Components::Base < Phlex::HTML
   include ApplicationHelper
   include Phlex::Rails::Helpers::ImageTag
   include Phlex::Rails::Helpers::ImagePath
+  include Phlex::Rails::Helpers::ButtonTo
   include Phlex::Rails::Helpers::Routes
   include Phlex::Rails::Helpers::URLFor
 end
