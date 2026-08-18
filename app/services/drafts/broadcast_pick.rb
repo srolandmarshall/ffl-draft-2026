@@ -26,6 +26,12 @@ module Drafts
         render: false
       )
       draft.broadcast_action_later_to(draft, action: :refresh_frame, target: clock_target, render: false)
+      draft.broadcast_replace_later_to(
+        draft,
+        target: "flash",
+        partial: "shared/flash",
+        locals: { messages: { notice: "#{pick.team.name} has picked #{pick.player.name} (#{pick.player.position})" } }
+      )
       draft.broadcast_action_later_to(draft, action: :refresh_frame, target: content_target) if draft.complete?
     end
 

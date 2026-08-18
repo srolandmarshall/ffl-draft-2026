@@ -35,6 +35,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "[data-draft-filter-target='all'][aria-pressed='true']", text: "All"
     assert_select "[data-draft-filter-target='position']", count: Player::POSITIONS.size
     assert_select "[data-draft-player-id='#{players(:one).id}']", minimum: 1
+    assert_select "#flash"
     assert_select "form[data-controller='draft-pick']", minimum: 1 do
       assert_select "button[type='button'][data-action='draft-pick#prepare']", "Draft"
       assert_select "button[type='submit'][data-draft-pick-target='confirm']", "✓"
