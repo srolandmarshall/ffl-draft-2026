@@ -81,6 +81,7 @@ Completed:
 - Shared navigation, flash messages, and validation errors migrated to Phlex.
 - Draft header, clock, recent picks, results, and draft board migrated to tested Phlex components.
 - Draft player filters migrated to a tested Phlex component while retaining Stimulus debounce and multi-select behavior.
+- Picks now broadcast targeted Turbo updates for the clock frame, recent picks, draft board, and drafted player rows; completion transitions through a stable Turbo content frame.
 - Stable Turbo Frames added around draft-room regions and admin league team/draft sections.
 - Existing Stimulus filtering, timer, form submissions, authorization, and HTML fallbacks preserved.
 
