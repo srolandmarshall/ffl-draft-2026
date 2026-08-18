@@ -72,3 +72,19 @@ Move server-rendered UI from scattered ERB templates into composable Phlex compo
 - Every live update is authorized, scoped to the correct draft, and safe to replay.
 - Phlex components have focused tests and stable accessible markup.
 - The application remains usable when JavaScript or Action Cable is unavailable through normal HTML form/navigation fallbacks.
+
+## Progress
+
+Completed:
+
+- Phlex 2.4 component foundation and Rails autoloading.
+- Shared navigation, flash messages, and validation errors migrated to Phlex.
+- Draft header, clock, recent picks, results, and draft board migrated to tested Phlex components.
+- Stable Turbo Frames added around draft-room regions and admin league team/draft sections.
+- Existing Stimulus filtering, timer, form submissions, authorization, and HTML fallbacks preserved.
+
+Next:
+
+- Extract the player filters and player rows into independently testable components.
+- Add targeted Turbo Stream updates for the user-specific draft room without broadcasting one user’s team state to other viewers.
+- Add multi-client system coverage for picks, pause/resume, reconnects, and stale submissions.
