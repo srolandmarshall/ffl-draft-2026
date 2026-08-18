@@ -83,6 +83,7 @@ Completed:
 - Draft player filters migrated to a tested Phlex component while retaining Stimulus debounce and multi-select behavior.
 - Desktop/mobile player identity markup is shared through a tested Phlex component.
 - Touchdown and production-stat presentations are shared Phlex subcomponents across desktop rows and mobile cards.
+- Draft action, board, recent-picks, flash, and validation-error ERB wrappers have been removed; their Turbo-facing roots now come directly from Phlex components.
 - Picks now broadcast targeted Turbo updates for the clock frame, recent picks, draft board, and drafted player rows; completion transitions through a stable Turbo content frame.
 - Pick events also replace the shared flash region, preserving the pick announcement without a full-page navigation.
 - Multi-viewer integration coverage verifies pick convergence, stale duplicate rejection, Turbo-frame responses, and timer refresh broadcasts.
