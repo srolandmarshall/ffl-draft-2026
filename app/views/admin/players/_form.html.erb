@@ -1,4 +1,4 @@
-<%= render "shared/errors", record: player %>
+<%= render Components::FormErrors.new(player) %>
 <%= form_with model: [:admin, player], class: "space-y-5" do |form| %>
   <div><%= form.label :name, class: "mb-2 block text-sm font-bold" %><%= form.text_field :name, autofocus: true, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
   <div class="grid gap-5 sm:grid-cols-2"><div><%= form.label :position, class: "mb-2 block text-sm font-bold" %><%= form.select :position, Player::POSITIONS, { prompt: "Select" }, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div><div><%= form.label :pro_team, "NFL team", class: "mb-2 block text-sm font-bold" %><%= form.text_field :pro_team, maxlength: 4, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div></div>

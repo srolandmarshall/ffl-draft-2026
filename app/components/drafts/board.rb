@@ -12,7 +12,7 @@ class Components::Drafts::Board < Components::Base
     entries = @draft.draft_entries.to_a
     board_columns = "2.25rem repeat(#{entries.size}, minmax(0, 1fr))"
 
-    div(class: "overflow-hidden rounded-lg border border-white/10 bg-slate-900") do
+    div(id: "draft-#{@draft.public_id}-board-content", class: "overflow-hidden rounded-lg border border-white/10 bg-slate-900") do
       div(class: "border-b border-white/10 px-4 py-3") do
         h2(class: "font-semibold") { "Draft board" }
         p(class: "text-xs text-slate-500") { "Rounds run top to bottom. Snake rounds reverse pick order." }
