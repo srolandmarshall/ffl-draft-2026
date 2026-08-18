@@ -1,0 +1,130 @@
+{
+  "league": {
+    "name": "Fantasy Year IX",
+    "draft_name": "Fantasy Year IX Draft",
+    "division": "BEAST",
+    "settings": {
+      "ppr": 0.5,
+      "draft_type": "snake",
+      "qb_slots": 1,
+      "rb_slots": 2,
+      "wr_slots": 2,
+      "te_slots": 1,
+      "flex_slots": 2,
+      "k_slots": 1,
+      "dst_slots": 1,
+      "bench_slots": 6
+    }
+  },
+  "commissioner_emails": [
+    "samuel.r.marshall@gmail.com",
+    "sam@depentumarshall.com"
+  ],
+  "teams": [
+    {
+      "position": 1,
+      "abbreviation": "STRA",
+      "name": "Team Strauss",
+      "owners": [
+        { "name": "Andrew Strauss", "emails": ["astrauss4@gmail.com"] }
+      ]
+    },
+    {
+      "position": 2,
+      "abbreviation": "OCON",
+      "name": "Team O'Connor",
+      "owners": [
+        { "name": "Eamon O’Connor", "emails": ["eko1789@gmail.com"] }
+      ]
+    },
+    {
+      "position": 3,
+      "abbreviation": "PM",
+      "name": "Team Murph",
+      "owners": [
+        { "name": "Patrick Murphy", "emails": ["murph0187@gmail.com"] },
+        { "name": "Conor Dunne", "emails": [] }
+      ]
+    },
+    {
+      "position": 4,
+      "abbreviation": "2G1C",
+      "name": "2 Guys 1 Cup",
+      "owners": [
+        { "name": "Mike White", "emails": ["mike.white086@gmail.com"] },
+        { "name": "Joe Lavin", "emails": ["lavinjoe1@gmail.com"] }
+      ]
+    },
+    {
+      "position": 5,
+      "abbreviation": "DDT",
+      "name": "WhoDaveGriggs55",
+      "owners": [
+        { "name": "David Griggs", "emails": ["dgriggs4@gmail.com"] }
+      ]
+    },
+    {
+      "position": 6,
+      "abbreviation": "PAVI",
+      "name": "Team Pavia",
+      "owners": [
+        { "name": "Michael Pavia", "emails": ["mjp790@yahoo.com"] },
+        { "name": "Peter Carriero", "emails": ["peter.carriero@gmail.com"] }
+      ]
+    },
+    {
+      "position": 7,
+      "abbreviation": "SETH",
+      "name": "Seth Mason's Wealth Management",
+      "owners": [
+        { "name": "Tommy Capalbo", "emails": ["thomas.capalbo@gmail.com"] },
+        { "name": "Andrew Brennan", "emails": ["andrew.w.brennan@gmail.com"] }
+      ]
+    },
+    {
+      "position": 8,
+      "abbreviation": "AJM",
+      "name": "Cupp My Life Into Pieces",
+      "owners": [
+        { "name": "Andrew Mayshar", "emails": ["andrew.mayshar@gmail.com"] }
+      ]
+    },
+    {
+      "position": 9,
+      "abbreviation": "MARS",
+      "name": "Marshin' Monsters",
+      "owners": [
+        {
+          "name": "Samuel Marshall",
+          "emails": ["samuel.r.marshall@gmail.com", "sam@depentumarshall.com"]
+        }
+      ]
+    },
+    {
+      "position": 10,
+      "abbreviation": "RCD",
+      "name": "Davis Brothers",
+      "owners": [
+        { "name": "Robert Davis", "emails": [] },
+        { "name": "Michael Davis", "emails": ["mdavis8@tuftsmedicalcenter.org"] }
+      ]
+    },
+    {
+      "position": 11,
+      "abbreviation": "SHEA",
+      "name": "Irish Twins",
+      "owners": [
+        { "name": "Edwin Shea", "emails": ["edwinshea8@gmail.com"] },
+        { "name": "Anthony Melchionda", "emails": ["anthonymelchionda@gmail.com"] }
+      ]
+    },
+    {
+      "position": 12,
+      "abbreviation": "DF",
+      "name": "Douglas Fresh",
+      "owners": [
+        { "name": "Douglas Farrell", "emails": ["douglas.farrellct@yahoo.com"] }
+      ]
+    }
+  ]
+}

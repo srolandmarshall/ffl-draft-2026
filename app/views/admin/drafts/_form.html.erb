@@ -1,0 +1,51 @@
+<%= render "shared/errors", record: draft %>
+<% ordered_teams = draft.draft_entries.any? ? draft.draft_entries.map(&:team) : league.teams.in_draft_order.to_a %>
+
+<%= form_with model: [:admin, league, draft], class: "space-y-8", data: { controller: "draft-setup" } do |form| %>
+  <section class="grid gap-5 rounded-xl border border-white/10 bg-slate-900 p-6 md:grid-cols-2">
+    <div class="md:col-span-2">
+      <h2 class="text-lg font-semibold">Draft basics</h2>
+      <p class="mt-1 text-sm text-slate-400">Set the room format and pace.</p>
+    </div>
+    <div><%= form.label :name, class: "mb-2 block text-sm font-bold" %><%= form.text_field :name, autofocus: true, required: true, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
+    <div><%= form.label :team_count, "Number of teams", class: "mb-2 block text-sm font-bold" %><%= form.select :team_count, (2..20).map { |count| [pluralize(count, "team"), count] }, {}, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5", data: { draft_setup_target: "count", action: "change->draft-setup#update" } %></div>
+    <div><%= form.label :draft_type, class: "mb-2 block text-sm font-bold" %><%= form.select :draft_type, Draft.draft_types.keys.map { |type| [type.titleize, type] }, {}, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
+  </section>
+
+  <section class="rounded-xl border border-white/10 bg-slate-900 p-6">
+    <div class="mb-5">
+      <h2 class="text-lg font-semibold">Scoring and roster</h2>
+      <p class="mt-1 text-sm text-slate-400">Rounds are calculated from the total roster slots.</p>
+    </div>
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div><%= form.label :ppr, "Points per reception", class: "mb-2 block text-sm font-bold" %><%= form.select :ppr, [["Standard · 0 PPR", 0], ["Half PPR · 0.5", 0.5], ["Full PPR · 1", 1]], {}, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
+      <% [[ :qb_slots, "QB" ], [ :rb_slots, "RB" ], [ :wr_slots, "WR" ], [ :te_slots, "TE" ], [ :flex_slots, "FLEX" ], [ :k_slots, "K" ], [ :dst_slots, "DST" ], [ :bench_slots, "Bench" ]].each do |attribute, label| %>
+        <div><%= form.label attribute, label, class: "mb-2 block text-sm font-bold" %><%= form.number_field attribute, min: 0, max: 20, required: true, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
+      <% end %>
+    </div>
+  </section>
+
+  <section>
+    <div class="mb-4">
+      <h2 class="text-lg font-semibold">Teams and draft order</h2>
+      <p class="mt-1 text-sm text-slate-400">Each card is one draft slot. Add multiple emails with commas or new lines.</p>
+    </div>
+    <div class="space-y-4">
+      <% 20.times do |index| %>
+        <% team = ordered_teams[index] %>
+        <fieldset class="rounded-xl border border-white/10 bg-slate-900 p-5 <%= "hidden" if index >= draft.team_count %>" data-draft-setup-target="team" data-index="<%= index %>">
+          <legend class="px-2 text-sm font-bold text-lime-400">Pick <%= index + 1 %></legend>
+          <%= hidden_field_tag "draft[team_slots][#{index}][id]", team&.id %>
+          <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div><%= label_tag "draft_team_#{index}_name", "Team name", class: "mb-2 block text-xs font-bold text-slate-300" %><%= text_field_tag "draft[team_slots][#{index}][name]", team&.name || "Team #{index + 1}", id: "draft_team_#{index}_name", class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5", data: { required_for_team: true } %></div>
+            <div><%= label_tag "draft_team_#{index}_owner", "Owner name", class: "mb-2 block text-xs font-bold text-slate-300" %><%= text_field_tag "draft[team_slots][#{index}][owner_name]", team&.owner_name || "Owner #{index + 1}", id: "draft_team_#{index}_owner", class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5", data: { required_for_team: true } %></div>
+            <div><%= label_tag "draft_team_#{index}_abbr", "Abbreviation", class: "mb-2 block text-xs font-bold text-slate-300" %><%= text_field_tag "draft[team_slots][#{index}][abbreviation]", team&.abbreviation || format("T%02d", index + 1), id: "draft_team_#{index}_abbr", maxlength: 5, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5", data: { required_for_team: true } %></div>
+            <div><%= label_tag "draft_team_#{index}_emails", "Email(s)", class: "mb-2 block text-xs font-bold text-slate-300" %><%= text_area_tag "draft[team_slots][#{index}][emails]", team&.emails&.join("\n"), id: "draft_team_#{index}_emails", rows: 2, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5", placeholder: "owner@example.com", data: { required_for_team: true } %></div>
+          </div>
+        </fieldset>
+      <% end %>
+    </div>
+  </section>
+
+  <%= form.submit class: "cursor-pointer rounded-lg bg-lime-400 px-5 py-2.5 font-semibold text-slate-950 hover:bg-lime-300" %>
+<% end %>

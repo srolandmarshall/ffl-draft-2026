@@ -1,0 +1,20 @@
+<% content_for :title, "League admin" %>
+<div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+  <div><h1 class="text-2xl font-bold">League admin</h1><p class="mt-1 text-sm text-slate-400">Teams, players, and drafts.</p></div>
+  <div class="flex gap-3">
+    <%= link_to "Users", admin_users_path, class: "rounded border border-white/15 px-4 py-2 font-semibold hover:border-white/30" %>
+    <%= link_to "Players", admin_players_path, class: "rounded border border-white/15 px-4 py-2 font-semibold hover:border-white/30" %>
+    <%= link_to "+ New league", new_admin_league_path, class: "rounded bg-lime-400 px-4 py-2 font-semibold text-slate-950 hover:bg-lime-300" %>
+  </div>
+</div>
+
+<div class="grid gap-4 md:grid-cols-2">
+  <% @leagues.each do |league| %>
+    <%= link_to admin_league_path(league), class: "rounded-lg border border-white/10 bg-slate-900 p-5 hover:border-white/25" do %>
+      <p class="text-sm font-bold text-lime-400"><%= league.season %></p>
+      <h2 class="mt-1 text-xl font-semibold"><%= league.name %></h2>
+      <p class="mt-6 text-sm text-slate-400"><%= pluralize(league.teams.size, "team") %> · <%= pluralize(league.drafts.size, "draft") %> · <%= league.roster_size %> roster spots</p>
+    <% end %>
+  <% end %>
+  <% if @leagues.empty? %><div class="col-span-full rounded-lg border border-dashed border-white/15 p-10 text-center text-slate-400">Create your first league to begin.</div><% end %>
+</div>

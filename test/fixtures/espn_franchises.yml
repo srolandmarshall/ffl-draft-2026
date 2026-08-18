@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  league: one
+  team: one
+  key: MyString
+  name: MyString
+  aliases: [RED]
+
+two:
+  league: two
+  team: two
+  key: MyString
+  name: MyString
+  aliases: [BLU]

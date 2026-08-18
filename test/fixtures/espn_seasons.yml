@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  league: one
+  season: 2025
+  name: MyString
+  team_count: 1
+  settings: {}
+  teams: []
+  synced_at: 2026-08-17 23:40:43
+
+two:
+  league: two
+  season: 2024
+  name: MyString
+  team_count: 1
+  settings: {}
+  teams: []
+  synced_at: 2026-08-17 23:40:43

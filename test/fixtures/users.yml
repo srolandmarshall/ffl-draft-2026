@@ -1,0 +1,7 @@
+commissioner:
+  email: commissioner@example.com
+  role: 1
+
+member:
+  email: riley@example.com
+  role: 0

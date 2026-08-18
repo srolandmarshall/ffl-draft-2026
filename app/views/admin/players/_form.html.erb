@@ -1,0 +1,8 @@
+<%= render "shared/errors", record: player %>
+<%= form_with model: [:admin, player], class: "space-y-5" do |form| %>
+  <div><%= form.label :name, class: "mb-2 block text-sm font-bold" %><%= form.text_field :name, autofocus: true, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
+  <div class="grid gap-5 sm:grid-cols-2"><div><%= form.label :position, class: "mb-2 block text-sm font-bold" %><%= form.select :position, Player::POSITIONS, { prompt: "Select" }, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div><div><%= form.label :pro_team, "NFL team", class: "mb-2 block text-sm font-bold" %><%= form.text_field :pro_team, maxlength: 4, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div></div>
+  <div class="grid gap-5 sm:grid-cols-2"><div><%= form.label :espn_id, "ESPN player ID", class: "mb-2 block text-sm font-bold" %><%= form.number_field :espn_id, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div><div><%= form.label :bye_week, class: "mb-2 block text-sm font-bold" %><%= form.number_field :bye_week, min: 1, max: 18, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div></div>
+  <label class="flex items-center gap-3 text-sm font-bold"><%= form.checkbox :active, class: "size-4 accent-lime-400" %> Available to draft</label>
+  <%= form.submit class: "cursor-pointer rounded-lg bg-lime-400 px-5 py-2.5 font-semibold text-slate-950" %>
+<% end %>

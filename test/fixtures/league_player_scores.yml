@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  league: one
+  player: one
+  season: 2025
+  points: 333.30
+
+two:
+  league: two
+  player: two
+  season: 2025
+  points: 222.20

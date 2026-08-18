@@ -1,0 +1,18 @@
+<div class="mx-auto max-w-2xl">
+  <h1 class="text-2xl font-semibold">Refresh ADP</h1>
+  <p class="mt-2 text-sm text-slate-400">This replaces the player board order with current mock-draft data. The source updates once daily, so hammering the button accomplishes nothing except disappointing a server.</p>
+
+  <%= form_with url: admin_adp_import_path, class: "mt-7 space-y-5 rounded-lg border border-white/10 bg-slate-900 p-6" do |form| %>
+    <div>
+      <%= form.label :scoring_format, class: "mb-2 block text-sm font-semibold" %>
+      <%= form.select :scoring_format, [["PPR", "ppr"], ["Half PPR", "half-ppr"], ["Standard", "standard"], ["2-QB", "2-qb"]], { selected: @defaults[:scoring_format] }, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %>
+    </div>
+    <div class="grid gap-5 sm:grid-cols-2">
+      <div><%= form.label :teams, class: "mb-2 block text-sm font-semibold" %><%= form.number_field :teams, value: @defaults[:teams], min: 8, max: 14, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
+      <div><%= form.label :year, class: "mb-2 block text-sm font-semibold" %><%= form.number_field :year, value: @defaults[:year], min: 2007, max: Date.current.year, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
+    </div>
+    <%= form.submit "Fetch ADP", class: "cursor-pointer rounded bg-lime-400 px-5 py-2.5 font-semibold text-slate-950" %>
+  <% end %>
+
+  <p class="mt-4 text-xs text-slate-500">ADP data provided by <%= link_to "Fantasy Football Calculator", "https://fantasyfootballcalculator.com", class: "underline", target: :_blank, rel: "noopener" %>.</p>
+</div>

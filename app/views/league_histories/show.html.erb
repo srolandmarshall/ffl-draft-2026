@@ -1,0 +1,173 @@
+<% content_for :title, "#{@league.name} draft history" %>
+
+<div class="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+  <div>
+    <p class="text-sm font-bold uppercase tracking-[.18em] text-lime-400">The league vault</p>
+    <h1 class="mt-1 text-3xl font-black sm:text-4xl"><%= @league.name %></h1>
+    <p class="mt-2 text-sm text-slate-400"><%= @seasons.size %> ESPN seasons · <%= @seasons.sum { |season| season.draft_picks.size } %> archived picks</p>
+  </div>
+  <%= link_to "Draft home", root_path, class: "rounded-lg border border-white/15 px-4 py-2 text-center text-sm font-bold hover:border-lime-400" %>
+</div>
+
+<% finish_years = @seasons.map(&:season).sort.select { |year| @tendencies.any? { |tendency| tendency.finishes[year] } } %>
+<% if finish_years.any? %>
+  <% max_finish = @seasons.select { |season| finish_years.include?(season.season) }.map(&:team_count).max %>
+  <% plot_left = 52.0 %>
+  <% plot_top = 38.0 %>
+  <% plot_width = 650.0 %>
+  <% plot_height = 470.0 %>
+  <% default_tendency = @tendencies.find { |tendency| tendency.finishes[finish_years.last] == 1 } || @tendencies.first %>
+  <% default_finishes = default_tendency.finishes.values %>
+  <% default_latest = finish_years.reverse_each.find { |year| default_tendency.finishes[year] } %>
+  <section data-controller="finish-chart" class="mb-8 overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-xl shadow-black/20">
+    <div class="border-b border-white/5 bg-gradient-to-r from-lime-400/10 via-transparent to-violet-400/10 p-5">
+      <div class="sm:flex sm:items-end sm:justify-between"><div><p class="text-xs font-bold uppercase tracking-[.18em] text-lime-400">The long game</p><h2 class="mt-1 text-2xl font-black">Follow one franchise through history</h2><p class="mt-1 text-sm text-slate-400">Pick a team to cut through the noise. First place lives at the top.</p></div><p class="mt-3 shrink-0 text-xs font-bold text-slate-500 sm:mt-0"><%= finish_years.first %>–<%= finish_years.last %></p></div>
+      <div class="mt-5 flex flex-wrap gap-2">
+        <button type="button" data-finish-chart-target="button" data-key="all" data-name="All franchises" data-average="—" data-best="—" data-titles="—" data-latest="—" data-action="click->finish-chart#select mouseenter->finish-chart#preview mouseleave->finish-chart#restore" aria-pressed="false" class="cursor-pointer rounded-full border border-white/10 px-4 py-2.5 text-xs font-bold text-slate-500 transition hover:border-white/30 aria-pressed:border-white/30 aria-pressed:bg-white/10 aria-pressed:text-white">All teams</button>
+        <% @tendencies.each_with_index do |tendency, index| %>
+          <% values = tendency.finishes.values %>
+          <% latest_year = finish_years.reverse_each.find { |year| tendency.finishes[year] } %>
+          <% championships = tendency.finishes.values.count(1) %>
+          <button type="button" data-finish-chart-target="button" data-key="<%= tendency.franchise.id %>" data-name="<%= tendency.franchise.team.name %>" data-color="<%= history_team_color(index) %>" data-average="<%= values.sum.fdiv(values.size).round(1) %>" data-best="<%= values.min.ordinalize %>" data-titles="<%= championships %>" data-latest="<%= tendency.finishes[latest_year].ordinalize %>" data-action="click->finish-chart#select mouseenter->finish-chart#preview mouseleave->finish-chart#restore" aria-pressed="<%= tendency == default_tendency %>" class="flex cursor-pointer items-center gap-2 rounded-full border border-white/10 px-4 py-2.5 text-xs font-bold text-slate-400 transition hover:border-white/30 aria-pressed:border-white/30 aria-pressed:bg-white/10 aria-pressed:text-white"><i class="size-3 rounded-full" style="background: <%= history_team_color(index) %>"></i><%= tendency.franchise.team.name %><% if championships.positive? %> <strong class="text-amber-300">★<%= championships %></strong><% end %></button>
+        <% end %>
+      </div>
+      <div class="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))]">
+        <div class="rounded-xl border border-white/10 bg-slate-950/50 p-3"><span class="text-[.55rem] font-bold uppercase tracking-wider text-slate-600">Now following</span><strong data-finish-chart-target="teamName" class="mt-1 block truncate text-lg" style="color: <%= history_team_color(@tendencies.index(default_tendency)) %>"><%= default_tendency.franchise.team.name %></strong></div>
+        <div class="rounded-xl border border-white/5 bg-slate-950/30 p-3"><span class="text-[.55rem] font-bold uppercase tracking-wider text-slate-600">Average finish</span><strong data-finish-chart-target="average" class="mt-1 block text-xl"><%= default_finishes.sum.fdiv(default_finishes.size).round(1) %></strong></div>
+        <div class="rounded-xl border border-white/5 bg-slate-950/30 p-3"><span class="text-[.55rem] font-bold uppercase tracking-wider text-slate-600">Best</span><strong data-finish-chart-target="best" class="mt-1 block text-xl"><%= default_finishes.min.ordinalize %></strong></div>
+        <div class="rounded-xl border border-white/5 bg-slate-950/30 p-3"><span class="text-[.55rem] font-bold uppercase tracking-wider text-slate-600">Titles</span><strong data-finish-chart-target="titles" class="mt-1 block text-xl text-amber-300"><%= default_finishes.count(1) %></strong></div>
+        <div class="rounded-xl border border-white/5 bg-slate-950/30 p-3"><span class="text-[.55rem] font-bold uppercase tracking-wider text-slate-600">Latest</span><strong data-finish-chart-target="latest" class="mt-1 block text-xl"><%= default_tendency.finishes[default_latest].ordinalize %></strong></div>
+      </div>
+    </div>
+
+    <div class="p-2 sm:p-4">
+      <svg viewBox="0 0 840 550" class="w-full" role="img" aria-label="Historical league finishes by team and season">
+        <% 1.upto(max_finish) do |rank| %>
+          <% y = plot_top + (rank - 1).fdiv(max_finish - 1) * plot_height %>
+          <line x1="<%= plot_left %>" y1="<%= y %>" x2="<%= plot_left + plot_width %>" y2="<%= y %>" stroke="rgba(148,163,184,.12)" stroke-width="1" />
+          <text x="<%= plot_left - 14 %>" y="<%= y + 4 %>" text-anchor="middle" fill="<%= rank == 1 ? '#a3e635' : '#64748b' %>" font-size="11" font-weight="800"><%= rank.ordinalize %></text>
+        <% end %>
+
+        <% finish_years.each_with_index do |year, index| %>
+          <% x = plot_left + (finish_years.one? ? plot_width / 2 : index.fdiv(finish_years.size - 1) * plot_width) %>
+          <line x1="<%= x %>" y1="<%= plot_top %>" x2="<%= x %>" y2="<%= plot_top + plot_height %>" stroke="rgba(148,163,184,.06)" stroke-width="1" />
+          <text x="<%= x %>" y="535" text-anchor="middle" fill="#64748b" font-size="11" font-weight="800"><%= year.to_s.last(2) %></text>
+        <% end %>
+
+        <% @tendencies.each_with_index do |tendency, index| %>
+          <% color = history_team_color(index) %>
+          <% coordinates = finish_chart_coordinates(tendency.finishes, years: finish_years, width: plot_width, height: plot_height, max_rank: max_finish) %>
+          <% next if coordinates.empty? %>
+          <g data-finish-chart-target="series" data-key="<%= tendency.franchise.id %>" style="opacity: <%= tendency == default_tendency ? 1 : 0.045 %>; transition: opacity 160ms ease">
+            <polyline points="<%= coordinates.map { |point| "#{plot_left + point[:x]},#{plot_top + point[:y]}" }.join(' ') %>" fill="none" stroke="<%= color %>" stroke-width="<%= tendency == default_tendency ? 5 : 3 %>" stroke-linecap="round" stroke-linejoin="round" />
+            <% coordinates.each do |point| %>
+              <% x = plot_left + point[:x] %>
+              <% y = plot_top + point[:y] %>
+              <% if point[:rank] == 1 %><circle cx="<%= x %>" cy="<%= y %>" r="7" fill="#0f172a" stroke="#facc15" stroke-width="3" /><% end %>
+              <circle cx="<%= x %>" cy="<%= y %>" r="4" fill="<%= color %>" stroke="#0f172a" stroke-width="2"><title><%= tendency.franchise.team.name %> · <%= point[:year] %> · <%= point[:rank].ordinalize %></title></circle>
+            <% end %>
+            <% last = coordinates.last %>
+            <text data-finish-chart-label x="<%= plot_left + last[:x] + 8 %>" y="<%= plot_top + last[:y] + 4 %>" fill="<%= color %>" font-size="11" font-weight="900" style="display: <%= tendency == default_tendency ? 'block' : 'none' %>"><%= tendency.franchise.team.abbreviation %></text>
+          </g>
+        <% end %>
+      </svg>
+    </div>
+
+  </section>
+<% end %>
+
+<% if @tendencies.any? %>
+  <section class="mb-8">
+    <div class="mb-5">
+      <p class="text-xs font-bold uppercase tracking-[.18em] text-violet-300">Draft fingerprints</p>
+      <h2 class="text-2xl font-black">Every team leaves a pattern</h2>
+      <p class="mt-1 max-w-3xl text-sm text-slate-400">Each ring is one round across every available draft. Split colors expose indecision; a solid ring means they keep going back to the same position.</p>
+      <div class="mt-3 flex flex-wrap gap-3"><% ApplicationHelper::POSITION_CHART_COLORS.each do |position, color| %><span class="flex items-center gap-1.5 text-[.65rem] font-bold text-slate-400"><i class="size-2.5 rounded-full" style="background: <%= color %>"></i><%= position %></span><% end %></div>
+    </div>
+    <div class="grid gap-4 lg:grid-cols-2">
+      <% @tendencies.each do |tendency| %>
+        <% opening_counts = tendency.round_position_counts[1] || {} %>
+        <% opening_position, opening_count = opening_counts.first %>
+        <article class="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 shadow-lg shadow-black/10">
+          <div class="p-4 sm:p-5">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+              <p class="truncate text-lg font-black"><%= tendency.franchise.team.name %></p>
+              <p class="mt-0.5 text-[.65rem] text-slate-500"><%= tendency.seasons %> drafts · <%= tendency.pick_count %> picks</p>
+              </div>
+              <% if opening_position %><p class="shrink-0 text-xs text-slate-400">Opens <strong class="<%= position_badge_classes(opening_position) %> rounded-full border px-2 py-1"><%= opening_position %> <%= opening_count %>/<%= opening_counts.values.sum %></strong></p><% end %>
+            </div>
+
+            <div class="mt-4 grid grid-cols-3 gap-2">
+              <div class="rounded-lg border border-white/5 bg-slate-950/45 p-2.5"><span class="block text-[.5rem] font-bold uppercase tracking-wider text-violet-300">Signature</span><strong class="mt-1 block text-xs"><% if tendency.signature_round %>R<%= tendency.signature_round.round %> · <%= tendency.signature_round.position %> <span class="text-slate-500"><%= tendency.signature_round.count %>/<%= tendency.signature_round.total %></span><% else %>—<% end %></strong></div>
+              <div class="rounded-lg border border-white/5 bg-slate-950/45 p-2.5"><span class="block text-[.5rem] font-bold uppercase tracking-wider text-cyan-300">Chaos round</span><strong class="mt-1 block text-xs"><% if tendency.chaos_round %>R<%= tendency.chaos_round.round %> · <%= tendency.chaos_round.position_count %> positions<% else %>—<% end %></strong></div>
+              <div class="rounded-lg border border-white/5 bg-slate-950/45 p-2.5"><span class="block text-[.5rem] font-bold uppercase tracking-wider text-pink-300">Biggest binge</span><strong class="mt-1 block text-xs"><% if tendency.longest_position_run %><%= tendency.longest_position_run.position %> ×<%= tendency.longest_position_run.length %> <span class="text-slate-500">’<%= tendency.longest_position_run.season.to_s.last(2) %></span><% else %>—<% end %></strong></div>
+            </div>
+
+            <div class="mt-5 grid grid-cols-8 gap-x-2 gap-y-3">
+              <% tendency.round_position_counts.each do |round, counts| %>
+                <% position, count = counts.first %>
+                <div data-round="<%= round %>" class="group min-w-0 text-center" title="Round <%= round %>: <%= counts.map { |label, total| "#{label} #{total}" }.join(' · ') %>">
+                  <span class="mb-1 block text-[.5rem] font-black uppercase tracking-wider text-slate-600">R<%= round %></span>
+                  <div class="relative mx-auto aspect-square w-full max-w-11 rounded-full shadow-md shadow-black/30 transition group-hover:scale-110" style="background: <%= position_conic_gradient(counts) %>">
+                    <div class="absolute inset-[3px] flex items-center justify-center rounded-full bg-slate-950/95"><strong class="text-[.65rem] text-white"><%= position || "?" %></strong></div>
+                  </div>
+                  <span class="mt-1 block text-[.48rem] text-slate-600"><%= count %>/<%= counts.values.sum %></span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="mt-auto flex flex-col gap-3 border-t border-white/5 bg-black/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div class="flex flex-wrap gap-x-4 gap-y-1 text-[.65rem] text-slate-500">
+              <% { "QB arrives" => "QB", "TE arrives" => "TE", "Defense arrives" => "DST" }.each do |label, position| %>
+                <% if (round = tendency.average_first_rounds[position]) %><span><%= label %> <strong class="text-slate-200">R<%= round %></strong></span><% end %>
+              <% end %>
+            </div>
+            <% if tendency.repeat_player_name %><div class="shrink-0 text-xs"><span class="font-bold uppercase tracking-wider text-lime-400">Loyalty:</span> <strong><%= tendency.repeat_player_name %></strong> <span class="text-lime-300">×<%= tendency.repeat_player_count %></span></div><% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  </section>
+<% end %>
+
+<% if @seasons.any? %>
+<div data-controller="history-tabs">
+  <div class="mb-4 flex flex-wrap gap-2" role="tablist" aria-label="Draft season">
+    <% @seasons.each_with_index do |season, index| %>
+      <button type="button" role="tab" aria-selected="<%= index.zero? %>" data-history-tabs-target="tab" data-year="<%= season.season %>" data-action="history-tabs#select" class="cursor-pointer rounded-lg border px-4 py-2 text-sm font-black <%= index.zero? ? 'border-lime-400 bg-lime-400 text-slate-950' : 'border-white/10 bg-slate-900 text-slate-400' %>"><%= season.season %></button>
+    <% end %>
+  </div>
+
+  <div>
+  <% @seasons.each_with_index do |season, index| %>
+    <% picks = season.draft_picks.to_a %>
+    <section class="overflow-hidden rounded-xl border border-white/10 bg-slate-900" role="tabpanel" data-history-tabs-target="panel" data-year="<%= season.season %>" <%= "hidden" unless index.zero? %>>
+      <div class="grid gap-5 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
+        <div><p class="text-xs font-bold uppercase tracking-[.2em] text-blue-300"><%= season.season %> season</p><h2 class="mt-1 text-2xl font-black"><%= season.name %></h2><p class="mt-1 text-xs text-slate-500"><%= season.team_count %> teams · <%= season.rounds %> rounds · synced <%= time_ago_in_words(season.synced_at) %> ago</p></div>
+        <% if picks.any? %><div class="rounded-lg border border-amber-400/20 bg-amber-400/10 px-4 py-3 sm:text-right"><p class="text-[.6rem] font-bold uppercase tracking-wider text-amber-300">First off the board</p><p class="font-black"><%= picks.first.player_name %> <span class="text-xs text-amber-200/70"><%= picks.first.position %></span></p><p class="text-xs text-slate-500"><%= picks.first.team_name %></p></div><% end %>
+      </div>
+
+      <% if picks.any? %>
+        <div class="flex flex-wrap gap-2 border-y border-white/5 bg-slate-950/35 px-5 py-3"><% season.position_counts.each do |position, count| %><span class="rounded-full border px-2 py-1 text-[.65rem] font-bold <%= position_badge_classes(position) %>"><%= position || "?" %> <%= count %></span><% end %></div>
+        <div class="divide-y divide-white/5">
+          <% picks.group_by(&:round).sort.each do |round, round_picks| %>
+            <div class="grid" style="grid-template-columns: 2rem repeat(<%= round_picks.size %>, minmax(0, 1fr))">
+              <div class="flex min-h-14 items-center justify-center border-r border-white/10 text-[.6rem] font-black text-slate-600"><%= round %></div>
+              <% round_picks.sort_by(&:round_pick).each do |pick| %>
+                <div class="flex min-w-0 flex-col justify-center border-r border-white/5 px-1 py-2 text-center last:border-r-0 <%= position_badge_classes(pick.position) %>" title="#<%= pick.overall_number %> <%= pick.player_name %> — <%= pick.team_name %>"><span class="truncate text-[.55rem] font-black sm:text-[.65rem]"><%= abbreviated_player_name(pick.player_name) %></span><span class="truncate text-[.45rem] text-slate-400 sm:text-[.55rem]"><%= pick.team_abbreviation %> · <%= pick.position || "?" %></span></div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="border-t border-white/5 p-7 text-center text-sm text-slate-500">ESPN has no completed draft for this season yet.</p>
+      <% end %>
+    </section>
+  <% end %>
+  </div>
+</div>
+<% else %>
+  <div class="rounded-xl border border-dashed border-white/15 p-10 text-center text-slate-500">No completed ESPN draft history has been synced yet.</div>
+<% end %>

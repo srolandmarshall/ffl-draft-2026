@@ -1,0 +1,29 @@
+<%= render "shared/errors", record: league %>
+<%= form_with model: [:admin, league], class: "space-y-7" do |form| %>
+  <section class="space-y-5">
+    <div><%= form.label :name, class: "mb-2 block text-sm font-bold" %><%= form.text_field :name, autofocus: true, placeholder: "Sunday Gridiron League", class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
+    <div><%= form.label :season, class: "mb-2 block text-sm font-bold" %><%= form.number_field :season, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
+    <div><%= form.label :espn_league_id, "ESPN league ID", class: "mb-2 block text-sm font-bold" %><%= form.text_field :espn_league_id, inputmode: "numeric", pattern: "[0-9]*", placeholder: "123456789", class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %><p class="mt-1 text-xs text-slate-500">Connects this season to its ESPN league for rules and future league data.</p></div>
+  </section>
+
+  <section class="border-t border-white/10 pt-6">
+    <h2 class="text-lg font-semibold">Draft defaults</h2>
+    <p class="mt-1 text-xs text-slate-500">These settings apply when the next draft is created. Existing drafts are unchanged.</p>
+    <div class="mt-5 grid gap-5 sm:grid-cols-2">
+      <div><%= form.label :ppr, "Points per reception", class: "mb-2 block text-sm font-bold" %><%= form.select :ppr, [["Standard · 0 PPR", 0], ["Half PPR · 0.5", 0.5], ["Full PPR · 1", 1]], {}, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
+      <div><%= form.label :draft_type, class: "mb-2 block text-sm font-bold" %><%= form.select :draft_type, League.draft_types.keys.map { |type| [type.titleize, type] }, {}, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
+    </div>
+  </section>
+
+  <section class="border-t border-white/10 pt-6">
+    <h2 class="text-lg font-semibold">Roster slots</h2>
+    <p class="mt-1 text-xs text-slate-500">Roster size and draft rounds are calculated from these positions.</p>
+    <div class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <% [[ :qb_slots, "QB" ], [ :rb_slots, "RB" ], [ :wr_slots, "WR" ], [ :te_slots, "TE" ], [ :flex_slots, "FLEX" ], [ :k_slots, "K" ], [ :dst_slots, "DST" ], [ :bench_slots, "Bench" ]].each do |attribute, label| %>
+        <div><%= form.label attribute, label, class: "mb-2 block text-sm font-bold" %><%= form.number_field attribute, min: 0, max: 20, required: true, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
+      <% end %>
+    </div>
+  </section>
+
+  <%= form.submit class: "cursor-pointer rounded-lg bg-lime-400 px-5 py-2.5 font-semibold text-slate-950 hover:bg-lime-300" %>
+<% end %>

@@ -1,0 +1,32 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  espn_id: 1
+  name: Alex Archer
+  position: QB
+  pro_team: ATL
+  headshot_url: https://static.www.nfl.com/player-one
+  bye_week: 8
+  active: true
+  rookie: true
+  stats_season: 2025
+  actual_stats:
+    games: 17
+    completions: 360
+    attempts: 550
+    passing_yards: 4200
+    passing_tds: 31
+    passing_interceptions: 9
+    carries: 61
+    rushing_yards: 302
+    rushing_tds: 4
+    receptions: 0
+    fantasy_points: 329.2
+
+two:
+  espn_id: 2
+  name: Blake Brooks
+  position: RB
+  pro_team: BUF
+  bye_week: 7
+  active: true

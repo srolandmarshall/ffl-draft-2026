@@ -1,0 +1,20 @@
+# Rails runtime and local state
+/log/*
+/tmp/*
+/storage/*
+!/log/.keep
+!/tmp/.keep
+!/storage/.keep
+
+# Local secrets and credentials
+/.env
+/.env.*
+!/.env.example
+/config/master.key
+
+# Local developer tooling
+/.ruby-lsp/
+.DS_Store
+
+# Imported personal roster data
+/team_assignments.csv

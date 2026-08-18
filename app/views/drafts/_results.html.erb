@@ -1,0 +1,14 @@
+<section class="mb-4 flex flex-col gap-4 rounded-lg border border-blue-400/25 bg-blue-400/10 p-5 sm:flex-row sm:items-center sm:justify-between">
+  <div>
+    <p class="text-xs font-bold uppercase tracking-[.2em] text-blue-300">Draft complete</p>
+    <h2 class="mt-1 text-xl font-bold">Draft results</h2>
+    <p class="mt-1 text-sm text-slate-400"><%= picks.size %> selections across <%= draft.rounds %> rounds.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <% if draft.league.espn_seasons.exists? %><%= link_to "League history", league_history_path(draft.league), class: "rounded-lg bg-lime-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-lime-300" %><% end %>
+    <%= link_to "Export CSV", draft_export_path(draft.public_id, format: :csv), class: "rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-950 hover:bg-slate-200" %>
+    <%= link_to "Export JSON", draft_export_path(draft.public_id, format: :json), class: "rounded-lg border border-white/20 px-4 py-2 text-sm font-bold hover:border-white/50" %>
+  </div>
+</section>
+
+<%= render "draft_board", draft:, picks:, pick_elapsed_seconds: %>

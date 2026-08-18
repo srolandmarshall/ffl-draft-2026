@@ -1,0 +1,14 @@
+require "test_helper"
+
+class ApplicationHelperTest < ActionView::TestCase
+  test "formats elapsed pick time and applies shame thresholds" do
+    assert_equal "0:59", format_pick_duration(59)
+    assert_equal "1:00", format_pick_duration(60)
+    assert_equal "1:01:05", format_pick_duration(3665)
+
+    assert_equal "text-slate-400", pick_duration_classes(59)
+    assert_equal "text-yellow-300", pick_duration_classes(60)
+    assert_equal "text-yellow-300", pick_duration_classes(89)
+    assert_equal "text-red-400", pick_duration_classes(90)
+  end
+end

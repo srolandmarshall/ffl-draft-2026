@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  league: one
+  name: Red Hawks
+  owner_name: Riley
+  abbreviation: RED
+  draft_order: 1
+
+two:
+  league: two
+  name: Blue Bears
+  owner_name: Bailey
+  abbreviation: BLU
+  draft_order: 1

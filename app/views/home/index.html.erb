@@ -1,0 +1,24 @@
+<% content_for :title, "Fantasy Draft" %>
+
+<div class="mb-8">
+  <h1 class="text-2xl font-bold">Your league drafts</h1>
+  <p class="mt-2 text-sm text-slate-400">Open the room, choose your team, and try not to draft a kicker in round six.</p>
+</div>
+
+<div class="overflow-hidden rounded-lg border border-white/10 bg-slate-900">
+  <% @drafts.each do |draft| %>
+    <%= link_to draft_path(draft.public_id), class: "flex items-center justify-between gap-5 border-b border-white/10 px-5 py-4 last:border-0 hover:bg-white/5" do %>
+      <div>
+        <p class="font-semibold"><%= draft.name %></p>
+        <p class="mt-1 text-sm text-slate-400"><%= draft.league.name %> · <%= draft.league.season %> · <%= pluralize(draft.draft_entries.size, "team") %> · <%= draft.rounds %> rounds</p>
+      </div>
+      <span class="shrink-0 text-xs font-semibold uppercase tracking-wide text-slate-400"><%= draft.status %> →</span>
+    <% end %>
+  <% end %>
+
+  <% if @drafts.empty? %>
+    <div class="p-8 text-center text-sm text-slate-400">
+      No draft yet. <%= link_to "Set up the league", admin_root_path, class: "font-semibold text-lime-400 underline" %>.
+    </div>
+  <% end %>
+</div>

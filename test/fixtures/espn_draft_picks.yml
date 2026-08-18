@@ -1,0 +1,25 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  espn_season: one
+  overall_number: 1
+  round: 1
+  round_pick: 1
+  espn_team_id: 1
+  team_name: MyString
+  team_abbreviation: MyString
+  espn_player_id: 1
+  player_name: MyString
+  position: MyString
+
+two:
+  espn_season: two
+  overall_number: 1
+  round: 1
+  round_pick: 1
+  espn_team_id: 1
+  team_name: MyString
+  team_abbreviation: MyString
+  espn_player_id: 1
+  player_name: MyString
+  position: MyString
