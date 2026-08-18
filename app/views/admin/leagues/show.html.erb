@@ -31,6 +31,7 @@
 </section>
 
 <div class="grid gap-8 lg:grid-cols-2">
+  <%= turbo_frame_tag "league-#{@league.id}-teams" do %>
   <section>
     <div class="mb-4 flex items-center justify-between"><div><h2 class="text-xl font-semibold">Next draft order</h2><p class="mt-1 text-xs text-slate-500">Drag teams into place. Existing drafts keep their saved order.</p></div><%= link_to "+ Add team", new_admin_league_team_path(@league), class: "text-sm font-semibold text-lime-400 hover:text-lime-300" %></div>
     <%= form_with url: team_order_admin_league_path(@league), method: :patch, data: { controller: "team-order" } do %>
@@ -51,6 +52,8 @@
       <% if @teams.many? %><%= submit_tag "Save order", class: "mt-3 cursor-pointer rounded-lg border border-white/15 px-3 py-2 text-xs font-bold hover:border-lime-400" %><% end %>
     <% end %>
   </section>
+  <% end %>
+  <%= turbo_frame_tag "league-#{@league.id}-drafts" do %>
   <section>
     <div class="mb-4 flex items-center justify-between"><h2 class="text-xl font-semibold">Drafts</h2><%= link_to "+ Create draft", new_admin_league_draft_path(@league), class: "text-sm font-semibold text-lime-400 hover:text-lime-300" %></div>
     <div class="space-y-3">
@@ -66,4 +69,5 @@
       <% if @drafts.empty? %><div class="rounded-lg border border-dashed border-white/15 p-7 text-center text-sm text-slate-500">No drafts yet.</div><% end %>
     </div>
   </section>
+  <% end %>
 </div>
