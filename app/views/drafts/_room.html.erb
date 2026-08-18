@@ -41,26 +41,7 @@
     </div>
   </section>
 
-  <section class="w-full overflow-hidden rounded-xl border border-white/10 bg-slate-900">
-    <div class="border-b border-white/10">
-      <p class="border-b border-white/10 px-3 py-1.5 text-[.65rem] font-bold uppercase tracking-wider text-slate-400">Recent picks · <%= picks.size %>/<%= draft.total_picks %></p>
-    <ol class="grid max-h-32 grid-cols-2 overflow-y-auto sm:grid-cols-4">
-      <% picks.last(4).reverse_each do |pick| %>
-        <% elapsed = pick_elapsed_seconds.fetch(pick.id, 0) %>
-        <li class="flex min-w-0 items-center gap-2 border-b border-r border-white/5 px-2 py-1.5 text-[.65rem] sm:text-xs" data-recent-pick>
-          <div class="flex size-8 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800">
-            <% if pick.player.headshot.attached? %><%= image_tag player_headshot(pick.player, size: 64), alt: "", loading: "lazy", class: "h-full w-full object-cover object-top" %><% else %><span class="mb-1.5 text-[.5rem] font-black text-slate-500"><%= pick.player.position %></span><% end %>
-          </div>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-1.5"><span class="min-w-0 flex-1 truncate font-bold"><%= pick.player.name %></span><span class="shrink-0 rounded border px-1 py-0.5 text-[.5rem] <%= position_badge_classes(pick.player.position) %>"><%= pick.player.position %></span></div>
-            <div class="mt-0.5 flex items-center justify-between gap-2"><span class="min-w-0 truncate font-semibold text-slate-500" title="<%= pick.team.name %>"><%= pick.team.abbreviation %> · R<%= pick.round %> · Pick <%= pick.overall_number %></span><span class="shrink-0 font-mono font-bold tabular-nums <%= pick_duration_classes(elapsed) %>" title="Time used for this pick"><%= format_pick_duration(elapsed) %></span></div>
-          </div>
-        </li>
-      <% end %>
-      <% if picks.empty? %><li class="col-span-full px-4 py-4 text-center text-xs text-slate-500">No picks yet.</li><% end %>
-    </ol>
-    </div>
-  </section>
+  <%= render Components::Drafts::RecentPicks.new(draft:, picks:, pick_elapsed_seconds:) %>
   </div>
 
   <section class="min-w-0">
