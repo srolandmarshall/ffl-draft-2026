@@ -8,6 +8,8 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "h1", drafts(:one).name
+    assert_select "turbo-frame#draft-sunday-draft-header"
+    assert_select "turbo-frame#draft-sunday-draft-room"
     assert_select "p", text: /You're up now/
     assert_select "a", text: /Export/, count: 0
     assert_select "[data-controller='pick-timer'][data-pick-timer-paused-value='false']"
