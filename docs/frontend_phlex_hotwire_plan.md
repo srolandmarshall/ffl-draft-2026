@@ -82,6 +82,7 @@ Completed:
 - Draft header, clock, recent picks, results, and draft board migrated to tested Phlex components.
 - Draft player filters migrated to a tested Phlex component while retaining Stimulus debounce and multi-select behavior.
 - Desktop/mobile player identity markup is shared through a tested Phlex component.
+- Touchdown and production-stat presentations are shared Phlex subcomponents across desktop rows and mobile cards.
 - Picks now broadcast targeted Turbo updates for the clock frame, recent picks, draft board, and drafted player rows; completion transitions through a stable Turbo content frame.
 - Pick events also replace the shared flash region, preserving the pick announcement without a full-page navigation.
 - Multi-viewer integration coverage verifies pick convergence, stale duplicate rejection, Turbo-frame responses, and timer refresh broadcasts.
