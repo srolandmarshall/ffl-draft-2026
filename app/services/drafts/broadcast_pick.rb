@@ -10,14 +10,12 @@ module Drafts
       draft.broadcast_replace_later_to(
         draft,
         target: recent_picks_target,
-        partial: "drafts/recent_picks",
-        locals: { draft:, picks:, pick_elapsed_seconds: }
+        html: recent_picks_html
       )
       draft.broadcast_replace_later_to(
         draft,
         target: board_target,
-        partial: "drafts/draft_board",
-        locals: { draft:, picks:, pick_elapsed_seconds: }
+        html: board_html
       )
       draft.broadcast_action_later_to(
         draft,
@@ -57,5 +55,13 @@ module Drafts
     def board_target = "draft-#{draft.public_id}-board-content"
     def clock_target = "draft-#{draft.public_id}-clock"
     def content_target = "draft-#{draft.public_id}-content"
+
+    def recent_picks_html
+      ApplicationController.renderer.render(Components::Drafts::RecentPicks.new(draft:, picks:, pick_elapsed_seconds:))
+    end
+
+    def board_html
+      ApplicationController.renderer.render(Components::Drafts::Board.new(draft:, picks:, pick_elapsed_seconds:))
+    end
   end
 end

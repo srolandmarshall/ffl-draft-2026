@@ -20,7 +20,7 @@
 
   <section class="min-w-0">
     <% if params[:view] == "board" %>
-      <%= render "draft_board", draft:, picks:, pick_elapsed_seconds: %>
+      <%= render Components::Drafts::Board.new(draft:, picks:, pick_elapsed_seconds:) %>
     <% else %>
       <div class="rounded-lg border border-white/10 bg-slate-900" data-controller="draft-filter">
         <%= render Components::Drafts::PlayerFilters.new(players: available_players) %>
