@@ -80,6 +80,7 @@ Completed:
 - Phlex 2.4 component foundation and Rails autoloading.
 - Shared navigation, flash messages, and validation errors migrated to Phlex.
 - Draft header, clock, recent picks, results, and draft board migrated to tested Phlex components.
+- Draft player filters migrated to a tested Phlex component while retaining Stimulus debounce and multi-select behavior.
 - Stable Turbo Frames added around draft-room regions and admin league team/draft sections.
 - Existing Stimulus filtering, timer, form submissions, authorization, and HTML fallbacks preserved.
 
