@@ -56,6 +56,7 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     get admin_league_path(league)
     assert_response :success
     assert_select "button", text: "Delete league", count: 0
+    assert_select "a[data-turbo-frame='_top']", text: "+ Create draft", count: 1
 
     get edit_admin_league_path(league)
     assert_response :success
