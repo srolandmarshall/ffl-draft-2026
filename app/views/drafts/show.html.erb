@@ -8,14 +8,20 @@
 <%= turbo_frame_tag "draft-#{@draft.public_id}-content" do %>
   <% if @draft.complete? %>
     <%= turbo_frame_tag "draft-#{@draft.public_id}-results" do %>
-      <%= render Components::Drafts::Results.new(draft: @draft, picks: @picks, pick_elapsed_seconds: @pick_elapsed_seconds, current_user:) %>
+      <%= render Components::Drafts::Results.new(draft: @draft, picks: @picks, pick_elapsed_seconds: @pick_elapsed_seconds, current_user:, selected_team: @selected_team) %>
     <% end %>
-    <%= turbo_frame_tag "draft-#{@draft.public_id}-board" do %>
-      <%= render Components::Drafts::Board.new(draft: @draft, picks: @picks, pick_elapsed_seconds: @pick_elapsed_seconds, selected_team: @selected_team) %>
+    <% if params[:view] == "my_team" %>
+      <%= turbo_frame_tag "draft-#{@draft.public_id}-team-roster" do %>
+        <%= render Components::Drafts::TeamRoster.new(draft: @draft, team: @roster_team, picks: @picks, pick_elapsed_seconds: @pick_elapsed_seconds, commissioner: current_user.commissioner?) %>
+      <% end %>
+    <% else %>
+      <%= turbo_frame_tag "draft-#{@draft.public_id}-board" do %>
+        <%= render Components::Drafts::Board.new(draft: @draft, picks: @picks, pick_elapsed_seconds: @pick_elapsed_seconds, selected_team: @selected_team) %>
+      <% end %>
     <% end %>
   <% else %>
     <%= turbo_frame_tag "draft-#{@draft.public_id}-room" do %>
-      <%= render "room", draft: @draft, selected_team: @selected_team, picks_until_selected_team: @picks_until_selected_team, picks: @picks, available_players: @available_players, available_teams: @available_teams, player_filters: @player_filters, pick_elapsed_seconds: @pick_elapsed_seconds, current_pick_elapsed_seconds: @current_pick_elapsed_seconds %>
+      <%= render "room", draft: @draft, selected_team: @selected_team, roster_team: @roster_team, picks_until_selected_team: @picks_until_selected_team, picks: @picks, available_players: @available_players, available_teams: @available_teams, player_filters: @player_filters, pick_elapsed_seconds: @pick_elapsed_seconds, current_pick_elapsed_seconds: @current_pick_elapsed_seconds %>
     <% end %>
   <% end %>
 <% end %>
