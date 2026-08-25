@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["query", "position"]
-  static values = { delay: { type: Number, default: 250 } }
+  static values = { delay: { type: Number, default: 400 } }
 
   disconnect() {
     clearTimeout(this.searchTimer)

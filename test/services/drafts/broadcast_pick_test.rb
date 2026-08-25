@@ -5,26 +5,25 @@ require "test_helper"
 class Drafts::BroadcastPickTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
-  test "queues targeted updates for room frames including a player-list refresh" do
+  test "broadcasts targeted updates immediately including a player-list refresh" do
     draft = drafts(:one)
     pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 12)
 
     clear_enqueued_jobs
-    assert_enqueued_with(
-      job: Turbo::Streams::ActionBroadcastJob,
-      args: ->(args) { args.second[:action] == :refresh_frame && args.second[:target] == "draft-#{draft.public_id}-players" }
-    ) do
-      Drafts::BroadcastPick.new(pick).call
+    broadcasts = capture_broadcasts(draft.to_gid_param) do
+      assert_no_enqueued_jobs { Drafts::BroadcastPick.new(pick).call }
     end
+
+    assert broadcasts.any? { |payload| payload.include?(%(<turbo-stream action="refresh_frame" target="draft-#{draft.public_id}-players">)) }
   end
 
-  test "queues seven deferred targeted updates after broadcasting the turn immediately" do
+  test "broadcasts all eight targeted updates without a job worker" do
     draft = drafts(:one)
     pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 12)
     clear_enqueued_jobs
 
-    assert_enqueued_jobs 7 do
-      Drafts::BroadcastPick.new(pick).call
+    assert_broadcasts(draft.to_gid_param, 8) do
+      assert_no_enqueued_jobs { Drafts::BroadcastPick.new(pick).call }
     end
   end
 

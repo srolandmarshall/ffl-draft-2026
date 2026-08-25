@@ -17,18 +17,18 @@ module Drafts
         return
       end
 
-      draft.broadcast_replace_later_to(
+      draft.broadcast_replace_to(
         draft,
         target: recent_picks_target,
         html: recent_picks_html
       )
-      draft.broadcast_replace_later_to(
+      draft.broadcast_replace_to(
         draft,
         target: board_cell_target(pick.overall_number),
         html: board_cell_html(pick.overall_number, pick: broadcast_pick)
       )
       broadcast_next_cell
-      draft.broadcast_action_later_to(
+      draft.broadcast_action_to(
         draft,
         action: :refresh_frame,
         target: players_target,
@@ -46,9 +46,9 @@ module Drafts
         },
         render: false
       )
-      draft.broadcast_action_later_to(draft, action: :refresh_frame, target: clock_target, render: false)
-      draft.broadcast_action_later_to(draft, action: :refresh_frame, target: team_roster_target, render: false)
-      draft.broadcast_replace_later_to(
+      draft.broadcast_action_to(draft, action: :refresh_frame, target: clock_target, render: false)
+      draft.broadcast_action_to(draft, action: :refresh_frame, target: team_roster_target, render: false)
+      draft.broadcast_replace_to(
         draft,
         target: "flash",
         html: Components::FlashRegion.new(messages: { notice: "#{pick.team.name} has picked #{pick.player.name} (#{pick.player.position})" }).call
@@ -116,7 +116,7 @@ module Drafts
       next_overall_number = pick.overall_number + 1
       return if next_overall_number > draft.total_picks
 
-      draft.broadcast_replace_later_to(
+      draft.broadcast_replace_to(
         draft,
         target: board_cell_target(next_overall_number),
         html: board_cell_html(next_overall_number)

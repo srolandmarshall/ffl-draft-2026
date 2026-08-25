@@ -7,9 +7,9 @@ module Drafts
     end
 
     def call
-      draft.broadcast_action_later_to(draft, action: :refresh_frame, target: header_target, render: false)
-      draft.broadcast_action_later_to(draft, action: :refresh_frame, target: content_target, render: false)
-      draft.broadcast_replace_later_to(
+      draft.broadcast_action_to(draft, action: :refresh_frame, target: header_target, render: false)
+      draft.broadcast_action_to(draft, action: :refresh_frame, target: content_target, render: false)
+      draft.broadcast_replace_to(
         draft,
         target: "flash",
         html: Components::FlashRegion.new(messages: { notice: "Undid #{pick.team.name}'s pick of #{pick.player.name}. The clock is paused." }).call
