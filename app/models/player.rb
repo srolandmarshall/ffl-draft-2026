@@ -41,6 +41,19 @@ class Player < ApplicationRecord
     }.fetch(injury_status, injury_status.to_s.titleize)
   end
 
+  def injury_status_abbreviation
+    {
+      "QUESTIONABLE" => "Q",
+      "DOUBTFUL" => "D",
+      "OUT" => "O",
+      "INJURY_RESERVE" => "IR",
+      "PHYSICALLY_UNABLE_TO_PERFORM" => "PUP",
+      "NON_FOOTBALL_INJURY" => "NFI",
+      "SUSPENSION" => "SSPD",
+      "INJURED" => "INJ"
+    }.fetch(injury_status, injury_status.to_s.first(4).upcase)
+  end
+
   def actual_stats?
     stats_season.present? && actual_stats.present?
   end

@@ -14,9 +14,14 @@ class PlayerTest < ActiveSupport::TestCase
 
     assert_predicate player, :injured?
     assert_equal "Questionable", player.injury_status_label
+    assert_equal "Q", player.injury_status_abbreviation
 
     player.injury_status = "INJURY_RESERVE"
     assert_equal "IR", player.injury_status_label
+    assert_equal "IR", player.injury_status_abbreviation
+
+    player.injury_status = "SUSPENSION"
+    assert_equal "SSPD", player.injury_status_abbreviation
 
     player.injury_status = "ACTIVE"
     assert_not_predicate player, :injured?
