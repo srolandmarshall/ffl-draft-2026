@@ -1,6 +1,14 @@
 require "test_helper"
 
 class PlayerTest < ActiveSupport::TestCase
+  test "orders ranked players before unranked players" do
+    players(:one).update!(ranking: 20)
+    players(:two).update!(ranking: 10)
+    unranked = Player.create!(name: "Unranked Player", position: "WR", pro_team: "SEA")
+
+    assert_equal [ players(:two), players(:one), unranked ], Player.by_ranking.to_a
+  end
+
   test "presents only actionable ESPN injury statuses" do
     player = players(:one)
 

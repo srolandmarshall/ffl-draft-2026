@@ -23,7 +23,10 @@ class Player < ApplicationRecord
 
   scope :active, -> { where(active: true) }
   scope :alphabetical, -> { order(:name) }
-  scope :by_adp, -> { order(Arel.sql("adp IS NULL, adp ASC"), :name) }
+  scope :by_ranking, -> { order(Arel.sql("ranking IS NULL, ranking ASC"), :name) }
+
+  validates :ranking, numericality: { greater_than: 0 }, allow_nil: true
+  validates :position_rank, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
 
   def injured?
     injury_status.present? && !injury_status.in?(%w[ACTIVE NORMAL])

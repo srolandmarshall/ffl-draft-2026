@@ -3,7 +3,7 @@ module Admin
     before_action :set_player, only: %i[edit update destroy]
 
     def index
-      @players = Player.by_adp.limit(500)
+      @players = Player.by_ranking.limit(500)
     end
 
     def new

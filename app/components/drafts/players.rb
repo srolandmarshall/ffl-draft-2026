@@ -120,6 +120,12 @@ class Components::Drafts::Players < Components::Base
       plain "#{prior_season} regular-season results from "
       a(href: "https://github.com/nflverse/nflverse-data/releases/tag/stats_player", target: "_blank", rel: "noopener", class: "underline hover:text-slate-300") { "nflverse" }
       plain ". Fantasy points use #{@draft.league.name}'s ESPN scoring rules."
+      sources = @players.map(&:ranking_source).compact.uniq
+      if sources.any?
+        plain " "
+        render Components::RankingAttribution.new(sources:)
+        plain "."
+      end
     end
   end
 

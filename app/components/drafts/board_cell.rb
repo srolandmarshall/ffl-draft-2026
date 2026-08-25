@@ -110,8 +110,8 @@ class Components::Drafts::BoardCell < Components::Base
   def position_label
     return @pick.player.position unless @draft.complete?
 
-    adp = @pick.player.adp ? Kernel.format("%.1f", @pick.player.adp) : "—"
-    "#{@pick.player.position} - ADP #{adp}"
+    ranking = @pick.player.ranking ? @pick.player.ranking.to_i : "—"
+    "#{@pick.player.position} - Rank #{ranking}"
   end
 
   def player_name
