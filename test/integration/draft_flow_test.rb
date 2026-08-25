@@ -209,6 +209,23 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "#draft-#{draft.public_id}-board", count: 0
   end
 
+  test "completed draft offers a two-choice board and facts recap" do
+    draft = drafts(:one)
+    draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 61)
+    draft.update!(status: :complete, completed_at: Time.current)
+    sign_in_as users(:member)
+
+    get draft_path(draft.public_id, view: "facts")
+
+    assert_response :success
+    assert_equal [ "Draft Board", "Draft Facts" ], css_select("nav[aria-label='Post-draft view'] a > span:first-child").map { |span| span.text.strip }
+    assert_select "nav[aria-label='Post-draft view'] a[aria-current='page']", text: /Draft Facts/, count: 1
+    assert_select "turbo-frame#draft-#{draft.public_id}-facts [data-draft-facts]", count: 1
+    assert_select "[data-draft-fact]", minimum: 1
+    assert_select "h3", text: "Longest on the Clock", count: 1
+    assert_select "#draft-#{draft.public_id}-board", count: 0
+  end
+
   test "commissioner without a team sees an unpersonalized board" do
     sign_in_as users(:commissioner)
 
