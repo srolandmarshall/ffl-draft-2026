@@ -34,13 +34,13 @@ class Components::Drafts::PlayerIdentity < Components::Base
   private
 
   def outer_classes
-    @variant == :desktop ? "flex items-center gap-2.5" : "flex min-w-0 gap-2.5"
+    @variant == :desktop ? "flex items-center gap-2.5" : "flex min-w-0 gap-2"
   end
 
   def headshot
-    size = @variant == :desktop ? 80 : 88
-    wrapper_size = @variant == :desktop ? "size-10" : "size-11"
-    fallback_margin = @variant == :desktop ? "mb-2" : "mb-2.5"
+    size = @variant == :desktop ? 80 : 72
+    wrapper_size = @variant == :desktop ? "size-10" : "size-9"
+    fallback_margin = @variant == :desktop ? "mb-2" : "mb-1.5"
     div(class: "flex #{wrapper_size} shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800") do
       if @player.headshot.attached?
         img(src: url_for(player_headshot(@player, size:)), alt: "", loading: "lazy", class: "h-full w-full object-cover object-top")
@@ -51,7 +51,7 @@ class Components::Drafts::PlayerIdentity < Components::Base
   end
 
   def player_name
-    classes = @variant == :desktop ? "truncate text-sm font-bold text-white" : "text-base font-bold leading-tight text-white"
+    classes = @variant == :desktop ? "truncate text-sm font-bold text-white" : "text-sm font-bold leading-tight text-white"
     span(class: classes) { @player.name }
   end
 
@@ -85,10 +85,11 @@ class Components::Drafts::PlayerIdentity < Components::Base
   end
 
   def position_badge
-    span(class: "inline-flex h-7 min-w-7 items-center justify-center rounded border px-2 text-xs font-bold leading-none #{position_badge_classes(@player.position)}") { @player.position }
+    dimensions = @variant == :desktop ? "h-7 min-w-7 px-2 text-xs" : "h-6 min-w-6 px-1.5 text-[.65rem]"
+    span(class: "inline-flex items-center justify-center rounded border font-bold leading-none #{dimensions} #{position_badge_classes(@player.position)}") { @player.position }
   end
 
-  def team_logo(size: "size-7")
+  def team_logo(size: @variant == :desktop ? "size-7" : "size-6")
     img(src: nfl_team_logo_url(@player.pro_team), alt: "", title: @player.pro_team, loading: "lazy", class: "#{size} rounded bg-slate-400/50 p-0.5 object-contain")
   end
 

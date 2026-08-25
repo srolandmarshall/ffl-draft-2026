@@ -11,9 +11,9 @@ class Components::Drafts::Touchdowns < Components::Base
     return if @stats.empty?
 
     if @variant == :mobile
-      div(class: "flex items-center gap-5 py-2 first:pt-0") do
+      div(class: "flex items-center gap-3 py-1.5 first:pt-0") do
         p(class: "mr-auto text-[.6rem] font-bold uppercase tracking-wider text-slate-400") { "Touchdowns" }
-        stats_list("flex gap-5", "text-base")
+        stats_list("flex gap-3", "text-sm")
       end
     else
       stats_list("flex justify-center gap-2", "")
