@@ -7,6 +7,16 @@ module Drafts
     end
 
     def call
+      if draft.complete?
+        draft.broadcast_action_to(
+          draft,
+          action: :visit,
+          target: Rails.application.routes.url_helpers.draft_path(draft.public_id),
+          render: false
+        )
+        return
+      end
+
       draft.broadcast_replace_later_to(
         draft,
         target: recent_picks_target,
@@ -42,7 +52,6 @@ module Drafts
         target: "flash",
         html: Components::FlashRegion.new(messages: { notice: "#{pick.team.name} has picked #{pick.player.name} (#{pick.player.position})" }).call
       )
-      draft.broadcast_action_later_to(draft, action: :refresh_frame, target: content_target) if draft.complete?
     end
 
     private
