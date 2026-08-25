@@ -10,6 +10,7 @@ class Components::Drafts::TeamRosterTest < ActiveSupport::TestCase
     assert_includes html, teams(:one).name
     assert_includes html, "0 of #{drafts(:one).roster_size} roster slots filled"
     assert_equal drafts(:one).roster_size, html.scan(/data-roster-slot=/).size
+    assert_equal drafts(:one).roster_size, html.scan(/style="height: 3.5rem"/).size
     assert_equal drafts(:one).roster_size, html.scan(/data-roster-filled="false"/).size
     assert_includes html, "Starting lineup"
     assert_includes html, "Bench"
@@ -23,6 +24,7 @@ class Components::Drafts::TeamRosterTest < ActiveSupport::TestCase
     assert_includes html, players(:one).name
     assert_includes html, "R1 · Pick 1"
     refute_includes html, "Time used for this pick"
+    assert_match(/class="[^"]*h-8 w-7[^"]*"/, html)
     assert_match(/data-roster-slot="QB"[^>]*data-roster-filled="true"[^>]*data-roster-pick-id="#{pick.id}"/, html)
   end
 

@@ -71,7 +71,8 @@ class Components::Drafts::TeamRoster < Components::Base
 
   def roster_slot(slot)
     article(
-      class: "flex min-h-16 min-w-0 items-center gap-2.5 rounded-lg border p-2.5 #{slot.filled? ? 'border-white/10 bg-slate-950/40' : 'border-dashed border-white/10 bg-slate-950/20'}",
+      class: "flex min-w-0 items-center gap-2.5 rounded-lg border p-2.5 #{slot.filled? ? 'border-white/10 bg-slate-950/40' : 'border-dashed border-white/10 bg-slate-950/20'}",
+      style: "height: 3.5rem",
       data: { roster_slot: slot.label, roster_slot_position: slot.position, roster_filled: slot.filled?.to_s, roster_pick_id: slot.pick&.id }
     ) do
       span(class: "flex w-11 shrink-0 items-center justify-center self-stretch rounded-md border border-white/10 bg-white/5 px-1 text-center text-[.65rem] font-black text-blue-300") { slot.label }
@@ -102,7 +103,7 @@ class Components::Drafts::TeamRoster < Components::Base
   end
 
   def player_image(player)
-    div(class: "flex h-12 w-10 shrink-0 items-end justify-center overflow-hidden rounded-md border border-white/10 #{player.position == 'DST' ? 'bg-slate-400/50' : 'bg-slate-800'}") do
+    div(class: "flex h-8 w-7 shrink-0 items-end justify-center overflow-hidden rounded-md border border-white/10 #{player.position == 'DST' ? 'bg-slate-400/50' : 'bg-slate-800'}") do
       if player.position == "DST"
         img(src: nfl_team_logo_url(player.pro_team), alt: "", title: player.pro_team, loading: "lazy", class: "h-full w-full object-contain p-1")
       elsif player.headshot.attached?
