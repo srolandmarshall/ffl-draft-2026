@@ -29,11 +29,14 @@ class Components::Drafts::Show < Components::Base
         draft: @draft,
         picks: @room.picks,
         pick_elapsed_seconds: @room.pick_elapsed_seconds,
-        current_user: @current_user
+        current_user: @current_user,
+        selected_team: @room.selected_team
       )
     end
-    turbo_frame_tag("draft-#{@draft.public_id}-board") do
-      render board
+    if @view == "my_team"
+      turbo_frame_tag("draft-#{@draft.public_id}-team-roster") { render team_roster }
+    else
+      turbo_frame_tag("draft-#{@draft.public_id}-board") { render board }
     end
   end
 
@@ -49,6 +52,16 @@ class Components::Drafts::Show < Components::Base
       picks: @room.picks,
       pick_elapsed_seconds: @room.pick_elapsed_seconds,
       selected_team: @room.selected_team
+    )
+  end
+
+  def team_roster
+    Components::Drafts::TeamRoster.new(
+      draft: @draft,
+      team: @room.roster_team,
+      picks: @room.picks,
+      commissioner: @current_user.commissioner?,
+      preferred_team: @room.selected_team
     )
   end
 end

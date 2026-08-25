@@ -47,6 +47,7 @@ module Drafts
         render: false
       )
       draft.broadcast_action_later_to(draft, action: :refresh_frame, target: clock_target, render: false)
+      draft.broadcast_action_later_to(draft, action: :refresh_frame, target: team_roster_target, render: false)
       draft.broadcast_replace_later_to(
         draft,
         target: "flash",
@@ -77,6 +78,7 @@ module Drafts
     def clock_target = "draft-#{draft.public_id}-clock"
     def content_target = "draft-#{draft.public_id}-content"
     def players_target = "draft-#{draft.public_id}-players"
+    def team_roster_target = "draft-#{draft.public_id}-team-roster"
     def room_target = ActionView::RecordIdentifier.dom_id(draft, :room)
     def current_team = @current_team ||= draft.current_team
 

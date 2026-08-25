@@ -13,16 +13,20 @@ class Components::Drafts::Room < Components::Base
       id: dom_id(@draft, :room),
       class: "space-y-4",
       data: {
-        controller: "draft-pick",
-        action: "draft:turn->draft-pick#turnChanged",
+        controller: "draft-pick draft-alert",
+        action: "draft:turn->draft-pick#turnChanged draft:turn->draft-alert#turnChanged",
         draft_pick_selected_team_id_value: @room.selected_team&.id,
-        draft_pick_commissioner_value: @current_user.commissioner?.to_s
+        draft_pick_commissioner_value: @current_user.commissioner?.to_s,
+        draft_alert_selected_team_id_value: @room.selected_team&.id,
+        draft_alert_current_team_id_value: @draft.current_team&.id,
+        draft_alert_enabled_value: (@room.selected_team.present? && !@current_user.commissioner?).to_s,
+        draft_alert_sound_url_value: "/its-your-pick.mp3"
       }
     ) do
       clock
-      navigation
       div { render recent_picks }
-      section(class: "min-w-0") { render @view == "board" ? board : players }
+      navigation
+      section(class: "min-w-0") { render_active_view }
     end
   end
 
@@ -42,20 +46,37 @@ class Components::Drafts::Room < Components::Base
   end
 
   def navigation
-    nav(class: "grid grid-cols-2 overflow-hidden rounded-xl border border-white/15 bg-slate-900 shadow-xl shadow-black/20", aria: { label: "Draft room view" }) do
-      navigation_link("Player list", "Search, compare, and make your pick", draft_path(@draft.public_id), active: @view != "board")
+    nav(class: "grid grid-cols-3 overflow-hidden rounded-xl border border-white/15 bg-slate-900 shadow-xl shadow-black/20", aria: { label: "Draft room view" }) do
+      navigation_link("Player list", "Search, compare, and make your pick", draft_path(@draft.public_id), active: @view.blank?)
+      navigation_link("Team Rosters", @current_user.commissioner? ? "Choose and review a roster" : "Review your drafted roster", roster_path, active: @view == "my_team", roster: true)
       navigation_link("Draft board", "See every team and round at once", draft_path(@draft.public_id, view: "board"), active: @view == "board", board: true)
     end
   end
 
-  def navigation_link(label, description, href, active:, board: false)
+  def navigation_link(label, description, href, active:, board: false, roster: false)
     classes = if active
-      board ? "bg-lime-400 text-slate-950" : "bg-white text-slate-950"
+      if board
+        "bg-lime-400 text-slate-950"
+      elsif roster
+        "bg-blue-300 text-slate-950"
+      else
+        "bg-white text-slate-950"
+      end
     else
-      board ? "text-lime-400 hover:bg-white/5" : "text-slate-400 hover:bg-white/5 hover:text-white"
+      if board
+        "text-lime-400 hover:bg-white/5"
+      elsif roster
+        "text-blue-300 hover:bg-white/5"
+      else
+        "text-slate-400 hover:bg-white/5 hover:text-white"
+      end
     end
 
-    a(href:, class: "group px-4 py-4 transition sm:px-5 #{board ? 'border-l border-white/15' : nil} #{classes}") do
+    a(
+      href:,
+      class: "group px-2 py-3 transition sm:px-5 sm:py-4 #{(board || roster) ? 'border-l border-white/15' : nil} #{classes}",
+      style: ("background-color: var(--color-blue-300)" if active && roster)
+    ) do
       span(class: "block text-base font-black sm:text-lg") { label }
       span(class: "mt-0.5 block text-[.65rem] font-semibold sm:text-xs") { description }
     end
@@ -80,5 +101,33 @@ class Components::Drafts::Room < Components::Base
 
   def players
     Components::Drafts::Players.new(room: @room, can_make_pick: @room.can_make_pick?(@current_user))
+  end
+
+  def team_roster
+    Components::Drafts::TeamRoster.new(
+      draft: @draft,
+      team: @room.roster_team,
+      picks: @room.picks,
+      commissioner: @current_user.commissioner?,
+      preferred_team: @room.selected_team
+    )
+  end
+
+  def render_active_view
+    if @view == "board"
+      render board
+    elsif @view == "my_team"
+      turbo_frame_tag("draft-#{@draft.public_id}-team-roster") { render team_roster }
+    else
+      render players
+    end
+  end
+
+  def roster_path
+    draft_path(
+      @draft.public_id,
+      view: "my_team",
+      team_id: (@room.selected_team&.id if @current_user.commissioner?)
+    )
   end
 end

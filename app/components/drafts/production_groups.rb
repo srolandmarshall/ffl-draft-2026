@@ -30,11 +30,11 @@ class Components::Drafts::ProductionGroups < Components::Base
   end
 
   def mobile_groups
-    div(class: "mt-2 divide-y divide-white/10") do
+    div(class: "mt-1 divide-y divide-white/10") do
       @groups.each do |group|
-        section(class: "py-2 first:pt-0") do
-          h3(class: "mb-2 text-[.6rem] font-bold uppercase tracking-wider text-slate-400") { group[:label] }
-          stat_list(group[:stats], "min-w-0 justify-between", "text-base")
+        section(class: "flex items-center gap-3 py-1.5 first:pt-0") do
+          h3(class: "mr-auto text-[.6rem] font-bold uppercase tracking-wider text-slate-400") { group[:label] }
+          stat_list(group[:stats], "shrink-0 gap-3", "text-sm")
         end
       end
     end

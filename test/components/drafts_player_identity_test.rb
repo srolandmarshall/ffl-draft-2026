@@ -15,8 +15,11 @@ class Components::Drafts::PlayerIdentityTest < ActiveSupport::TestCase
       assert_includes html, "sr-only"
       assert_includes html, "Questionable"
       assert_includes html, "ESPN injury status"
-      assert_match(/title="#{player.pro_team}"[^>]+size-7[^>]+bg-slate-400\/50/, html)
-      assert_match(/class="[^"]*h-7[^"]*min-w-7[^"]*"[^>]*>#{player.position}</, html)
     end
+
+    assert_match(/title="#{player.pro_team}"[^>]+size-7[^>]+bg-slate-400\/50/, desktop)
+    assert_match(/class="[^"]*h-7[^"]*min-w-7[^"]*"[^>]*>#{player.position}</, desktop)
+    assert_match(/title="#{player.pro_team}"[^>]+size-6[^>]+bg-slate-400\/50/, mobile)
+    assert_match(/class="[^"]*h-6[^"]*min-w-6[^"]*"[^>]*>#{player.position}</, mobile)
   end
 end

@@ -23,7 +23,6 @@ class Components::Drafts::BoardCell < Components::Base
         desktop_drafted_cell
       else
         mobile_empty_cell
-        span(class: "hidden text-xs text-slate-600 min-[900px]:inline") { "Open" }
       end
     end
   end
@@ -76,11 +75,7 @@ class Components::Drafts::BoardCell < Components::Base
   end
 
   def mobile_empty_cell
-    div(class: "grid w-full min-w-0 grid-cols-[2rem_2.75rem_minmax(0,1fr)] items-center gap-2 min-[900px]:hidden", data: { mobile_draft_pick: @overall_number }) do
-      span(class: "font-mono text-[.65rem] font-bold tabular-nums text-slate-500") { pick_label }
-      span(class: "text-[.65rem] font-black text-slate-400") { @team.abbreviation }
-      span(class: "text-xs text-slate-600") { "Open" }
-    end
+    span(class: "w-full font-mono text-[.65rem] font-bold tabular-nums text-slate-500 min-[900px]:hidden", data: { mobile_draft_pick: @overall_number }) { pick_label }
   end
 
   def desktop_drafted_cell

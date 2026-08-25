@@ -77,7 +77,7 @@ class Components::Drafts::Players < Components::Base
   end
 
   def mobile_list
-    div(class: "divide-y divide-white/5 md:hidden") do
+    div(class: "divide-y divide-white/15 md:hidden") do
       @players.each { |player| mobile_row(player) }
       div(class: "px-5 py-10 text-center text-sm text-slate-500") { "No players match those filters." } if @players.empty?
     end
@@ -85,8 +85,8 @@ class Components::Drafts::Players < Components::Base
 
   def mobile_row(player)
     stats = PlayerStats.new(@draft, player)
-    article(class: "p-3", data: { draft_player_id: player.id }) do
-      div(class: "flex items-start justify-between gap-3") do
+    article(class: "px-3 py-2.5 even:bg-white/[.02]", data: { draft_player_id: player.id, mobile_player_row: true }) do
+      div(class: "flex items-start justify-between gap-2") do
         render Components::Drafts::PlayerIdentity.new(player:, variant: :mobile)
         render Components::Drafts::Action.new(draft: @draft, player:, can_make_pick: @can_make_pick)
       end
@@ -97,7 +97,7 @@ class Components::Drafts::Players < Components::Base
   end
 
   def mobile_summary(player, stats)
-    dl(class: "mt-2 grid grid-cols-3 border-y border-white/10 py-2") do
+    dl(class: "mt-1.5 grid grid-cols-3 border-y border-white/10 py-1.5") do
       metric("Bye", player.bye_week || "—")
       metric("#{prior_season} FP", points(stats), separated: true, accent: true)
       metric("Games", player.draft_games || "—", separated: true)
@@ -105,9 +105,9 @@ class Components::Drafts::Players < Components::Base
   end
 
   def metric(label, value, separated: false, accent: false)
-    div(class: separated ? "border-l border-white/10 pl-4" : nil) do
-      dt(class: "text-[.6rem] font-bold uppercase tracking-wider #{accent ? 'text-lime-300' : 'text-slate-500'}") { label }
-      dd(class: "text-xl font-black tabular-nums #{accent ? 'text-lime-300' : 'text-slate-100'}") { value }
+    div(class: separated ? "border-l border-white/10 pl-3" : nil) do
+      dt(class: "text-[.55rem] font-bold uppercase tracking-wider #{accent ? 'text-lime-300' : 'text-slate-500'}") { label }
+      dd(class: "text-base font-black tabular-nums leading-tight #{accent ? 'text-lime-300' : 'text-slate-100'}") { value }
     end
   end
 
