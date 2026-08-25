@@ -5,12 +5,15 @@ require "test_helper"
 class Drafts::BroadcastPickTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
-  test "queues targeted updates for room frames and drafted player rows" do
+  test "queues targeted updates for room frames including a player-list refresh" do
     draft = drafts(:one)
     pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 12)
 
     clear_enqueued_jobs
-    assert_enqueued_with(job: Turbo::Streams::ActionBroadcastJob) do
+    assert_enqueued_with(
+      job: Turbo::Streams::ActionBroadcastJob,
+      args: ->(args) { args.second[:action] == :refresh_frame && args.second[:target] == "draft-#{draft.public_id}-players" }
+    ) do
       Drafts::BroadcastPick.new(pick).call
     end
   end

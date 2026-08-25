@@ -72,6 +72,23 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "input[name='query'][value='search sleeper']"
   end
 
+  test "player list backfills to 36 after players are drafted" do
+    40.times do |index|
+      Player.create!(name: "Available Player #{index + 1}", position: "WR", pro_team: "ATL", adp: index + 1)
+    end
+    draft = drafts(:one)
+    drafted_player = Player.by_adp.first
+    draft.picks.create!(team: teams(:one), player: drafted_player, round: 1, overall_number: 1)
+    sign_in_as users(:member)
+
+    get players_draft_path(draft.public_id)
+
+    assert_response :success
+    rendered_player_ids = css_select("[data-draft-player-id]").map { |element| element["data-draft-player-id"] }.uniq
+    assert_equal 36, rendered_player_ids.size
+    refute_includes rendered_player_ids, drafted_player.id.to_s
+  end
+
   test "position and team filters search beyond the default player window" do
     36.times do |index|
       Player.create!(name: "Window Player #{index + 1}", position: "RB", pro_team: "BUF", adp: index + 1)
@@ -85,6 +102,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "[data-draft-player-id='#{deep_player.id}']", count: 2
     assert_select "input[name='positions[]'][value='TE'][checked]"
     assert_select "input[name='teams[]'][value='SEA'][checked]"
+    assert_select "turbo-frame[data-player-refresh-url*='positions%5B%5D=TE'][data-player-refresh-url*='teams%5B%5D=SEA']"
   end
 
   test "draft room has a secondary board view" do

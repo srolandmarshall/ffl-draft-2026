@@ -6,7 +6,11 @@ Turbo.StreamActions.refresh_frame = function () {
   const frame = document.getElementById(this.target)
   if (!frame) return
 
-  if (frame.hasAttribute("src")) {
+  const refreshUrl = frame.dataset.playerRefreshUrl
+
+  if (refreshUrl && frame.getAttribute("src") !== refreshUrl) {
+    frame.src = refreshUrl
+  } else if (frame.hasAttribute("src")) {
     frame.reload()
   } else {
     frame.src = window.location.href
