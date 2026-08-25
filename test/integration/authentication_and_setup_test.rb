@@ -129,6 +129,7 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     assert_select "select[name='draft[ppr]'] option[selected][value='0.5']"
     assert_select "select[name='draft[draft_type]'] option[selected][value='linear']"
     assert_select "input[name='draft[wr_slots]'][value='3']"
+    assert_select "label", text: "Scheduled start (Eastern Time)"
   end
 
   test "a regular member cannot delete a league" do
@@ -175,6 +176,7 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
         post admin_league_drafts_path(league), params: {
           draft: {
             name: "2027 Draft",
+            scheduled_start_at: "2027-08-25T20:00",
             team_count: 2,
             draft_type: "snake",
             ppr: 0.5,
@@ -200,6 +202,7 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     assert_equal 2, draft.team_count
     assert_equal 13, draft.rounds
     assert_equal 0.5, draft.ppr
+    assert_equal Time.zone.parse("2027-08-25 20:00"), draft.scheduled_start_at
     assert_equal %w[alex@example.com coowner@example.com], draft.teams.first.emails
     assert_equal [ alex ], draft.teams.first.users
   end

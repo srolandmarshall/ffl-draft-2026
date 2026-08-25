@@ -1,6 +1,8 @@
 require "test_helper"
 
 class DraftTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
   setup do
     @draft = drafts(:one)
     @second_team = @draft.league.teams.create!(name: "Green Giants", owner_name: "Greer", abbreviation: "GRN")
@@ -18,6 +20,22 @@ class DraftTest < ActiveSupport::TestCase
 
     make_pick(@second_team, players(:two))
     assert_equal @second_team, @draft.current_team, "round two reverses direction"
+  end
+
+  test "enqueues an automatic start when a future time is scheduled" do
+    draft = drafts(:two)
+    scheduled_at = 2.hours.from_now
+
+    assert_enqueued_with(job: StartScheduledDraftJob, args: [ draft ], at: scheduled_at) do
+      draft.update!(scheduled_start_at: scheduled_at)
+    end
+  end
+
+  test "rejects a newly scheduled start in the past" do
+    draft = drafts(:two)
+
+    refute draft.update(scheduled_start_at: 1.minute.ago)
+    assert_predicate draft.errors[:scheduled_start_at], :present?
   end
 
   private

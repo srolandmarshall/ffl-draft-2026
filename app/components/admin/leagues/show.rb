@@ -158,6 +158,7 @@ class Components::Admin::Leagues::Show < Components::Base
         div do
           p(class: "font-semibold") { draft.name }
           p(class: "text-sm text-slate-400") { "#{draft.team_count} teams · #{draft.rounds} rounds · #{draft.ppr.to_f} PPR · #{draft.status}" }
+          p(class: "mt-1 text-xs font-semibold text-blue-300") { "Scheduled for #{draft.scheduled_start_at.in_time_zone.strftime('%A, %B %-d at %-I:%M %p %Z')}" } if draft.setup? && draft.scheduled_start_at.present?
         end
         top_link(draft.complete? ? "View draft result →" : "Open room →", draft_path(draft.public_id, **({ view: "board" } if draft.complete?)), class_name: "text-sm font-bold text-lime-400")
       end

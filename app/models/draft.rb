@@ -11,6 +11,7 @@ class Draft < ApplicationRecord
   ROSTER_SLOT_ATTRIBUTES = %i[qb_slots rb_slots wr_slots te_slots flex_slots k_slots dst_slots bench_slots].freeze
 
   before_validation :assign_public_id, on: :create
+  after_commit :enqueue_scheduled_start, if: :scheduled_start_changed?
 
   validates :name, :public_id, presence: true
   validates :public_id, uniqueness: true
@@ -18,6 +19,7 @@ class Draft < ApplicationRecord
   validates :team_count, numericality: { only_integer: true, in: 2..20 }
   validates(*ROSTER_SLOT_ATTRIBUTES, numericality: { only_integer: true, in: 0..20 })
   validates :ppr, inclusion: { in: [ 0, 0.5, 1 ], message: "must be 0, 0.5, or 1" }
+  validates :scheduled_start_at, comparison: { greater_than: -> { Time.current } }, allow_nil: true, if: :will_save_change_to_scheduled_start_at?
   before_validation :set_rounds_from_roster, if: :setup?
 
   def total_picks
@@ -119,6 +121,14 @@ class Draft < ApplicationRecord
   end
 
   private
+
+  def scheduled_start_changed?
+    setup? && saved_change_to_scheduled_start_at? && scheduled_start_at.present?
+  end
+
+  def enqueue_scheduled_start
+    StartScheduledDraftJob.set(wait_until: scheduled_start_at).perform_later(self)
+  end
 
   def set_rounds_from_roster
     self.rounds = roster_size if roster_size.positive?

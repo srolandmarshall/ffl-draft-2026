@@ -62,7 +62,7 @@ module Admin
     end
 
     def draft_params
-      params.expect(draft: %i[name team_count qb_slots rb_slots wr_slots te_slots flex_slots k_slots dst_slots bench_slots ppr draft_type])
+      params.expect(draft: %i[name scheduled_start_at team_count qb_slots rb_slots wr_slots te_slots flex_slots k_slots dst_slots bench_slots ppr draft_type])
     end
 
     def save_with_entries

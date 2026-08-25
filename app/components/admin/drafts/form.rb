@@ -27,6 +27,16 @@ class Components::Admin::Drafts::Form < Components::Base
       div(class: "md:col-span-2") { section_header("Draft basics", "Set the room format and pace.") }
       builder_field(form, :name, autofocus: true, required: true)
       div do
+        form.label(:scheduled_start_at, "Scheduled start (Eastern Time)", class: label_classes)
+        form.datetime_local_field(
+          :scheduled_start_at,
+          value: local_scheduled_start,
+          min: Time.current.strftime("%Y-%m-%dT%H:%M"),
+          class: INPUT_CLASSES
+        )
+        p(class: "mt-1 text-xs text-slate-500") { "Optional. The draft starts automatically at this time; commissioners can still start it manually." }
+      end
+      div do
         form.label(:team_count, "Number of teams", class: label_classes)
         form.select(:team_count, (2..20).map { |count| [ pluralize(count, "team"), count ] }, {}, class: INPUT_CLASSES, data: { draft_setup_target: "count", action: "change->draft-setup#update" })
       end
@@ -96,4 +106,8 @@ class Components::Admin::Drafts::Form < Components::Base
   end
 
   def label_classes = "mb-2 block text-sm font-bold"
+
+  def local_scheduled_start
+    @draft.scheduled_start_at&.in_time_zone&.strftime("%Y-%m-%dT%H:%M")
+  end
 end

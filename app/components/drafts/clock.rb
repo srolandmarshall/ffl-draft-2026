@@ -39,7 +39,7 @@ class Components::Drafts::Clock < Components::Base
         sound_control
       else
         p(class: "font-bold") { "Draft room is ready" }
-        p(class: "text-xs text-slate-500") { "Waiting for the commissioner to start." }
+        p(class: "text-xs text-slate-500") { waiting_message }
       end
     end
   end
@@ -59,6 +59,12 @@ class Components::Drafts::Clock < Components::Base
       span(class: "text-slate-300") { "#{@selected_team.name}:" }
       plain " #{status}"
     end
+  end
+
+  def waiting_message
+    return "Waiting for the commissioner to start." unless @draft.scheduled_start_at
+
+    "Starts automatically #{@draft.scheduled_start_at.in_time_zone.strftime('%A, %B %-d at %-I:%M %p %Z')}."
   end
 
   def sound_control
