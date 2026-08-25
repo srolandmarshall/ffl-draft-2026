@@ -7,23 +7,17 @@ class DraftsController < ApplicationController
 
   def show
     @selected_team = selected_team
-    @picks_until_selected_team = @draft.picks_until_team(@selected_team)
     @picks = @draft.picks.includes(:team, player: { headshot_attachment: :blob }).to_a
     @pick_elapsed_seconds = pick_elapsed_seconds(@picks)
     @current_pick_elapsed_seconds = @draft.current_pick_elapsed_seconds
     load_available_players unless @draft.complete? || params[:view] == "board"
+    @draft_room = draft_room
   end
 
   def players
     @selected_team = selected_team
     load_available_players
-    render partial: "players", locals: {
-      draft: @draft,
-      available_players: @available_players,
-      available_teams: @available_teams,
-      player_filters: @player_filters,
-      can_make_pick: @draft.live? && (current_user.commissioner? || @selected_team == @draft.current_team)
-    }
+    render Components::Drafts::Players.new(room: draft_room, can_make_pick: draft_room.can_make_pick?(current_user))
   end
 
   private
@@ -71,5 +65,18 @@ class DraftsController < ApplicationController
       started_at = pick.created_at
       [ pick.id, elapsed ]
     end
+  end
+
+  def draft_room
+    @draft_room ||= DraftRoom.new(
+      draft: @draft,
+      selected_team: @selected_team,
+      picks: @picks || [],
+      available_players: @available_players || [],
+      available_teams: @available_teams || [],
+      player_filters: @player_filters || {},
+      pick_elapsed_seconds: @pick_elapsed_seconds || {},
+      current_pick_elapsed_seconds: @current_pick_elapsed_seconds || @draft.current_pick_elapsed_seconds
+    )
   end
 end
