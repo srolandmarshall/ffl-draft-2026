@@ -13,7 +13,9 @@ class Components::Drafts::RecentPicks < Components::Base
       div(class: "border-b border-white/10") do
         p(class: "border-b border-white/10 px-3 py-1.5 text-[.65rem] font-bold uppercase tracking-wider text-slate-400") { "Recent picks · #{@pick_count}/#{@draft.total_picks}" }
         ol(class: "grid max-h-32 grid-cols-2 overflow-y-auto sm:grid-cols-4 lg:max-h-[calc(100vh-18rem)] lg:grid-cols-1") do
-          @picks.last(4).reverse_each { |pick| pick_item(pick) }
+          @picks.last(12).reverse_each.with_index do |pick, index|
+            pick_item(pick, desktop_only: index >= 4)
+          end
           li(class: "col-span-full px-4 py-4 text-center text-xs text-slate-500") { "No picks yet." } if @picks.empty?
         end
       end
@@ -22,9 +24,10 @@ class Components::Drafts::RecentPicks < Components::Base
 
   private
 
-  def pick_item(pick)
+  def pick_item(pick, desktop_only:)
     elapsed = @pick_elapsed_seconds.fetch(pick.id) { @pick_elapsed_seconds.fetch(pick.id.to_s, 0) }
-    li(class: "flex min-w-0 items-center gap-2 border-b border-r border-white/5 px-2 py-1.5 text-[.65rem] sm:text-xs", data: { recent_pick: "" }) do
+    visibility_classes = desktop_only ? "hidden lg:flex" : "flex"
+    li(class: "#{visibility_classes} min-w-0 items-center gap-2 border-b border-r border-white/5 px-2 py-1.5 text-[.65rem] sm:text-xs", data: { recent_pick: "" }) do
       div(class: "flex size-8 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800") do
         if pick.player.headshot.attached?
           img(src: url_for(player_headshot(pick.player, size: 64)), alt: "", loading: "lazy", class: "h-full w-full object-cover object-top")
