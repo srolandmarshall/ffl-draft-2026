@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 class Components::Drafts::Results < Components::Base
-  def initialize(draft:, picks:, pick_elapsed_seconds:)
+  def initialize(draft:, picks:, pick_elapsed_seconds:, current_user: nil)
     @draft = draft
     @picks = picks
     @pick_elapsed_seconds = pick_elapsed_seconds
+    @current_user = current_user
   end
 
   def view_template
@@ -19,7 +20,6 @@ class Components::Drafts::Results < Components::Base
           a(href: league_history_path(@draft.league), class: "rounded-lg bg-lime-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-lime-300") { "League history" }
         end
         a(href: draft_export_path(@draft.public_id, format: :csv), class: "rounded-lg bg-white px-4 py-2 text-sm font-bold text-slate-950 hover:bg-slate-200") { "Export CSV" }
-        a(href: draft_export_path(@draft.public_id, format: :json), class: "rounded-lg border border-white/20 px-4 py-2 text-sm font-bold hover:border-white/50") { "Export JSON" }
       end
     end
   end

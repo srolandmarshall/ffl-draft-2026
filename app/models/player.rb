@@ -25,6 +25,19 @@ class Player < ApplicationRecord
   scope :alphabetical, -> { order(:name) }
   scope :by_adp, -> { order(Arel.sql("adp IS NULL, adp ASC"), :name) }
 
+  def injured?
+    injury_status.present? && !injury_status.in?(%w[ACTIVE NORMAL])
+  end
+
+  def injury_status_label
+    {
+      "INJURY_RESERVE" => "IR",
+      "PHYSICALLY_UNABLE_TO_PERFORM" => "PUP",
+      "NON_FOOTBALL_INJURY" => "NFI",
+      "SUSPENSION" => "Suspended"
+    }.fetch(injury_status, injury_status.to_s.titleize)
+  end
+
   def actual_stats?
     stats_season.present? && actual_stats.present?
   end

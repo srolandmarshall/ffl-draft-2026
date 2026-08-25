@@ -14,6 +14,7 @@ module DataSources
         catalogs = snapshots.to_h do |snapshot|
           [ snapshot.season, PlayerCatalog.new(client.fetch_players(year: snapshot.season)) ]
         end
+        player_updates = client.fetch_player_updates(year: league.season, league_id: league.espn_league_id)
         score_season = league.season - 1
         player_scores = client.fetch_player_scores(year: score_season, league_id: league.espn_league_id)
 
@@ -22,6 +23,7 @@ module DataSources
         League.transaction do
           LeagueSettingsImport.new(league:, settings: current.settings).call
           team_result = TeamImport.new(league:, teams: current.teams).call
+          PlayerIdSync.new(player_updates).call
           snapshots.each do |snapshot|
             SeasonImport.new(league:, snapshot:, player_catalog: catalogs.fetch(snapshot.season)).call
           end
