@@ -30,8 +30,8 @@ module Drafts
       broadcast_next_cell
       draft.broadcast_action_later_to(
         draft,
-        action: :remove,
-        targets: "[data-draft-player-id='#{pick.player_id}']",
+        action: :refresh_frame,
+        target: players_target,
         render: false
       )
       draft.broadcast_action_to(
@@ -75,6 +75,8 @@ module Drafts
     def recent_picks_target = "draft-#{draft.public_id}-recent-picks"
     def board_cell_target(overall_number) = "draft-#{draft.public_id}-board-cell-#{overall_number}"
     def clock_target = "draft-#{draft.public_id}-clock"
+    def content_target = "draft-#{draft.public_id}-content"
+    def players_target = "draft-#{draft.public_id}-players"
     def room_target = ActionView::RecordIdentifier.dom_id(draft, :room)
     def current_team = @current_team ||= draft.current_team
 
