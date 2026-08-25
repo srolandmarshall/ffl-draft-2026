@@ -22,9 +22,8 @@ class DraftLiveUpdatesTest < ActionDispatch::IntegrationTest
       commissioner.post draft_picks_path(draft.public_id), params: { player_id: player.id }, headers: turbo_frame_headers("draft-#{draft.public_id}-room")
     end
 
-    assert_equal 302, commissioner.response.status
-    commissioner.follow_redirect!
-    assert_includes commissioner.response.body, "draft-#{draft.public_id}-room"
+    assert_equal 204, commissioner.response.status
+    assert_empty commissioner.response.body
 
     member.get draft_path(draft.public_id)
     body = member.response.body
@@ -51,6 +50,38 @@ class DraftLiveUpdatesTest < ActionDispatch::IntegrationTest
     assert_equal 302, commissioner.response.status
     commissioner.follow_redirect!
     assert_match(/That player (?:was just selected|has already been drafted)/, commissioner.response.body)
+  end
+
+  test "the final pick visits the completed board at the top level" do
+    draft = drafts(:one)
+    draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1)
+    commissioner = open_session
+    sign_in(commissioner, users(:commissioner))
+
+    commissioner.post draft_picks_path(draft.public_id),
+      params: { player_id: players(:two).id },
+      headers: turbo_frame_headers("draft-#{draft.public_id}-room")
+
+    assert_equal 200, commissioner.response.status
+    assert_predicate draft.reload, :complete?
+    assert_includes commissioner.response.body, '<turbo-stream action="visit" target="/drafts/sunday-draft">'
+  end
+
+  test "a stale pick submitted after completion visits the completed board" do
+    draft = drafts(:one)
+    draft.update!(status: :complete, completed_at: Time.current)
+    commissioner = open_session
+    sign_in(commissioner, users(:commissioner))
+
+    assert_no_difference("Pick.count") do
+      commissioner.post draft_picks_path(draft.public_id),
+        params: { player_id: players(:one).id },
+        headers: turbo_frame_headers("draft-#{draft.public_id}-room")
+    end
+
+    assert_equal 200, commissioner.response.status
+    assert_includes commissioner.response.body, '<turbo-stream action="visit" target="/drafts/sunday-draft">'
+    refute_includes commissioner.response.body, "Your email is not assigned"
   end
 
   test "pausing the timer broadcasts a clock-frame refresh" do

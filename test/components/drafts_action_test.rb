@@ -8,8 +8,9 @@ class Components::Drafts::ActionTest < ActiveSupport::TestCase
       Components::Drafts::Action.new(draft: drafts(:one), player: players(:one), can_make_pick: false)
     )
 
-    assert_includes html, "data-controller=\"draft-pick\""
     assert_includes html, "disabled"
+    assert_includes html, "enabled:bg-lime-400"
+    assert_includes html, "disabled:bg-white/5"
     assert_includes html, "Confirm drafting #{players(:one).name}"
   end
 end

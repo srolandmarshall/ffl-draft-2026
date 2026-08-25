@@ -1,6 +1,19 @@
 require "test_helper"
 
 class PlayerTest < ActiveSupport::TestCase
+  test "presents only actionable ESPN injury statuses" do
+    player = players(:one)
+
+    assert_predicate player, :injured?
+    assert_equal "Questionable", player.injury_status_label
+
+    player.injury_status = "INJURY_RESERVE"
+    assert_equal "IR", player.injury_status_label
+
+    player.injury_status = "ACTIVE"
+    assert_not_predicate player, :injured?
+  end
+
   test "formats position stats and applies the draft's PPR setting" do
     player = players(:one)
 
