@@ -63,7 +63,7 @@ class DraftsController < ApplicationController
     scope = scope.where(position: @player_filters[:positions]) if @player_filters[:positions].any?
     scope = scope.where(pro_team: @player_filters[:teams]) if @player_filters[:teams].any?
 
-    @available_players = scope.includes(:league_player_scores, headshot_attachment: :blob).by_adp.limit(PLAYER_LIST_LIMIT).to_a
+    @available_players = scope.includes(:league_player_scores, headshot_attachment: :blob).by_ranking.limit(PLAYER_LIST_LIMIT).to_a
   end
 
   def pick_elapsed_seconds(picks)

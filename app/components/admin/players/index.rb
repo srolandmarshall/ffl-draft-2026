@@ -23,10 +23,11 @@ class Components::Admin::Players::Index < Components::Base
       div do
         p(class: "text-sm font-bold text-lime-400") { "Player pool" }
         h1(class: "text-2xl font-semibold") { "Players" }
-        p(class: "mt-1 text-sm text-slate-400") { "#{@player_count} total; ordered by current ADP." }
+        p(class: "mt-1 text-sm text-slate-400") { "#{@player_count} total; ordered by current rankings." }
+        ranking_attribution
       end
       div(class: "flex flex-wrap gap-3") do
-        link("Refresh ADP", new_admin_adp_import_path)
+        link("Refresh rankings", new_admin_ranking_import_path)
         button_to("Sync ESPN player pool", admin_espn_player_sync_path, class: action_classes)
         button_to("Refresh actual stats", admin_nflverse_player_sync_path, class: action_classes)
         link("Import CSV", new_admin_player_import_path)
@@ -44,7 +45,7 @@ class Components::Admin::Players::Index < Components::Base
   def table_header
     thead(class: "bg-slate-800 text-xs uppercase tracking-wider text-slate-400") do
       tr do
-        [ "Player", "Pos", "NFL", "ADP" ].each { |heading| th(class: "px-3 py-3 first:px-4") { heading } }
+        [ "Player", "Pos", "NFL", "Rank" ].each { |heading| th(class: "px-3 py-3 first:px-4") { heading } }
         th(class: "hidden px-3 py-3 sm:table-cell") { "ESPN ID" }
         th
       end
@@ -59,9 +60,18 @@ class Components::Admin::Players::Index < Components::Base
       end
       td(class: "px-3 py-3") { player.position }
       td(class: "px-3 py-3 text-slate-400") { player.pro_team }
-      td(class: "px-3 py-3 text-slate-300") { player.adp_formatted || "—" }
+      td(class: "px-3 py-3 text-slate-300", title: player.ranking_source&.humanize) { player.ranking&.to_i || "—" }
       td(class: "hidden px-3 py-3 text-slate-500 sm:table-cell") { player.espn_id || "—" }
       td(class: "px-4 py-3 text-right") { a(href: edit_admin_player_path(player), class: "font-bold text-lime-400") { "Edit" } }
+    end
+  end
+
+  def ranking_attribution
+    sources = @players.map(&:ranking_source).compact.uniq
+    return if sources.empty?
+
+    p(class: "mt-1 text-xs text-slate-500") do
+      render Components::RankingAttribution.new(sources:)
     end
   end
 end

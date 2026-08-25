@@ -24,11 +24,11 @@ bin/rails db:seed
 bin/dev
 ```
 
-Open `http://localhost:52477`. The seed task creates a demo league and teams. Populate the current player pool from Admin → Players → Refresh ADP, then use Match ESPN IDs to attach ESPN's canonical identifiers.
+Open `http://localhost:52477`. The seed task creates a demo league and teams. Populate the current player pool from Admin → Players → Sync ESPN player pool, then use Refresh rankings to order it.
 
 The first email entered in a fresh database becomes a commissioner. Commissioners can create leagues and drafts, choose team count, snake or linear order, pick clock, PPR scoring, and roster slots, then assign one or more email addresses to every team. Additional commissioners can be promoted from Admin → Users. Team managers enter an assigned email to open their draft room; there is intentionally no password or email verification in this lightweight local workflow.
 
-The ADP importer uses [Fantasy Football Calculator's free REST API](https://help.fantasyfootballcalculator.com/article/42-adp-rest-api), respects its once-daily update cadence, and includes the requested attribution in the admin screen. The ESPN matcher follows the read-only endpoint and identifier mappings documented by the MIT-licensed [cwendt94/espn-api](https://github.com/cwendt94/espn-api) project. ESPN does not publish or support these fantasy endpoints, so that integration is deliberately isolated behind an adapter.
+Player ordering uses the free [LeagueLogs API](https://developer.leaguelogs.com/docs) redraft market rankings and displays its required attribution. Ranking providers implement a shared strategy interface; set `PLAYER_RANKINGS_SOURCE=fantasy_football_calculator` to switch back to the Fantasy Football Calculator strategy. The ESPN player sync follows the read-only endpoint and identifier mappings documented by the MIT-licensed [cwendt94/espn-api](https://github.com/cwendt94/espn-api) project. ESPN does not publish or support these fantasy endpoints, so that integration is deliberately isolated behind an adapter.
 
 ## Player CSV format
 

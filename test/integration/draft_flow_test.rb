@@ -71,10 +71,10 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
         name: format("Depth Player %02d", index + 1),
         position: "WR",
         pro_team: "ATL",
-        adp: index + 1
+        ranking: index + 1
       )
     end
-    deep_player = Player.create!(name: "Deep Search Sleeper", position: "TE", pro_team: "SEA", adp: 999)
+    deep_player = Player.create!(name: "Deep Search Sleeper", position: "TE", pro_team: "SEA", ranking: 999)
     sign_in_as users(:member)
 
     get draft_path(drafts(:one).public_id)
@@ -94,10 +94,10 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
 
   test "player list backfills to 36 after players are drafted" do
     40.times do |index|
-      Player.create!(name: "Available Player #{index + 1}", position: "WR", pro_team: "ATL", adp: index + 1)
+      Player.create!(name: "Available Player #{index + 1}", position: "WR", pro_team: "ATL", ranking: index + 1)
     end
     draft = drafts(:one)
-    drafted_player = Player.by_adp.first
+    drafted_player = Player.by_ranking.first
     draft.picks.create!(team: teams(:one), player: drafted_player, round: 1, overall_number: 1)
     sign_in_as users(:member)
 
@@ -111,9 +111,9 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
 
   test "position and team filters search beyond the default player window" do
     36.times do |index|
-      Player.create!(name: "Window Player #{index + 1}", position: "RB", pro_team: "BUF", adp: index + 1)
+      Player.create!(name: "Window Player #{index + 1}", position: "RB", pro_team: "BUF", ranking: index + 1)
     end
-    deep_player = Player.create!(name: "Deep Filter Sleeper", position: "TE", pro_team: "SEA", adp: 999)
+    deep_player = Player.create!(name: "Deep Filter Sleeper", position: "TE", pro_team: "SEA", ranking: 999)
     sign_in_as users(:member)
 
     get players_draft_path(drafts(:one).public_id), params: { positions: [ "TE" ], teams: [ "SEA" ] }
@@ -284,14 +284,14 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
       assert_select mobile_rows.first, ".h-10.w-8 img[src*='/rails/active_storage/']", count: 1
       assert_select mobile_rows.first, "img.h-9.w-7[src='#{team_logo_url}']", count: 1
     end
-    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number}", text: /ADP/, count: 0
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number}", text: /Rank/, count: 0
     assert_select "[data-pick-timer-elapsed-value]"
   end
 
   test "draft board uses the team logo for a defense pick" do
     draft = drafts(:one)
     defense = players(:two)
-    defense.update!(name: "Buffalo Bills Defense", position: "DST", pro_team: "BUF", adp: 100)
+    defense.update!(name: "Buffalo Bills Defense", position: "DST", pro_team: "BUF", ranking: 100)
     pick = draft.picks.create!(team: teams(:one), player: defense, round: 1, overall_number: 1, elapsed_seconds: 42)
     draft.update!(status: :complete, completed_at: Time.current)
     sign_in_as users(:member)
@@ -308,7 +308,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} p", text: "Buffalo Bills", count: 1
     assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number}[title*='Pick time 0:42']", count: 1
     assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} img[src='#{logo_url}']", count: 2
-    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number}", text: /DST - ADP 100\.0/, count: 1
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number}", text: /DST - Rank 100/, count: 1
     assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} [data-mobile-draft-pick='#{pick.overall_number}'] img", count: 1
     assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} [data-mobile-draft-pick='#{pick.overall_number}'] .size-8 img", count: 1
   end
@@ -434,12 +434,13 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     sign_in_as users(:commissioner)
     get admin_players_path
     assert_response :success
-    assert_select "th", "ADP"
+    assert_select "th", "Rank"
     assert_select "button", "Sync ESPN player pool"
 
-    get new_admin_adp_import_path
+    get new_admin_ranking_import_path
     assert_response :success
-    assert_select "h1", "Refresh ADP"
+    assert_select "h1", "Refresh rankings"
+    assert_select "a[href='https://leaguelogs.com']", text: "Powered by LeagueLogs API"
   end
 
   private

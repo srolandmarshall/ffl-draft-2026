@@ -14,7 +14,7 @@ class Drafts::FactGeneratorTest < ActiveSupport::TestCase
       [ "Dallas Defense", "DST", "DAL" ]
     ]
     drafted_players = player_data.map.with_index do |(name, position, pro_team), index|
-      Player.create!(name:, position:, pro_team:, adp: index + 1)
+      Player.create!(name:, position:, pro_team:, ranking: index + 1)
     end
     elapsed = [ 12, 35, 18, 95, 24, 42 ]
     now = Time.current
@@ -44,7 +44,7 @@ class Drafts::FactGeneratorTest < ActiveSupport::TestCase
 
   test "uses ESPN history for repeat-player facts but not timing facts" do
     draft = drafts(:one)
-    player = Player.create!(name: "MyString", position: "QB", pro_team: "ATL", adp: 1)
+    player = Player.create!(name: "MyString", position: "QB", pro_team: "ATL", ranking: 1)
     draft.picks.create!(team: teams(:one), player:, round: 1, overall_number: 2, elapsed_seconds: 40)
     espn_draft_picks(:one).update!(espn_franchise: espn_franchises(:one))
 

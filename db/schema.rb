@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_25_132313) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_25_233228) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -194,7 +194,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_25_132313) do
     t.datetime "injury_updated_at"
     t.string "name", null: false
     t.string "position", null: false
+    t.integer "position_rank"
     t.string "pro_team", null: false
+    t.decimal "ranking", precision: 8, scale: 2
+    t.string "ranking_source"
+    t.datetime "ranking_updated_at"
+    t.decimal "ranking_value", precision: 8, scale: 2
     t.boolean "rookie", default: false, null: false
     t.integer "stats_season"
     t.datetime "updated_at", null: false
@@ -203,6 +208,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_25_132313) do
     t.index ["espn_id"], name: "index_players_on_espn_id", unique: true
     t.index ["ffc_id"], name: "index_players_on_ffc_id", unique: true
     t.index ["name", "pro_team", "position"], name: "index_players_on_name_and_pro_team_and_position", unique: true
+    t.index ["ranking"], name: "index_players_on_ranking"
     t.index ["stats_season", "rookie"], name: "index_players_on_stats_season_and_rookie"
   end
 

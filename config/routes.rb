@@ -26,7 +26,7 @@ Rails.application.routes.draw do
     resources :players, except: :show
     resources :users, only: %i[index update]
     resource :player_import, only: %i[new create]
-    resource :adp_import, only: %i[new create]
+    resource :ranking_import, only: %i[new create]
     resource :espn_player_sync, only: :create
     resource :nflverse_player_sync, only: :create
   end
