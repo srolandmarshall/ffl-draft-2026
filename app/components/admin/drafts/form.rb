@@ -28,11 +28,21 @@ class Components::Admin::Drafts::Form < Components::Base
       builder_field(form, :name, autofocus: true, required: true)
       div do
         form.label(:scheduled_start_at, "Scheduled start (Eastern Time)", class: label_classes)
-        form.datetime_local_field(
-          :scheduled_start_at,
+        render partial(
+          "shared/date_picker/date_picker",
+          id: "draft_scheduled_start_at",
+          name: "draft[scheduled_start_at]",
           value: local_scheduled_start,
-          min: Time.current.strftime("%Y-%m-%dT%H:%M"),
-          class: INPUT_CLASSES
+          placeholder: "Select date & time...",
+          timepicker: true,
+          date_format: "yyyy-MM-dd",
+          time_format: "HH:mm",
+          min_date: Date.current,
+          minutes_step: 5,
+          show_today_button: true,
+          show_clear_button: true,
+          input_class: INPUT_CLASSES,
+          classes: "max-w-none"
         )
         p(class: "mt-1 text-xs text-slate-500") { "Optional. The draft starts automatically at this time; commissioners can still start it manually." }
       end
@@ -108,6 +118,6 @@ class Components::Admin::Drafts::Form < Components::Base
   def label_classes = "mb-2 block text-sm font-bold"
 
   def local_scheduled_start
-    @draft.scheduled_start_at&.in_time_zone&.strftime("%Y-%m-%dT%H:%M")
+    @draft.scheduled_start_at&.in_time_zone&.strftime("%Y-%m-%d %H:%M")
   end
 end

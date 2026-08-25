@@ -3,3 +3,41 @@
 @layer base {
   input, select { color-scheme: dark; }
 }
+
+/* Rails Blocks date-time picker (AirDatepicker) */
+.dark .air-datepicker {
+  --adp-background-color: #0f172a;
+  --adp-background-color-hover: #1e293b;
+  --adp-background-color-active: #334155;
+  --adp-background-color-in-range: rgb(163 230 53 / 0.12);
+  --adp-background-color-in-range-focused: rgb(163 230 53 / 0.2);
+  --adp-background-color-selected-other-month-focused: #334155;
+  --adp-background-color-selected-other-month: #1e293b;
+  --adp-color: #f1f5f9;
+  --adp-color-secondary: #94a3b8;
+  --adp-accent-color: #a3e635;
+  --adp-color-other-month: #475569;
+  --adp-color-disabled: #475569;
+  --adp-color-disabled-in-range: #64748b;
+  --adp-color-other-month-hover: #64748b;
+  --adp-border-color: rgb(255 255 255 / 0.15);
+  --adp-border-color-inner: #1e293b;
+  --adp-border-color-inline: #334155;
+  --adp-day-name-color: #94a3b8;
+  --adp-cell-background-color-selected: #a3e635;
+  --adp-cell-background-color-selected-hover: #bef264;
+  --adp-cell-background-color-in-range: rgb(163 230 53 / 0.12);
+  --adp-cell-background-color-in-range-hover: rgb(163 230 53 / 0.2);
+  --adp-time-track-color: #475569;
+  --adp-time-track-color-hover: #64748b;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+}
+
+.dark .air-datepicker-cell.-selected-,
+.dark .air-datepicker-cell.-selected-.-current- {
+  color: #0f172a;
+}
+
+.air-datepicker--pointer {
+  opacity: 0;
+}
