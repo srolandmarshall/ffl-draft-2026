@@ -53,7 +53,21 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "h2", "Draft board"
     assert_select "div[title='#{teams(:one).name}']", text: teams(:one).abbreviation
     assert_select "[data-draft-board-row]", count: drafts(:one).rounds
+    assert_select "[aria-label='#{teams(:one).name}, your team']", text: teams(:one).abbreviation
+    assert_select "[data-draft-board-team-id='#{teams(:one).id}']", count: drafts(:one).rounds do |cells|
+      cells.each { |cell| assert_includes cell["class"], "bg-lime-300/10" }
+    end
     assert_select "nav[aria-label='Draft room view'] span", "Player list"
+  end
+
+  test "commissioner without a team sees an unpersonalized board" do
+    sign_in_as users(:commissioner)
+
+    get draft_path(drafts(:one).public_id, view: "board")
+
+    assert_response :success
+    assert_select "[aria-label$=', your team']", count: 0
+    assert_select "[data-draft-board-team-id].bg-lime-300\\/10", count: 0
   end
 
   test "completed picks retain their elapsed time in the log and board" do
