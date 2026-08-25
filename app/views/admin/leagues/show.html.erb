@@ -59,7 +59,14 @@
     <div class="space-y-3">
       <% @drafts.each do |draft| %>
         <div class="rounded-lg border border-white/10 bg-slate-900 p-5">
-          <div class="flex items-start justify-between"><div><p class="font-semibold"><%= draft.name %></p><p class="text-sm text-slate-400"><%= draft.team_count %> teams · <%= draft.rounds %> rounds · <%= draft.ppr.to_f %> PPR · <%= draft.status %></p></div><%= link_to "Open room →", draft_path(draft.public_id), data: { turbo_frame: "_top" }, class: "text-sm font-bold text-lime-400" %></div>
+          <div class="flex items-start justify-between">
+            <div><p class="font-semibold"><%= draft.name %></p><p class="text-sm text-slate-400"><%= draft.team_count %> teams · <%= draft.rounds %> rounds · <%= draft.ppr.to_f %> PPR · <%= draft.status %></p></div>
+            <% if draft.complete? %>
+              <%= link_to "View draft result →", draft_path(draft.public_id, view: "board"), data: { turbo_frame: "_top" }, class: "text-sm font-bold text-lime-400" %>
+            <% else %>
+              <%= link_to "Open room →", draft_path(draft.public_id), data: { turbo_frame: "_top" }, class: "text-sm font-bold text-lime-400" %>
+            <% end %>
+          </div>
           <div class="mt-4 flex flex-wrap gap-3">
             <% if draft.setup? %><%= button_to "Start draft", start_admin_league_draft_path(@league, draft), method: :patch, class: "cursor-pointer rounded-lg bg-lime-400 px-3 py-2 text-xs font-semibold text-slate-950" %><%= link_to "Edit", edit_admin_league_draft_path(@league, draft), data: { turbo_frame: "_top" }, class: "rounded-lg border border-white/10 px-3 py-2 text-xs font-bold" %><% else %><%= button_to "Restart draft", restart_admin_league_draft_path(@league, draft), method: :patch, class: "cursor-pointer rounded-lg border border-amber-400/40 px-3 py-2 text-xs font-bold text-amber-200 hover:bg-amber-400/10", form: { data: { turbo_confirm: "Restart #{draft.name}? This permanently removes all picks and starts it over." } } %><% end %>
             <%= button_to "Delete draft", admin_league_draft_path(@league, draft), method: :delete, class: "cursor-pointer rounded-lg border border-red-400/40 px-3 py-2 text-xs font-bold text-red-200 hover:bg-red-400/10", form: { data: { turbo_confirm: "Delete #{draft.name}? This permanently removes the draft and all picks." } } %>

@@ -1,0 +1,58 @@
+<%= turbo_frame_tag "draft-#{draft.public_id}-players", data: { player_refresh_url: players_draft_path(draft.public_id, player_filters.compact_blank) } do %>
+  <div class="rounded-lg border border-white/10 bg-slate-900">
+    <%= render Components::Drafts::PlayerFilters.new(draft:, players: available_players, available_teams:, filters: player_filters) %>
+    <div>
+      <table class="hidden w-full table-fixed text-left text-xs md:table">
+        <colgroup><col class="w-[23%]"><col class="w-[5%]"><col class="w-[9%]"><col class="w-[6%]"><col class="w-[8%]"><col class="w-[39%]"><col class="w-[10%]"></colgroup>
+        <thead class="sticky top-0 z-10 bg-slate-800 uppercase tracking-wider text-slate-400">
+          <tr><th class="px-3 py-3">Player</th><th class="px-2 py-3 text-center">Bye</th><th class="px-2 py-3 text-right"><%= draft.league.season - 1 %> FP</th><th class="px-2 py-3 text-center">Games</th><th class="px-2 py-3 text-center">TDs</th><th class="px-3 py-3"><%= draft.league.season - 1 %> production</th><th class="px-3 py-3 text-right">Action</th></tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          <% available_players.each do |player| %>
+            <% league_score = draft.prior_season_score_for(player) %>
+            <% league_fantasy_points = league_score&.points %>
+            <% stat_groups = player.position == "DST" ? (league_score&.dst_stat_groups || []) : player.draft_stat_groups %>
+            <% touchdown_stats = player.position == "DST" ? (league_score&.dst_touchdown_stats || []) : player.draft_touchdown_stats %>
+            <tr class="hover:bg-white/[.03]" data-draft-player-id="<%= player.id %>">
+              <td class="px-3 py-2.5"><%= render Components::Drafts::PlayerIdentity.new(player:, variant: :desktop) %></td>
+              <td class="px-2 py-2.5 text-center"><span class="font-bold tabular-nums text-slate-300"><%= player.bye_week || "—" %></span></td>
+              <td class="px-2 py-2.5 text-right"><span class="text-base font-black tabular-nums text-lime-400"><%= league_fantasy_points ? number_with_precision(league_fantasy_points, precision: 1) : "—" %></span></td>
+              <td class="px-2 py-2.5 text-center"><span class="font-bold tabular-nums text-slate-200"><%= player.draft_games || "—" %></span></td>
+              <td class="px-2 py-2.5 text-center"><%= render Components::Drafts::Touchdowns.new(stats: touchdown_stats) %></td>
+              <td class="px-3 py-2.5"><%= render Components::Drafts::ProductionGroups.new(groups: stat_groups) %></td>
+              <td class="px-3 py-2.5 text-right"><%= render Components::Drafts::Action.new(draft:, player:, can_make_pick:) %></td>
+            </tr>
+          <% end %>
+          <% if available_players.empty? %>
+            <tr><td colspan="7" class="px-5 py-10 text-center text-sm text-slate-500">No players match those filters.</td></tr>
+          <% end %>
+        </tbody>
+      </table>
+      <div class="divide-y divide-white/5 md:hidden">
+        <% available_players.each do |player| %>
+          <% league_score = draft.prior_season_score_for(player) %>
+          <% league_fantasy_points = league_score&.points %>
+          <% stat_groups = player.position == "DST" ? (league_score&.dst_stat_groups || []) : player.draft_stat_groups %>
+          <% touchdown_stats = player.position == "DST" ? (league_score&.dst_touchdown_stats || []) : player.draft_touchdown_stats %>
+          <article class="p-3" data-draft-player-id="<%= player.id %>">
+            <div class="flex items-start justify-between gap-3">
+              <%= render Components::Drafts::PlayerIdentity.new(player:, variant: :mobile) %>
+              <%= render Components::Drafts::Action.new(draft:, player:, can_make_pick:) %>
+            </div>
+            <dl class="mt-2 grid grid-cols-3 border-y border-white/10 py-2">
+              <div><dt class="text-[.6rem] font-bold uppercase tracking-wider text-slate-500">Bye</dt><dd class="text-xl font-black tabular-nums text-slate-100"><%= player.bye_week || "—" %></dd></div>
+              <div class="border-l border-white/10 pl-4"><dt class="text-[.6rem] font-bold uppercase tracking-wider text-lime-300"><%= draft.league.season - 1 %> FP</dt><dd class="text-xl font-black tabular-nums text-lime-300"><%= league_fantasy_points ? number_with_precision(league_fantasy_points, precision: 1) : "—" %></dd></div>
+              <div class="border-l border-white/10 pl-4"><dt class="text-[.6rem] font-bold uppercase tracking-wider text-slate-500">Games</dt><dd class="text-xl font-black tabular-nums text-slate-100"><%= player.draft_games || "—" %></dd></div>
+            </dl>
+            <%= render Components::Drafts::Touchdowns.new(stats: touchdown_stats, variant: :mobile) %>
+            <%= render Components::Drafts::ProductionGroups.new(groups: stat_groups, variant: :mobile) %>
+          </article>
+        <% end %>
+        <% if available_players.empty? %>
+          <div class="px-5 py-10 text-center text-sm text-slate-500">No players match those filters.</div>
+        <% end %>
+      </div>
+    </div>
+    <p class="border-t border-white/10 px-4 py-2 text-[.65rem] text-slate-500"><%= draft.league.season - 1 %> regular-season results from <%= link_to "nflverse", "https://github.com/nflverse/nflverse-data/releases/tag/stats_player", target: "_blank", rel: "noopener", class: "underline hover:text-slate-300" %>. Fantasy points use <%= draft.league.name %>'s ESPN scoring rules.</p>
+  </div>
+<% end %>
