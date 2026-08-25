@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 class Components::Drafts::TeamRoster < Components::Base
-  def initialize(draft:, team:, picks:, pick_elapsed_seconds:, commissioner: false)
+  def initialize(draft:, team:, picks:, commissioner: false, preferred_team: team)
     @draft = draft
     @team = team
     @picks = picks.select { |pick| pick.team_id == team&.id }
     @slots = ::Drafts::RosterSlots.new(draft:, picks: @picks).call
-    @pick_elapsed_seconds = pick_elapsed_seconds
     @commissioner = commissioner
+    @preferred_team = preferred_team
   end
 
   def view_template
@@ -22,7 +22,7 @@ class Components::Drafts::TeamRoster < Components::Base
 
   def roster_header
     header(class: "border-b border-white/10 bg-blue-300/10 px-4 py-4 sm:px-5") do
-      p(class: "text-[.65rem] font-bold uppercase tracking-[.2em] text-blue-300") { @commissioner ? "Roster review" : "My team" }
+      p(class: "text-[.65rem] font-bold uppercase tracking-[.2em] text-blue-300") { "Team Rosters" }
       h2(class: "mt-1 break-words text-xl font-black text-white sm:text-2xl") { @team&.name || "No team available" }
       p(class: "mt-1 text-xs text-slate-400") do
         plain "#{@picks.size} of #{@draft.roster_size} roster slots filled"
@@ -33,7 +33,7 @@ class Components::Drafts::TeamRoster < Components::Base
 
   def team_selector
     nav(class: "flex gap-2 overflow-x-auto border-b border-white/10 px-3 py-2", aria: { label: "Choose roster team" }) do
-      @draft.draft_entries.each do |entry|
+      roster_entries.each do |entry|
         selected = entry.team_id == @team&.id
         a(
           href: draft_path(@draft.public_id, view: "my_team", team_id: entry.team_id),
@@ -84,7 +84,6 @@ class Components::Drafts::TeamRoster < Components::Base
             span { "R#{slot.pick.round} · Pick #{slot.pick.overall_number}" }
           end
         end
-        span(class: "shrink-0 font-mono text-xs font-bold tabular-nums #{pick_duration_classes(elapsed_seconds(slot.pick))}", title: "Time used for this pick") { format_pick_duration(elapsed_seconds(slot.pick)) }
       else
         div(class: "min-w-0 flex-1") do
           p(class: "text-sm font-semibold text-slate-500") { "Available" }
@@ -119,7 +118,7 @@ class Components::Drafts::TeamRoster < Components::Base
     player.name.sub(/\s+Defense\z/i, "")
   end
 
-  def elapsed_seconds(pick)
-    @pick_elapsed_seconds.fetch(pick.id) { @pick_elapsed_seconds.fetch(pick.id.to_s, pick.elapsed_seconds.to_i) }
+  def roster_entries
+    @draft.draft_entries.sort_by { |entry| entry.team_id == @preferred_team&.id ? 0 : 1 }
   end
 end

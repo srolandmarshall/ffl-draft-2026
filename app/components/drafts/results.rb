@@ -18,7 +18,7 @@ class Components::Drafts::Results < Components::Base
       end
       div(class: "flex flex-wrap gap-2") do
         a(href: draft_path(@draft.public_id), class: "rounded-lg border border-white/15 px-4 py-2 text-sm font-bold text-white hover:border-white/40") { "Draft board" }
-        a(href: draft_path(@draft.public_id, view: "my_team", team_id: roster_team_id), class: "rounded-lg bg-blue-300 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-blue-200") { @current_user&.commissioner? ? "Review a team" : "My team" }
+        a(href: draft_path(@draft.public_id, view: "my_team", team_id: roster_team_id), class: "rounded-lg bg-blue-300 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-blue-200") { "Team Rosters" }
         if @draft.league.espn_seasons.exists?
           a(href: league_history_path(@draft.league), class: "rounded-lg bg-lime-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-lime-300") { "League history" }
         end

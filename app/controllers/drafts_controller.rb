@@ -43,7 +43,7 @@ class DraftsController < ApplicationController
     return selected_team unless current_user.commissioner?
 
     requested_team = @draft.teams.find_by(id: params[:team_id])
-    requested_team || @draft.teams.first
+    requested_team || selected_team || @draft.teams.first
   end
 
   def authorize_draft!

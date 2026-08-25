@@ -12,7 +12,7 @@
     <% end %>
     <% if params[:view] == "my_team" %>
       <%= turbo_frame_tag "draft-#{@draft.public_id}-team-roster" do %>
-        <%= render Components::Drafts::TeamRoster.new(draft: @draft, team: @roster_team, picks: @picks, pick_elapsed_seconds: @pick_elapsed_seconds, commissioner: current_user.commissioner?) %>
+        <%= render Components::Drafts::TeamRoster.new(draft: @draft, team: @roster_team, picks: @picks, commissioner: current_user.commissioner?, preferred_team: @selected_team) %>
       <% end %>
     <% else %>
       <%= turbo_frame_tag "draft-#{@draft.public_id}-board" do %>
