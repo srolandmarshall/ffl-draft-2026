@@ -33,8 +33,11 @@ class Components::Drafts::Show < Components::Base
         selected_team: @room.selected_team
       )
     end
+    render Components::Drafts::CompletedNavigation.new(draft: @draft, view: @view)
     if @view == "my_team"
       turbo_frame_tag("draft-#{@draft.public_id}-team-roster") { render team_roster }
+    elsif @view == "facts"
+      render facts
     else
       turbo_frame_tag("draft-#{@draft.public_id}-board") { render board }
     end
@@ -63,5 +66,14 @@ class Components::Drafts::Show < Components::Base
       commissioner: @current_user.commissioner?,
       preferred_team: @room.selected_team
     )
+  end
+
+  def facts
+    generated_facts = ::Drafts::FactGenerator.new(
+      draft: @draft,
+      picks: @room.picks,
+      pick_elapsed_seconds: @room.pick_elapsed_seconds
+    ).call
+    Components::Drafts::Facts.new(draft: @draft, facts: generated_facts)
   end
 end
