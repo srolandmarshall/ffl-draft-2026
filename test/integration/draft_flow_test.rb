@@ -35,6 +35,10 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "[data-draft-filter-target='all'][aria-pressed='true']", text: "All"
     assert_select "[data-draft-filter-target='position']", count: Player::POSITIONS.size
     assert_select "[data-draft-player-id='#{players(:one).id}']", minimum: 1
+    assert_select "[data-mobile-player-row]", minimum: 1 do |rows|
+      rows.each { |row| assert_includes row["class"], "py-2.5" }
+    end
+    assert_select "[data-mobile-player-row] dl[class~='mt-1.5'] dd.text-base", minimum: 3
     assert_select "#flash"
     room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
     assert_select "##{room_id}[data-controller='draft-pick'][data-action='draft:turn->draft-pick#turnChanged'][data-draft-pick-selected-team-id-value='#{teams(:one).id}'][data-draft-pick-commissioner-value='false']"
