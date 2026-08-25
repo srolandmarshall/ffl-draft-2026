@@ -64,9 +64,13 @@ class Components::Drafts::PlayerIdentity < Components::Base
     return unless @player.injured?
 
     span(
-      class: "shrink-0 rounded-full border border-red-400/40 bg-red-400/10 px-2 py-0.5 text-[.6rem] font-bold uppercase tracking-wide text-red-200",
-      title: injury_badge_title
-    ) { @player.injury_status_label }
+      class: "inline-flex shrink-0 items-center gap-1 rounded-full border border-red-400/40 bg-red-400/10 px-1.5 py-0.5 text-[.6rem] font-bold uppercase tracking-wide text-red-200",
+      title: injury_badge_title,
+      aria: { label: injury_badge_title }
+    ) do
+      span(class: "text-red-400", aria: { hidden: true }) { "+" }
+      span { @player.injury_status_abbreviation }
+    end
   end
 
   def injury_badge_title

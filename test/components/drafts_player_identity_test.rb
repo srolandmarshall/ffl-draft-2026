@@ -15,6 +15,8 @@ class Components::Drafts::PlayerIdentityTest < ActiveSupport::TestCase
       assert_includes html, "sr-only"
       assert_includes html, "Questionable"
       assert_includes html, "ESPN injury status"
+      assert_match(/aria-hidden(?:="true")?[^>]*>\+<\//, html)
+      assert_match(/>Q<\//, html)
     end
 
     assert_match(/title="#{player.pro_team}"[^>]+size-7[^>]+bg-slate-400\/50/, desktop)
