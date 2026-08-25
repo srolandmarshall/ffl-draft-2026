@@ -15,7 +15,7 @@
     <% end %>
   <% else %>
     <%= turbo_frame_tag "draft-#{@draft.public_id}-room" do %>
-      <%= render "room", draft: @draft, selected_team: @selected_team, picks_until_selected_team: @picks_until_selected_team, picks: @picks, available_players: @available_players, pick_elapsed_seconds: @pick_elapsed_seconds, current_pick_elapsed_seconds: @current_pick_elapsed_seconds %>
+      <%= render "room", draft: @draft, selected_team: @selected_team, picks_until_selected_team: @picks_until_selected_team, picks: @picks, available_players: @available_players, available_teams: @available_teams, player_filters: @player_filters, pick_elapsed_seconds: @pick_elapsed_seconds, current_pick_elapsed_seconds: @current_pick_elapsed_seconds %>
     <% end %>
   <% end %>
 <% end %>
