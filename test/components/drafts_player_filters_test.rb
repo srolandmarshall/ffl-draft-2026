@@ -17,6 +17,8 @@ class Components::Drafts::PlayerFiltersTest < ActiveSupport::TestCase
     assert_includes html, "Search players"
     assert_includes html, "action=\"/drafts/sunday-draft/players\""
     assert_includes html, "data-turbo-frame=\"draft-sunday-draft-players\""
+    assert_includes html, "id=\"draft-sunday-draft-players-query\""
+    assert_includes html, "data-turbo-permanent"
     assert_includes html, "data-draft-filter-target=\"position\""
     assert_includes html, "name=\"positions[]\" value=\"QB\" checked"
     assert_includes html, "name=\"teams[]\" value=\"ATL\" checked"

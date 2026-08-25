@@ -89,8 +89,11 @@ class DraftLiveUpdatesTest < ActionDispatch::IntegrationTest
     sign_in_as users(:commissioner)
     clear_enqueued_jobs
 
-    assert_enqueued_with(job: Turbo::Streams::ActionBroadcastJob) do
-      patch draft_pick_timer_path(draft.public_id), params: { state: "pause" }
+    assert_broadcast_on(
+      draft.to_gid_param,
+      %(<turbo-stream action="refresh_frame" target="draft-#{draft.public_id}-clock"><template></template></turbo-stream>)
+    ) do
+      assert_no_enqueued_jobs { patch draft_pick_timer_path(draft.public_id), params: { state: "pause" } }
     end
   end
 

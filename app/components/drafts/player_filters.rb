@@ -14,7 +14,7 @@ class Components::Drafts::PlayerFilters < Components::Base
     form(action: players_draft_path(@draft.public_id), method: "get", class: "border-b border-white/10 p-3 sm:p-4", data: { controller: "draft-filter", turbo_frame: frame_id }) do
       div(class: "flex flex-col gap-3") do
         div(class: "flex items-center gap-3") do
-          input(type: "search", name: "query", value: @query, placeholder: "Search players…", autocomplete: "off", aria: { label: "Search players" }, class: "min-w-0 flex-1 rounded-lg border border-white/15 bg-slate-950 px-3 py-2", data: { draft_filter_target: "query", action: "input->draft-filter#search" })
+          input(id: "#{frame_id}-query", type: "search", name: "query", value: @query, placeholder: "Search players…", autocomplete: "off", aria: { label: "Search players" }, class: "min-w-0 flex-1 rounded-lg border border-white/15 bg-slate-950 px-3 py-2", data: { turbo_permanent: true, draft_filter_target: "query", action: "input->draft-filter#search" })
           span(class: "whitespace-nowrap text-xs text-slate-500", aria: { live: "polite" }) do
             span { @players.size }
             plain " players"
