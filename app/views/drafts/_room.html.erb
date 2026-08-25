@@ -20,7 +20,7 @@
 
   <section class="min-w-0">
     <% if params[:view] == "board" %>
-      <%= render Components::Drafts::Board.new(draft:, picks:, pick_elapsed_seconds:) %>
+      <%= render Components::Drafts::Board.new(draft:, picks:, pick_elapsed_seconds:, selected_team:) %>
     <% else %>
       <%= render "players", draft:, available_players:, available_teams:, player_filters:, can_make_pick: draft.live? && (current_user.commissioner? || selected_team == draft.current_team) %>
     <% end %>

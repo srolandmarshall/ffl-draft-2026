@@ -11,7 +11,7 @@
       <%= render Components::Drafts::Results.new(draft: @draft, picks: @picks, pick_elapsed_seconds: @pick_elapsed_seconds, current_user:) %>
     <% end %>
     <%= turbo_frame_tag "draft-#{@draft.public_id}-board" do %>
-      <%= render Components::Drafts::Board.new(draft: @draft, picks: @picks, pick_elapsed_seconds: @pick_elapsed_seconds) %>
+      <%= render Components::Drafts::Board.new(draft: @draft, picks: @picks, pick_elapsed_seconds: @pick_elapsed_seconds, selected_team: @selected_team) %>
     <% end %>
   <% else %>
     <%= turbo_frame_tag "draft-#{@draft.public_id}-room" do %>

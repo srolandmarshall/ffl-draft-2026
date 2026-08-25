@@ -11,7 +11,7 @@ class DraftsController < ApplicationController
     @picks = @draft.picks.includes(:team, player: { headshot_attachment: :blob }).to_a
     @pick_elapsed_seconds = pick_elapsed_seconds(@picks)
     @current_pick_elapsed_seconds = @draft.current_pick_elapsed_seconds
-    load_available_players
+    load_available_players unless @draft.complete? || params[:view] == "board"
   end
 
   def players
@@ -33,7 +33,9 @@ class DraftsController < ApplicationController
   end
 
   def selected_team
-    @draft.teams.joins(:team_memberships).find_by(team_memberships: { user_id: current_user.id })
+    return @selected_team if defined?(@selected_team)
+
+    @selected_team = @draft.teams.joins(:team_memberships).find_by(team_memberships: { user_id: current_user.id })
   end
 
   def authorize_draft!
