@@ -20,7 +20,7 @@ class Components::Drafts::PlayerFilters < Components::Base
             plain " players"
           end
         end
-        div(class: "flex flex-wrap items-start justify-between gap-3") do
+        div(class: "flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between") do
           position_filters
           team_filter
         end
@@ -47,13 +47,13 @@ class Components::Drafts::PlayerFilters < Components::Base
   def team_filter
     return if @available_teams.empty?
 
-    details(class: "relative self-start") do
-      summary(class: "flex cursor-pointer list-none items-center gap-2 rounded-full border border-white/15 bg-slate-950 px-3 py-1.5 text-xs font-bold text-slate-300 transition hover:border-white/40 [&::-webkit-details-marker]:hidden") do
+    details(class: "relative w-full self-start sm:w-auto") do
+      summary(class: "flex cursor-pointer list-none items-center justify-between gap-2 rounded-full border border-white/15 bg-slate-950 px-3 py-1.5 text-xs font-bold text-slate-300 transition hover:border-white/40 sm:justify-start [&::-webkit-details-marker]:hidden") do
         span { "Team" }
         span(class: "text-lime-300") { @teams.empty? ? "All teams" : "#{@teams.size} selected" }
         span(class: "text-slate-500") { "▾" }
       end
-      div(class: "absolute right-0 top-full z-20 mt-2 grid max-h-64 min-w-56 grid-cols-2 gap-x-4 gap-y-1 overflow-y-auto rounded-xl border border-white/15 bg-slate-950 p-3 shadow-2xl shadow-black/40") do
+      div(class: "absolute inset-x-0 top-full z-20 mt-2 grid max-h-64 w-full grid-cols-2 gap-x-4 gap-y-1 overflow-y-auto rounded-xl border border-white/15 bg-slate-950 p-3 shadow-2xl shadow-black/40 sm:left-auto sm:right-0 sm:w-auto sm:min-w-56") do
         @available_teams.each { |team| team_option(team) }
       end
     end
