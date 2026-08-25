@@ -34,6 +34,9 @@ module FflDraft
     # in config/environments, which are processed later.
     #
     config.time_zone = "Eastern Time (US & Canada)"
+    # Keep image URLs stable across Turbo frame replacements instead of redirecting
+    # browsers to short-lived signed URLs from the local disk service.
+    config.active_storage.resolve_model_to_route = :rails_storage_proxy
     # config.eager_load_paths << Rails.root.join("extras")
 
     # Don't generate system test files.
