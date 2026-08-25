@@ -2,9 +2,11 @@
 /log/*
 /tmp/*
 /storage/*
+/app/assets/builds/*
 !/log/.keep
 !/tmp/.keep
 !/storage/.keep
+!/app/assets/builds/.keep
 
 # Local secrets and credentials
 /.env
