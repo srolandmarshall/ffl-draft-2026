@@ -11,9 +11,9 @@ class Components::Drafts::Clock < Components::Base
   end
 
   def view_template
-    section(class: "fixed right-4 top-24 z-40 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-white/15 bg-slate-900/95 shadow-2xl shadow-black/40 backdrop-blur lg:right-6 lg:top-6") do
+    section(class: "w-full overflow-hidden rounded-xl border border-white/15 bg-slate-900/95 shadow-lg shadow-black/30 backdrop-blur") do
       div(class: "p-3 sm:p-4") do
-        div(class: "flex min-w-0 items-start justify-between gap-4") do
+        div(class: "flex min-w-0 items-start justify-between gap-3 sm:items-center sm:gap-6") do
           clock_identity
           clock_timer if @draft.live?
         end
