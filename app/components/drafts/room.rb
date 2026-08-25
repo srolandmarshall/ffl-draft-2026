@@ -30,7 +30,7 @@ class Components::Drafts::Room < Components::Base
   private
 
   def room_layout
-    div(class: "grid gap-4 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] lg:items-stretch xl:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]", data: { draft_room_layout: true }) do
+    div(class: "grid gap-4 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] lg:items-start xl:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]", data: { draft_room_layout: true }) do
       clock
       navigation
       recent_picks_panel unless board_view?
@@ -50,7 +50,7 @@ class Components::Drafts::Room < Components::Base
   end
 
   def clock
-    turbo_frame_tag("draft-#{@draft.public_id}-clock", class: "sticky top-0 z-30 block h-full min-w-0 lg:col-start-1 lg:row-start-1") do
+    turbo_frame_tag("draft-#{@draft.public_id}-clock", class: "sticky top-0 z-30 block min-w-0 lg:col-start-1 lg:row-start-1") do
       render Components::Drafts::Clock.new(
         draft: @draft,
         selected_team: @room.selected_team,
@@ -63,7 +63,7 @@ class Components::Drafts::Room < Components::Base
   end
 
   def navigation
-    nav(class: "grid h-full min-w-0 grid-cols-3 overflow-hidden rounded-xl border border-white/15 bg-slate-900 shadow-xl shadow-black/20 lg:col-start-2 lg:row-start-1", aria: { label: "Draft room view" }) do
+    nav(class: "grid min-w-0 grid-cols-3 overflow-hidden rounded-xl border border-white/15 bg-slate-900 shadow-xl shadow-black/20 lg:col-start-2 lg:row-start-1", aria: { label: "Draft room view" }) do
       navigation_link("Player list", "Search, compare, and make your pick", draft_path(@draft.public_id), active: @view.blank?)
       navigation_link("Team Rosters", @current_user.commissioner? ? "Choose and review a roster" : "Review your drafted roster", roster_path, active: @view == "my_team", roster: true)
       navigation_link("Draft board", "See every team and round at once", draft_path(@draft.public_id, view: "board"), active: @view == "board", board: true)
