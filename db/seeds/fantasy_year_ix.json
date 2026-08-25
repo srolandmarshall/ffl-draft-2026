@@ -1,7 +1,9 @@
 {
   "league": {
     "name": "Fantasy Year IX",
-    "draft_name": "Fantasy Year IX Draft",
+    "draft_name": "Live Draft",
+    "scheduled_start_at": "2026-08-30T20:00:00-04:00",
+    "test_draft_name": "TEST DRAFT",
     "division": "BEAST",
     "settings": {
       "ppr": 0.5,
@@ -26,7 +28,12 @@
       "abbreviation": "STRA",
       "name": "Team Strauss",
       "owners": [
-        { "name": "Andrew Strauss", "emails": ["astrauss4@gmail.com"] }
+        {
+          "name": "Andrew Strauss",
+          "emails": [
+            "astrauss4@gmail.com"
+          ]
+        }
       ]
     },
     {
@@ -34,7 +41,12 @@
       "abbreviation": "OCON",
       "name": "Team O'Connor",
       "owners": [
-        { "name": "Eamon O’Connor", "emails": ["eko1789@gmail.com"] }
+        {
+          "name": "Eamon O’Connor",
+          "emails": [
+            "eko1789@gmail.com"
+          ]
+        }
       ]
     },
     {
@@ -42,8 +54,16 @@
       "abbreviation": "PM",
       "name": "Team Murph",
       "owners": [
-        { "name": "Patrick Murphy", "emails": ["murph0187@gmail.com"] },
-        { "name": "Conor Dunne", "emails": [] }
+        {
+          "name": "Patrick Murphy",
+          "emails": [
+            "murph0187@gmail.com"
+          ]
+        },
+        {
+          "name": "Conor Dunne",
+          "emails": []
+        }
       ]
     },
     {
@@ -51,8 +71,18 @@
       "abbreviation": "2G1C",
       "name": "2 Guys 1 Cup",
       "owners": [
-        { "name": "Mike White", "emails": ["mike.white086@gmail.com"] },
-        { "name": "Joe Lavin", "emails": ["lavinjoe1@gmail.com"] }
+        {
+          "name": "Mike White",
+          "emails": [
+            "mike.white086@gmail.com"
+          ]
+        },
+        {
+          "name": "Joe Lavin",
+          "emails": [
+            "lavinjoe1@gmail.com"
+          ]
+        }
       ]
     },
     {
@@ -60,7 +90,12 @@
       "abbreviation": "DDT",
       "name": "WhoDaveGriggs55",
       "owners": [
-        { "name": "David Griggs", "emails": ["dgriggs4@gmail.com"] }
+        {
+          "name": "David Griggs",
+          "emails": [
+            "dgriggs4@gmail.com"
+          ]
+        }
       ]
     },
     {
@@ -68,8 +103,18 @@
       "abbreviation": "PAVI",
       "name": "Team Pavia",
       "owners": [
-        { "name": "Michael Pavia", "emails": ["mjp790@yahoo.com"] },
-        { "name": "Peter Carriero", "emails": ["peter.carriero@gmail.com"] }
+        {
+          "name": "Michael Pavia",
+          "emails": [
+            "mjp790@yahoo.com"
+          ]
+        },
+        {
+          "name": "Peter Carriero",
+          "emails": [
+            "peter.carriero@gmail.com"
+          ]
+        }
       ]
     },
     {
@@ -77,7 +122,12 @@
       "abbreviation": "MUNZ",
       "name": "Diamond Dogs",
       "owners": [
-        { "name": "Robert Munroe", "emails": ["robertmunroe@gmail.com"] }
+        {
+          "name": "Robert Munroe",
+          "emails": [
+            "robert.b.munroe@gmail.com"
+          ]
+        }
       ]
     },
     {
@@ -85,7 +135,12 @@
       "abbreviation": "AJM",
       "name": "Cupp My Life Into Pieces",
       "owners": [
-        { "name": "Andrew Mayshar", "emails": ["andrew.mayshar@gmail.com"] }
+        {
+          "name": "Andrew Mayshar",
+          "emails": [
+            "andrew.mayshar@gmail.com"
+          ]
+        }
       ]
     },
     {
@@ -95,7 +150,10 @@
       "owners": [
         {
           "name": "Samuel Marshall",
-          "emails": ["samuel.r.marshall@gmail.com", "sam@depentumarshall.com"]
+          "emails": [
+            "samuel.r.marshall@gmail.com",
+            "sam@depentumarshall.com"
+          ]
         }
       ]
     },
@@ -104,8 +162,16 @@
       "abbreviation": "RCD",
       "name": "Davis Brothers",
       "owners": [
-        { "name": "Robert Davis", "emails": [] },
-        { "name": "Michael Davis", "emails": ["mdavis8@tuftsmedicalcenter.org"] }
+        {
+          "name": "Robert Davis",
+          "emails": []
+        },
+        {
+          "name": "Michael Davis",
+          "emails": [
+            "mdavis8@tuftsmedicalcenter.org"
+          ]
+        }
       ]
     },
     {
@@ -113,8 +179,18 @@
       "abbreviation": "SHEA",
       "name": "Irish Twins",
       "owners": [
-        { "name": "Edwin Shea", "emails": ["edwinshea8@gmail.com"] },
-        { "name": "Anthony Melchionda", "emails": ["anthonymelchionda@gmail.com"] }
+        {
+          "name": "Edwin Shea",
+          "emails": [
+            "edwinshea8@gmail.com"
+          ]
+        },
+        {
+          "name": "Anthony Melchionda",
+          "emails": [
+            "anthonymelchionda@gmail.com"
+          ]
+        }
       ]
     },
     {
@@ -122,7 +198,12 @@
       "abbreviation": "DF",
       "name": "Douglas Fresh",
       "owners": [
-        { "name": "Douglas Farrell", "emails": ["douglas.farrellct@yahoo.com"] }
+        {
+          "name": "Douglas Farrell",
+          "emails": [
+            "douglas.farrellct@yahoo.com"
+          ]
+        }
       ]
     }
   ]

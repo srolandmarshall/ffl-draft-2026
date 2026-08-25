@@ -24,6 +24,15 @@ def user_for_emails!(emails)
   user
 end
 
+def seed_draft_entries!(draft, teams)
+  return unless draft.picks.empty?
+
+  draft.draft_entries.delete_all
+  teams.each.with_index(1) do |team, position|
+    draft.draft_entries.create!(team:, position:)
+  end
+end
+
 league = League.find_or_initialize_by(name: league_data.fetch("name"), season:)
 league.assign_attributes(league_data.fetch("settings"))
 league.save!
@@ -48,15 +57,28 @@ commissioner = user_for_emails!(seed_data.fetch("commissioner_emails"))
 commissioner.update!(role: :commissioner)
 
 draft = league.drafts.find_or_initialize_by(name: league_data.fetch("draft_name"))
-draft.assign_attributes(team_count: teams.size, status: :setup)
+draft.assign_attributes(
+  league.draft_defaults.merge(
+    team_count: teams.size,
+    status: :setup,
+    scheduled_start_at: Time.zone.parse(league_data.fetch("scheduled_start_at"))
+  )
+)
 draft.save!
+seed_draft_entries!(draft, teams)
 
-if draft.setup? && draft.picks.empty?
-  draft.draft_entries.delete_all
-  teams.each.with_index(1) do |team, position|
-    draft.draft_entries.create!(team:, position:)
-  end
-end
+test_draft = league.drafts.find_or_initialize_by(name: league_data.fetch("test_draft_name"))
+test_draft.assign_attributes(
+  league.draft_defaults.merge(
+    team_count: teams.size,
+    rounds: league.roster_size,
+    status: :live,
+    scheduled_start_at: nil,
+    started_at: test_draft.started_at || Time.current
+  )
+)
+test_draft.save!
+seed_draft_entries!(test_draft, teams)
 
 email_count = team_data.sum { |team| team.fetch("owners").sum { |owner| owner.fetch("emails").size } }
-puts "Seeded #{league.name} (#{league.season}) with #{teams.size} teams and #{email_count} email addresses."
+puts "Seeded #{league.name} (#{league.season}) with #{teams.size} teams, #{email_count} email addresses, and #{league.drafts.count} drafts."
