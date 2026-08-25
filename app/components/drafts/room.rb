@@ -23,10 +23,16 @@ class Components::Drafts::Room < Components::Base
         draft_alert_sound_url_value: "/its-your-pick.mp3"
       }
     ) do
-      clock
-      div { render recent_picks }
-      navigation
-      section(class: "min-w-0") { render_active_view }
+      div(class: "grid gap-4 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] lg:items-start xl:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]", data: { draft_room_layout: true }) do
+        aside(class: "min-w-0 space-y-4 lg:sticky lg:top-4", data: { draft_room_sidebar: true }) do
+          clock
+          render recent_picks
+        end
+        main(class: "min-w-0 space-y-4", data: { draft_room_content: true }) do
+          navigation
+          section(class: "min-w-0") { render_active_view }
+        end
+      end
     end
   end
 

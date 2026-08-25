@@ -13,10 +13,15 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#draft-sunday-draft-room"
     assert_select "turbo-frame#draft-sunday-draft-clock.sticky.top-0.z-30"
     room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
-    room_children = css_select("##{room_id} > *")
-    assert_equal "draft-sunday-draft-clock", room_children.first["id"]
-    assert room_children[1].at_css("#draft-sunday-draft-recent-picks")
-    assert_equal "Draft room view", room_children[2]["aria-label"]
+    assert_select "##{room_id} > [data-draft-room-layout]", count: 1
+    assert_select "##{room_id} [data-draft-room-sidebar]", count: 1 do
+      assert_select "turbo-frame#draft-sunday-draft-clock", count: 1
+      assert_select "#draft-sunday-draft-recent-picks", count: 1
+    end
+    assert_select "##{room_id} [data-draft-room-content]", count: 1 do
+      assert_select "nav[aria-label='Draft room view']", count: 1
+      assert_select "section.min-w-0", count: 1
+    end
     assert_select "p", text: /You're up now/
     assert_select "a", text: /Export/, count: 0
     assert_select "[data-controller='pick-timer'][data-pick-timer-paused-value='false']"
