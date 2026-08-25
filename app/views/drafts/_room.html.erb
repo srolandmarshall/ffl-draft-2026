@@ -1,4 +1,4 @@
-<div id="<%= dom_id(draft, :room) %>" class="space-y-4" data-controller="draft-pick" data-action="draft:turn->draft-pick#turnChanged" data-draft-pick-selected-team-id-value="<%= selected_team&.id %>" data-draft-pick-commissioner-value="<%= current_user.commissioner? %>">
+<div id="<%= dom_id(draft, :room) %>" class="space-y-4" data-controller="draft-pick draft-alert" data-action="draft:turn->draft-pick#turnChanged draft:turn->draft-alert#turnChanged" data-draft-pick-selected-team-id-value="<%= selected_team&.id %>" data-draft-pick-commissioner-value="<%= current_user.commissioner? %>" data-draft-alert-selected-team-id-value="<%= selected_team&.id %>" data-draft-alert-current-team-id-value="<%= draft.current_team&.id %>" data-draft-alert-enabled-value="<%= selected_team.present? && !current_user.commissioner? %>" data-draft-alert-sound-url-value="/its-your-pick.mp3">
   <%= turbo_frame_tag "draft-#{draft.public_id}-clock", class: "sticky top-0 z-30 block" do %>
     <%= render Components::Drafts::Clock.new(draft:, selected_team:, picks_until_selected_team:, picks:, current_pick_elapsed_seconds:, current_user:) %>
   <% end %>
