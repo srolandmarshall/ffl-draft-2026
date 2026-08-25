@@ -24,7 +24,7 @@ module DataSources
           eligible_rows.each do |row|
             player = match(row)
             if player
-              player.update!(espn_id: row.fetch("id"))
+              player.update!(player_attributes(row))
               matched += 1
             else
               unmatched += 1
@@ -59,6 +59,16 @@ module DataSources
           player.position == position && normalize_name(player.name) == normalize_name(row["fullName"])
         end
         name_matches.one? ? name_matches.first : nil
+      end
+
+      def player_attributes(row)
+        attributes = { espn_id: row.fetch("id") }
+        return attributes unless row.key?("injuryStatus") || row.key?("injured")
+
+        attributes.merge(
+          injury_status: row["injuryStatus"].presence || (row["injured"] ? "INJURED" : "ACTIVE"),
+          injury_updated_at: Time.current
+        )
       end
 
       def normalize_name(name)

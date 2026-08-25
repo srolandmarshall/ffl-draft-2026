@@ -1,4 +1,4 @@
-<%= render "shared/errors", record: draft %>
+<%= render Components::FormErrors.new(draft) %>
 <% ordered_teams = draft.draft_entries.any? ? draft.draft_entries.map(&:team) : league.teams.in_draft_order.to_a %>
 
 <%= form_with model: [:admin, league, draft], class: "space-y-8", data: { controller: "draft-setup" } do |form| %>

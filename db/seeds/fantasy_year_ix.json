@@ -74,11 +74,10 @@
     },
     {
       "position": 7,
-      "abbreviation": "SETH",
-      "name": "Seth Mason's Wealth Management",
+      "abbreviation": "MUNZ",
+      "name": "Diamond Dogs",
       "owners": [
-        { "name": "Tommy Capalbo", "emails": ["thomas.capalbo@gmail.com"] },
-        { "name": "Andrew Brennan", "emails": ["andrew.w.brennan@gmail.com"] }
+        { "name": "Robert Munroe", "emails": ["robertmunroe@gmail.com"] }
       ]
     },
     {

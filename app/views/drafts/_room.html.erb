@@ -1,4 +1,8 @@
-<div id="<%= dom_id(draft, :room) %>" class="space-y-4">
+<div id="<%= dom_id(draft, :room) %>" class="space-y-4" data-controller="draft-pick" data-action="draft:turn->draft-pick#turnChanged" data-draft-pick-selected-team-id-value="<%= selected_team&.id %>" data-draft-pick-commissioner-value="<%= current_user.commissioner? %>">
+  <%= turbo_frame_tag "draft-#{draft.public_id}-clock", class: "sticky top-0 z-30 block" do %>
+    <%= render Components::Drafts::Clock.new(draft:, selected_team:, picks_until_selected_team:, picks:, current_pick_elapsed_seconds:, current_user:) %>
+  <% end %>
+
   <nav class="grid grid-cols-2 overflow-hidden rounded-xl border border-white/15 bg-slate-900 shadow-xl shadow-black/20" aria-label="Draft room view">
     <%= link_to draft_path(draft.public_id), class: "group px-4 py-4 transition sm:px-5 #{params[:view] == 'board' ? 'text-slate-400 hover:bg-white/5 hover:text-white' : 'bg-white text-slate-950'}" do %>
       <span class="block text-base font-black sm:text-lg">Player list</span>
@@ -10,217 +14,15 @@
     <% end %>
   </nav>
 
-  <div class="flex flex-wrap items-start justify-end gap-2">
-  <section class="fixed right-4 top-24 z-40 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-white/15 bg-slate-900/95 shadow-2xl shadow-black/40 backdrop-blur lg:right-6 lg:top-6">
-    <div class="p-3 sm:p-4">
-      <div class="flex min-w-0 items-start justify-between gap-4">
-        <div class="min-w-0">
-          <% if draft.live? %>
-            <p class="text-[.65rem] font-bold uppercase tracking-[.2em] text-slate-400">On the clock</p>
-            <p class="mt-0.5 break-words text-xl font-black text-lime-400 sm:text-2xl"><%= draft.current_team&.name %></p>
-            <p class="mt-0.5 text-[.65rem] font-semibold uppercase tracking-[.2em] text-slate-400">Round <%= draft.current_round %>, Pick <%= draft.next_overall_number %></p>
-            <% last_pick_for_clock_team = draft.current_team && picks.reverse_each.find { |pick| pick.team_id == draft.current_team.id } %>
-            <% if last_pick_for_clock_team %>
-              <p class="mt-1 break-words text-[.65rem] font-semibold text-slate-500">Last pick: <span class="text-slate-300"><%= last_pick_for_clock_team.player.name %></span> · R<%= last_pick_for_clock_team.round %> · Pick <%= last_pick_for_clock_team.overall_number %></p>
-            <% end %>
-            <% if selected_team %>
-              <p class="mt-0.5 break-words text-xs font-bold <%= picks_until_selected_team.to_i.zero? ? 'text-lime-400' : 'text-slate-400' %>"><span class="text-slate-300"><%= selected_team.name %>:</span> <%= picks_until_selected_team.nil? ? "No picks remaining" : (picks_until_selected_team.zero? ? "You're up now" : pluralize(picks_until_selected_team, "pick") + " away") %></p>
-            <% end %>
-          <% else %>
-            <p class="font-bold">Draft room is ready</p><p class="text-xs text-slate-500">Waiting for the commissioner to start.</p>
-          <% end %>
-        </div>
-        <% if draft.live? %>
-          <div class="shrink-0 text-right" data-controller="pick-timer" data-pick-timer-elapsed-value="<%= current_pick_elapsed_seconds %>" data-pick-timer-paused-value="<%= draft.pick_timer_paused? %>">
-            <% if draft.pick_timer_paused? %><div class="flex justify-end"><span class="rounded bg-white/10 px-1.5 py-0.5 text-[.5rem] font-bold uppercase text-slate-300">Paused</span></div><% end %>
-            <p class="font-mono text-xl font-bold tabular-nums text-slate-100" data-pick-timer-target="elapsed">0:00</p>
-            <% if current_user.commissioner? %><%= button_to draft.pick_timer_paused? ? "Resume" : "Pause", draft_pick_timer_path(draft.public_id), method: :patch, params: { state: draft.pick_timer_paused? ? "resume" : "pause" }, class: "cursor-pointer text-[.6rem] font-bold text-slate-400 underline hover:text-white" %><% end %>
-          </div>
-        <% end %>
-      </div>
-    </div>
-  </section>
-
-  <section class="w-full overflow-hidden rounded-xl border border-white/10 bg-slate-900">
-    <div class="border-b border-white/10">
-      <p class="border-b border-white/10 px-3 py-1.5 text-[.65rem] font-bold uppercase tracking-wider text-slate-400">Recent picks · <%= picks.size %>/<%= draft.total_picks %></p>
-    <ol class="grid max-h-32 grid-cols-2 overflow-y-auto sm:grid-cols-4">
-      <% picks.last(4).reverse_each do |pick| %>
-        <% elapsed = pick_elapsed_seconds.fetch(pick.id, 0) %>
-        <li class="flex min-w-0 items-center gap-2 border-b border-r border-white/5 px-2 py-1.5 text-[.65rem] sm:text-xs" data-recent-pick>
-          <div class="flex size-8 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800">
-            <% if pick.player.headshot.attached? %><%= image_tag player_headshot(pick.player, size: 64), alt: "", loading: "lazy", class: "h-full w-full object-cover object-top" %><% else %><span class="mb-1.5 text-[.5rem] font-black text-slate-500"><%= pick.player.position %></span><% end %>
-          </div>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-1.5"><span class="min-w-0 flex-1 truncate font-bold"><%= pick.player.name %></span><span class="shrink-0 rounded border px-1 py-0.5 text-[.5rem] <%= position_badge_classes(pick.player.position) %>"><%= pick.player.position %></span></div>
-            <div class="mt-0.5 flex items-center justify-between gap-2"><span class="min-w-0 truncate font-semibold text-slate-500" title="<%= pick.team.name %>"><%= pick.team.abbreviation %> · R<%= pick.round %> · Pick <%= pick.overall_number %></span><span class="shrink-0 font-mono font-bold tabular-nums <%= pick_duration_classes(elapsed) %>" title="Time used for this pick"><%= format_pick_duration(elapsed) %></span></div>
-          </div>
-        </li>
-      <% end %>
-      <% if picks.empty? %><li class="col-span-full px-4 py-4 text-center text-xs text-slate-500">No picks yet.</li><% end %>
-    </ol>
-    </div>
-  </section>
+  <div>
+  <%= render Components::Drafts::RecentPicks.new(draft:, picks:, pick_elapsed_seconds:) %>
   </div>
 
   <section class="min-w-0">
     <% if params[:view] == "board" %>
-      <%= render "draft_board", draft:, picks:, pick_elapsed_seconds: %>
+      <%= render Components::Drafts::Board.new(draft:, picks:, pick_elapsed_seconds:, selected_team:) %>
     <% else %>
-      <div class="rounded-lg border border-white/10 bg-slate-900" data-controller="draft-filter">
-        <div class="border-b border-white/10 p-3 sm:p-4">
-          <div class="flex flex-col gap-3">
-            <div class="flex items-center gap-3">
-              <input type="search" placeholder="Search players…" autocomplete="off" aria-label="Search players" class="min-w-0 flex-1 rounded-lg border border-white/15 bg-slate-950 px-3 py-2" data-draft-filter-target="query" data-action="input->draft-filter#search">
-              <span class="whitespace-nowrap text-xs text-slate-500"><span data-draft-filter-target="count"><%= available_players.size %></span> players</span>
-            </div>
-            <div class="flex flex-wrap items-start justify-between gap-3">
-              <div class="flex flex-wrap items-center gap-1.5 sm:gap-2" aria-label="Filter by position">
-                <button type="button" aria-pressed="true" class="cursor-pointer rounded-full border border-white/15 px-2.5 py-1 text-xs font-bold text-slate-300 transition hover:border-white/40 aria-pressed:border-lime-300 aria-pressed:bg-lime-400 aria-pressed:text-slate-950 sm:px-3" data-draft-filter-target="all" data-action="draft-filter#clearPositions">All</button>
-                <% Player::POSITIONS.each do |position| %>
-                  <label class="cursor-pointer">
-                    <input type="checkbox" value="<%= position %>" class="peer sr-only" data-draft-filter-target="position" data-action="change->draft-filter#togglePosition">
-                    <span class="inline-flex rounded-full border border-white/15 px-2.5 py-1 text-xs font-bold text-slate-300 transition sm:px-3 <%= position_filter_classes(position) %>"><%= position %></span>
-                  </label>
-                <% end %>
-              </div>
-              <% teams = available_players.map(&:pro_team).compact.uniq.sort %>
-              <% if teams.any? %>
-                <details class="relative self-start">
-                  <summary class="flex cursor-pointer list-none items-center gap-2 rounded-full border border-white/15 bg-slate-950 px-3 py-1.5 text-xs font-bold text-slate-300 transition hover:border-white/40 [&::-webkit-details-marker]:hidden">
-                    <span>Team</span>
-                    <span class="text-lime-300" data-draft-filter-target="teamSummary">All teams</span>
-                    <span class="text-slate-500">▾</span>
-                  </summary>
-                  <div class="absolute right-0 top-full z-20 mt-2 grid max-h-64 min-w-56 grid-cols-2 gap-x-4 gap-y-1 overflow-y-auto rounded-xl border border-white/15 bg-slate-950 p-3 shadow-2xl shadow-black/40">
-                    <% teams.each do |team| %>
-                      <label class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-xs font-semibold text-slate-300 hover:bg-white/10">
-                        <input type="checkbox" value="<%= team %>" class="size-3.5 accent-lime-400" data-draft-filter-target="team" data-action="change->draft-filter#toggleTeam">
-                        <%= image_tag nfl_team_logo_url(team), alt: team, title: team, loading: "lazy", class: "size-5 object-contain" %>
-                        <span><%= team %></span>
-                      </label>
-                    <% end %>
-                  </div>
-                </details>
-              <% end %>
-            </div>
-          </div>
-        </div>
-        <% can_make_pick = draft.live? && (current_user.commissioner? || selected_team == draft.current_team) %>
-        <div>
-          <table class="hidden w-full table-fixed text-left text-xs md:table">
-            <colgroup><col class="w-[23%]"><col class="w-[5%]"><col class="w-[9%]"><col class="w-[6%]"><col class="w-[8%]"><col class="w-[39%]"><col class="w-[10%]"></colgroup>
-            <thead class="sticky top-0 z-10 bg-slate-800 uppercase tracking-wider text-slate-400">
-              <tr><th class="px-3 py-3">Player</th><th class="px-2 py-3 text-center">Bye</th><th class="px-2 py-3 text-right"><%= draft.league.season - 1 %> FP</th><th class="px-2 py-3 text-center">Games</th><th class="px-2 py-3 text-center">TDs</th><th class="px-3 py-3"><%= draft.league.season - 1 %> production</th><th class="px-3 py-3 text-right">Action</th></tr>
-            </thead>
-            <tbody class="divide-y divide-white/5">
-              <% available_players.each do |player| %>
-                <% league_score = draft.prior_season_score_for(player) %>
-                <% league_fantasy_points = league_score&.points %>
-                <% stat_groups = player.position == "DST" ? (league_score&.dst_stat_groups || []) : player.draft_stat_groups %>
-                <% touchdown_stats = player.position == "DST" ? (league_score&.dst_touchdown_stats || []) : player.draft_touchdown_stats %>
-                <tr class="hover:bg-white/[.03]" data-draft-filter-target="row" data-layout="desktop" data-player-name="<%= player.name.downcase %>" data-player-position="<%= player.position %>" data-player-team="<%= player.pro_team %>">
-                  <td class="px-3 py-2.5">
-                    <div class="flex items-center gap-2.5">
-                      <div class="flex size-10 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800">
-                        <% if player.headshot.attached? %><%= image_tag player_headshot(player, size: 80), alt: "", loading: "lazy", class: "h-full w-full object-cover object-top" %><% else %><span class="mb-2 text-[.6rem] font-black text-slate-500"><%= player.position %></span><% end %>
-                      </div>
-                      <div class="min-w-0">
-                        <div class="flex items-center gap-2"><span class="truncate text-sm font-bold text-white"><%= player.name %></span><% if player.rookie? %><span class="inline-flex shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[.6rem] font-bold uppercase tracking-wide text-white">Rookie</span><% end %></div>
-                        <div class="mt-1 flex items-center gap-2"><span class="rounded border px-2 py-0.5 text-[.65rem] font-bold <%= position_badge_classes(player.position) %>"><%= player.position %></span><%= image_tag nfl_team_logo_url(player.pro_team), alt: "", title: player.pro_team, loading: "lazy", class: "size-5 object-contain" %><span class="sr-only"><%= player.pro_team %></span></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-2 py-2.5 text-center"><span class="font-bold tabular-nums text-slate-300"><%= player.bye_week || "—" %></span></td>
-                  <td class="px-2 py-2.5 text-right"><span class="text-base font-black tabular-nums text-lime-400"><%= league_fantasy_points ? number_with_precision(league_fantasy_points, precision: 1) : "—" %></span></td>
-                  <td class="px-2 py-2.5 text-center"><span class="font-bold tabular-nums text-slate-200"><%= player.draft_games || "—" %></span></td>
-                  <td class="px-2 py-2.5 text-center">
-                    <% if touchdown_stats.any? %>
-                      <dl class="flex justify-center gap-2">
-                        <% touchdown_stats.each do |label, value| %>
-                          <div class="flex flex-col"><dt class="order-2 mt-1 text-[.5rem] font-bold uppercase tracking-wide text-slate-500"><%= label %></dt><dd class="order-1 font-black tabular-nums leading-none text-slate-100"><%= value %></dd></div>
-                        <% end %>
-                      </dl>
-                    <% else %><span class="text-slate-600">—</span><% end %>
-                  </td>
-                  <td class="px-3 py-2.5">
-                    <% if stat_groups.any? %>
-                      <div class="grid grid-cols-2 gap-3">
-                        <% stat_groups.each do |group| %>
-                          <div class="border-l border-white/10 pl-3 first:border-l-0 first:pl-0 <%= "col-span-2" if stat_groups.one? %>">
-                            <p class="mb-1 text-[.55rem] font-bold uppercase tracking-wider text-slate-500"><%= group[:label] %></p>
-                            <dl class="flex gap-2.5">
-                              <% group[:stats].each do |label, value| %>
-                                <div class="flex flex-col text-center"><dt class="order-2 mt-1 text-[.5rem] font-bold uppercase tracking-wide text-slate-500"><%= label %></dt><dd class="order-1 font-black tabular-nums leading-none text-slate-100"><%= value %></dd></div>
-                              <% end %>
-                            </dl>
-                          </div>
-                        <% end %>
-                      </div>
-                    <% else %><span class="text-slate-500">No prior-season stats</span><% end %>
-                  </td>
-                  <td class="px-3 py-2.5 text-right">
-                    <%= render "draft_action", draft:, player:, can_make_pick: %>
-                  </td>
-                </tr>
-              <% end %>
-              <tr class="hidden" data-draft-filter-target="empty"><td colspan="7" class="px-5 py-10 text-center text-sm text-slate-500">No players match those filters.</td></tr>
-            </tbody>
-          </table>
-          <div class="divide-y divide-white/5 md:hidden">
-            <% available_players.each do |player| %>
-              <% league_score = draft.prior_season_score_for(player) %>
-              <% league_fantasy_points = league_score&.points %>
-              <% stat_groups = player.position == "DST" ? (league_score&.dst_stat_groups || []) : player.draft_stat_groups %>
-              <% touchdown_stats = player.position == "DST" ? (league_score&.dst_touchdown_stats || []) : player.draft_touchdown_stats %>
-              <article class="p-3" data-draft-filter-target="row" data-layout="mobile" data-player-name="<%= player.name.downcase %>" data-player-position="<%= player.position %>" data-player-team="<%= player.pro_team %>">
-                <div class="flex items-start justify-between gap-3">
-                  <div class="flex min-w-0 gap-2.5">
-                    <div class="flex size-11 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800">
-                      <% if player.headshot.attached? %><%= image_tag player_headshot(player, size: 88), alt: "", loading: "lazy", class: "h-full w-full object-cover object-top" %><% else %><span class="mb-2.5 text-[.6rem] font-black text-slate-500"><%= player.position %></span><% end %>
-                    </div>
-                    <div class="min-w-0">
-                      <div class="flex flex-wrap items-center gap-2"><span class="text-base font-bold leading-tight text-white"><%= player.name %></span><span class="rounded border px-2 py-0.5 text-[.65rem] font-bold <%= position_badge_classes(player.position) %>"><%= player.position %></span><%= image_tag nfl_team_logo_url(player.pro_team), alt: "", title: player.pro_team, loading: "lazy", class: "size-6 object-contain" %><span class="sr-only"><%= player.pro_team %></span><% if player.rookie? %><span class="rounded-full bg-white/10 px-2 py-0.5 text-[.6rem] font-bold uppercase">Rookie</span><% end %></div>
-                    </div>
-                  </div>
-                  <%= render "draft_action", draft:, player:, can_make_pick: %>
-                </div>
-                <dl class="mt-2 grid grid-cols-3 border-y border-white/10 py-2">
-                  <div><dt class="text-[.6rem] font-bold uppercase tracking-wider text-slate-500">Bye</dt><dd class="text-xl font-black tabular-nums text-slate-100"><%= player.bye_week || "—" %></dd></div>
-                  <div class="border-l border-white/10 pl-4"><dt class="text-[.6rem] font-bold uppercase tracking-wider text-lime-300"><%= draft.league.season - 1 %> FP</dt><dd class="text-xl font-black tabular-nums text-lime-300"><%= league_fantasy_points ? number_with_precision(league_fantasy_points, precision: 1) : "—" %></dd></div>
-                  <div class="border-l border-white/10 pl-4"><dt class="text-[.6rem] font-bold uppercase tracking-wider text-slate-500">Games</dt><dd class="text-xl font-black tabular-nums text-slate-100"><%= player.draft_games || "—" %></dd></div>
-                </dl>
-                <% if stat_groups.any? %>
-                  <div class="mt-2 divide-y divide-white/10">
-                    <% if touchdown_stats.any? %>
-                      <div class="flex items-center gap-5 py-2 first:pt-0">
-                        <p class="mr-auto text-[.6rem] font-bold uppercase tracking-wider text-slate-400">Touchdowns</p>
-                        <dl class="flex gap-5">
-                          <% touchdown_stats.each do |label, value| %>
-                            <div class="flex flex-col text-center"><dt class="order-2 mt-1 text-[.55rem] font-bold uppercase tracking-wide text-slate-500"><%= label %></dt><dd class="order-1 text-base font-black tabular-nums leading-none text-slate-100"><%= value %></dd></div>
-                          <% end %>
-                        </dl>
-                      </div>
-                    <% end %>
-                    <% stat_groups.each do |group| %>
-                      <section class="py-2 first:pt-0">
-                        <h3 class="mb-2 text-[.6rem] font-bold uppercase tracking-wider text-slate-400"><%= group[:label] %></h3>
-                        <dl class="flex min-w-0 justify-between">
-                          <% group[:stats].each do |label, value| %>
-                            <div class="flex min-w-0 flex-col text-center"><dt class="order-2 mt-1 text-[.55rem] font-bold uppercase tracking-wide text-slate-500"><%= label %></dt><dd class="order-1 text-base font-black tabular-nums leading-none text-slate-100"><%= value %></dd></div>
-                          <% end %>
-                        </dl>
-                      </section>
-                    <% end %>
-                  </div>
-                <% else %><p class="mt-2 text-xs text-slate-500">No prior-season stats</p><% end %>
-              </article>
-            <% end %>
-            <div class="hidden px-5 py-10 text-center text-sm text-slate-500" data-draft-filter-target="empty">No players match those filters.</div>
-          </div>
-        </div>
-        <p class="border-t border-white/10 px-4 py-2 text-[.65rem] text-slate-500"><%= draft.league.season - 1 %> regular-season results from <%= link_to "nflverse", "https://github.com/nflverse/nflverse-data/releases/tag/stats_player", target: "_blank", rel: "noopener", class: "underline hover:text-slate-300" %>. Fantasy points use <%= draft.league.name %>'s ESPN scoring rules.</p>
-      </div>
+      <%= render "players", draft:, available_players:, available_teams:, player_filters:, can_make_pick: draft.live? && (current_user.commissioner? || selected_team == draft.current_team) %>
     <% end %>
   </section>
 </div>

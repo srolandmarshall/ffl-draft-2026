@@ -56,10 +56,23 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     get admin_league_path(league)
     assert_response :success
     assert_select "button", text: "Delete league", count: 0
+    assert_select "a[data-turbo-frame='_top']", text: "+ Create draft", count: 1
 
     get edit_admin_league_path(league)
     assert_response :success
     assert_select "button", text: "Delete league", count: 1
+  end
+
+  test "a completed draft links to its draft-board result from the league page" do
+    sign_in_as users(:commissioner)
+    draft = drafts(:one)
+    draft.update!(status: :complete, completed_at: Time.current)
+
+    get admin_league_path(draft.league)
+
+    assert_response :success
+    assert_select "a[href='#{draft_path(draft.public_id, view: "board")}'][data-turbo-frame='_top']", text: "View draft result →", count: 1
+    assert_select "a", text: "Open room →", count: 0
   end
 
   test "league team order seeds the next draft without changing an existing draft" do

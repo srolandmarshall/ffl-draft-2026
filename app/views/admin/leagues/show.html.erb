@@ -31,8 +31,9 @@
 </section>
 
 <div class="grid gap-8 lg:grid-cols-2">
+  <%= turbo_frame_tag "league-#{@league.id}-teams" do %>
   <section>
-    <div class="mb-4 flex items-center justify-between"><div><h2 class="text-xl font-semibold">Next draft order</h2><p class="mt-1 text-xs text-slate-500">Drag teams into place. Existing drafts keep their saved order.</p></div><%= link_to "+ Add team", new_admin_league_team_path(@league), class: "text-sm font-semibold text-lime-400 hover:text-lime-300" %></div>
+    <div class="mb-4 flex items-center justify-between"><div><h2 class="text-xl font-semibold">Next draft order</h2><p class="mt-1 text-xs text-slate-500">Drag teams into place. Existing drafts keep their saved order.</p></div><%= link_to "+ Add team", new_admin_league_team_path(@league), data: { turbo_frame: "_top" }, class: "text-sm font-semibold text-lime-400 hover:text-lime-300" %></div>
     <%= form_with url: team_order_admin_league_path(@league), method: :patch, data: { controller: "team-order" } do %>
       <p class="mb-2 min-h-5 text-xs font-semibold text-lime-400" data-team-order-target="status"></p>
       <div class="overflow-hidden rounded-lg border border-white/10 bg-slate-900">
@@ -43,7 +44,7 @@
             <span class="w-6 shrink-0 text-center text-xs font-bold text-lime-400" data-team-order-target="position"><%= position %></span>
             <span class="w-12 shrink-0 text-xs font-semibold text-slate-500"><%= team.abbreviation %></span>
             <p class="min-w-0 flex-1 truncate text-sm font-semibold"><%= team.name %><span class="hidden font-normal text-slate-500 md:inline"> · <%= team.owner_name %></span></p>
-            <%= link_to "Edit", edit_admin_league_team_path(@league, team), class: "text-xs font-bold text-slate-400 hover:text-white" %>
+            <%= link_to "Edit", edit_admin_league_team_path(@league, team), data: { turbo_frame: "_top" }, class: "text-xs font-bold text-slate-400 hover:text-white" %>
           </div>
         <% end %>
         <% if @teams.empty? %><p class="p-7 text-center text-sm text-slate-500">Add teams before creating a draft.</p><% end %>
@@ -51,14 +52,23 @@
       <% if @teams.many? %><%= submit_tag "Save order", class: "mt-3 cursor-pointer rounded-lg border border-white/15 px-3 py-2 text-xs font-bold hover:border-lime-400" %><% end %>
     <% end %>
   </section>
+  <% end %>
+  <%= turbo_frame_tag "league-#{@league.id}-drafts" do %>
   <section>
-    <div class="mb-4 flex items-center justify-between"><h2 class="text-xl font-semibold">Drafts</h2><%= link_to "+ Create draft", new_admin_league_draft_path(@league), class: "text-sm font-semibold text-lime-400 hover:text-lime-300" %></div>
+    <div class="mb-4 flex items-center justify-between"><h2 class="text-xl font-semibold">Drafts</h2><%= link_to "+ Create draft", new_admin_league_draft_path(@league), data: { turbo_frame: "_top" }, class: "text-sm font-semibold text-lime-400 hover:text-lime-300" %></div>
     <div class="space-y-3">
       <% @drafts.each do |draft| %>
         <div class="rounded-lg border border-white/10 bg-slate-900 p-5">
-          <div class="flex items-start justify-between"><div><p class="font-semibold"><%= draft.name %></p><p class="text-sm text-slate-400"><%= draft.team_count %> teams · <%= draft.rounds %> rounds · <%= draft.ppr.to_f %> PPR · <%= draft.status %></p></div><%= link_to "Open room →", draft_path(draft.public_id), class: "text-sm font-bold text-lime-400" %></div>
+          <div class="flex items-start justify-between">
+            <div><p class="font-semibold"><%= draft.name %></p><p class="text-sm text-slate-400"><%= draft.team_count %> teams · <%= draft.rounds %> rounds · <%= draft.ppr.to_f %> PPR · <%= draft.status %></p></div>
+            <% if draft.complete? %>
+              <%= link_to "View draft result →", draft_path(draft.public_id, view: "board"), data: { turbo_frame: "_top" }, class: "text-sm font-bold text-lime-400" %>
+            <% else %>
+              <%= link_to "Open room →", draft_path(draft.public_id), data: { turbo_frame: "_top" }, class: "text-sm font-bold text-lime-400" %>
+            <% end %>
+          </div>
           <div class="mt-4 flex flex-wrap gap-3">
-            <% if draft.setup? %><%= button_to "Start draft", start_admin_league_draft_path(@league, draft), method: :patch, class: "cursor-pointer rounded-lg bg-lime-400 px-3 py-2 text-xs font-semibold text-slate-950" %><%= link_to "Edit", edit_admin_league_draft_path(@league, draft), class: "rounded-lg border border-white/10 px-3 py-2 text-xs font-bold" %><% else %><%= button_to "Restart draft", restart_admin_league_draft_path(@league, draft), method: :patch, class: "cursor-pointer rounded-lg border border-amber-400/40 px-3 py-2 text-xs font-bold text-amber-200 hover:bg-amber-400/10", form: { data: { turbo_confirm: "Restart #{draft.name}? This permanently removes all picks and starts it over." } } %><% end %>
+            <% if draft.setup? %><%= button_to "Start draft", start_admin_league_draft_path(@league, draft), method: :patch, class: "cursor-pointer rounded-lg bg-lime-400 px-3 py-2 text-xs font-semibold text-slate-950" %><%= link_to "Edit", edit_admin_league_draft_path(@league, draft), data: { turbo_frame: "_top" }, class: "rounded-lg border border-white/10 px-3 py-2 text-xs font-bold" %><% else %><%= button_to "Restart draft", restart_admin_league_draft_path(@league, draft), method: :patch, class: "cursor-pointer rounded-lg border border-amber-400/40 px-3 py-2 text-xs font-bold text-amber-200 hover:bg-amber-400/10", form: { data: { turbo_confirm: "Restart #{draft.name}? This permanently removes all picks and starts it over." } } %><% end %>
             <%= button_to "Delete draft", admin_league_draft_path(@league, draft), method: :delete, class: "cursor-pointer rounded-lg border border-red-400/40 px-3 py-2 text-xs font-bold text-red-200 hover:bg-red-400/10", form: { data: { turbo_confirm: "Delete #{draft.name}? This permanently removes the draft and all picks." } } %>
           </div>
         </div>
@@ -66,4 +76,5 @@
       <% if @drafts.empty? %><div class="rounded-lg border border-dashed border-white/15 p-7 text-center text-sm text-slate-500">No drafts yet.</div><% end %>
     </div>
   </section>
+  <% end %>
 </div>
