@@ -15,7 +15,7 @@ class Drafts::BroadcastPickTest < ActiveSupport::TestCase
     end
   end
 
-  test "queues five targeted live updates for an in-progress pick" do
+  test "queues five deferred updates after broadcasting the turn immediately" do
     draft = drafts(:one)
     pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 12)
     clear_enqueued_jobs

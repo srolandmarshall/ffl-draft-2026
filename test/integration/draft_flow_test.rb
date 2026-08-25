@@ -36,7 +36,9 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "[data-draft-filter-target='position']", count: Player::POSITIONS.size
     assert_select "[data-draft-player-id='#{players(:one).id}']", minimum: 1
     assert_select "#flash"
-    assert_select "form[data-controller='draft-pick']", minimum: 1 do
+    room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
+    assert_select "##{room_id}[data-controller='draft-pick'][data-action='draft:turn->draft-pick#turnChanged'][data-draft-pick-selected-team-id-value='#{teams(:one).id}'][data-draft-pick-commissioner-value='false']"
+    assert_select "form", minimum: 1 do
       assert_select "button[type='button'][data-action='draft-pick#prepare']", "Draft"
       assert_select "button[type='submit'][data-draft-pick-target='confirm']", "✓"
       assert_select "button[type='button'][data-action='draft-pick#cancel']", "×"

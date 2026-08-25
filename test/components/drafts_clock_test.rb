@@ -17,6 +17,9 @@ class Components::Drafts::ClockTest < ActiveSupport::TestCase
     assert_includes html, draft.current_team.name
     assert_includes html, "#{team.name}:"
     assert_includes html, "2 picks away"
+    assert_includes html, "data-draft-pick-target=\"currentTeam\""
+    assert_includes html, "data-draft-pick-target=\"turnPosition\""
+    assert_includes html, "draft:timer-reset->pick-timer#reset"
   end
 
   test "commissioner can undo the latest pick" do
