@@ -130,6 +130,9 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     assert_select "select[name='draft[draft_type]'] option[selected][value='linear']"
     assert_select "input[name='draft[wr_slots]'][value='3']"
     assert_select "label", text: "Scheduled start (Eastern Time)"
+    assert_select "[data-controller='date-picker'][data-date-picker-timepicker-value='true']", count: 1
+    assert_select "input#draft_scheduled_start_at[name='draft[scheduled_start_at]'][data-date-picker-target='input']", count: 1
+    assert_select "input[type='datetime-local']", count: 0
   end
 
   test "a regular member cannot delete a league" do
@@ -176,7 +179,7 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
         post admin_league_drafts_path(league), params: {
           draft: {
             name: "2027 Draft",
-            scheduled_start_at: "2027-08-25T20:00",
+            scheduled_start_at: "2027-08-25 20:00",
             team_count: 2,
             draft_type: "snake",
             ppr: 0.5,
