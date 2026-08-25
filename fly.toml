@@ -9,9 +9,9 @@ console_command = '/rails/bin/rails console'
 
 [build]
 [env]
-  APP_HOST = 'ffl-draft.fly.dev'
+  APP_HOST = 'draft.sammarshall.us'
   HTTP_PORT = '8080'
-  SOLID_QUEUE_IN_PUMA = 'true'
+  SOLID_QUEUE_IN_PUMA = 'false'
 
 [[mounts]]
   source = 'data'
