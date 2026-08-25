@@ -46,7 +46,9 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "[data-controller='draft-filter']"
     assert_select "[data-draft-filter-target='all'][aria-pressed='true']", text: "All"
     assert_select "[data-draft-filter-target='position']", count: Player::POSITIONS.size
-    assert_select "[data-draft-player-id='#{players(:one).id}']", minimum: 1
+    assert_select "[data-draft-player-id='#{players(:one).id}']", minimum: 1 do |player_rows|
+      player_rows.each { |row| assert_includes row["class"], "bg-amber-400/20" }
+    end
     assert_select "[data-mobile-player-row]", minimum: 1 do |rows|
       rows.each { |row| assert_includes row["class"], "py-2.5" }
     end
@@ -269,6 +271,9 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "[data-draft-board-pick='true'] img[src*='/rails/active_storage/']", count: 2
     assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number}[title*='Pick time 1:01']", count: 1
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number}", count: 1 do |board_cells|
+      assert_includes board_cells.first["class"], "bg-amber-400/20"
+    end
     team_logo_url = ApplicationController.helpers.nfl_team_logo_url(players(:one).pro_team)
     assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} img.size-7[src='#{team_logo_url}'][title='#{players(:one).pro_team}']", count: 1
     assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} > span.absolute", text: "1.1", count: 1
