@@ -19,12 +19,14 @@ class Components::Drafts::TeamRosterTest < ActiveSupport::TestCase
 
   test "groups drafted players with pick details without pick time" do
     pick = drafts(:one).picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 61)
+    players(:one).headshot.attach(io: StringIO.new("headshot"), filename: "headshot.png", content_type: "image/png")
     html = render_roster(picks: [ pick ])
 
     assert_includes html, players(:one).name
     assert_includes html, "R1 · Pick 1"
     refute_includes html, "Time used for this pick"
-    assert_match(/class="[^"]*h-8 w-7[^"]*"/, html)
+    assert_includes html, "data-roster-player-image"
+    assert_includes html, "style=\"height: 2.75rem; width: 2.25rem\""
     assert_match(/data-roster-slot="QB"[^>]*data-roster-filled="true"[^>]*data-roster-pick-id="#{pick.id}"/, html)
   end
 

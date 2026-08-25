@@ -71,7 +71,7 @@ class Components::Drafts::TeamRoster < Components::Base
 
   def roster_slot(slot)
     article(
-      class: "flex min-w-0 items-center gap-2.5 rounded-lg border p-2.5 #{slot.filled? ? 'border-white/10 bg-slate-950/40' : 'border-dashed border-white/10 bg-slate-950/20'}",
+      class: "flex min-w-0 items-center gap-2.5 rounded-lg border px-2.5 py-1.5 #{slot.filled? ? 'border-white/10 bg-slate-950/40' : 'border-dashed border-white/10 bg-slate-950/20'}",
       style: "height: 3.5rem",
       data: { roster_slot: slot.label, roster_slot_position: slot.position, roster_filled: slot.filled?.to_s, roster_pick_id: slot.pick&.id }
     ) do
@@ -103,16 +103,16 @@ class Components::Drafts::TeamRoster < Components::Base
   end
 
   def player_image(player)
-    div(class: "flex h-8 w-7 shrink-0 items-end justify-center overflow-hidden rounded-md border border-white/10 #{player.position == 'DST' ? 'bg-slate-400/50' : 'bg-slate-800'}") do
-      if player.position == "DST"
-        img(src: nfl_team_logo_url(player.pro_team), alt: "", title: player.pro_team, loading: "lazy", class: "h-full w-full object-contain p-1")
-      elsif player.headshot.attached?
-        img(src: url_for(player_headshot(player, size: 80)), alt: "", loading: "lazy", class: "h-full w-full object-cover object-top")
-      else
-        span(class: "mb-2 text-[.55rem] font-black text-slate-500") { player.position }
-      end
+    if player.position == "DST"
+      img(src: nfl_team_logo_url(player.pro_team), alt: "", title: player.pro_team, loading: "lazy", class: "shrink-0 object-contain p-0.5", style: player_image_style, data: { roster_player_image: true })
+    elsif player.headshot.attached?
+      img(src: url_for(player_headshot(player, size: 80)), alt: "", loading: "lazy", class: "shrink-0 rounded-md object-cover object-top", style: player_image_style, data: { roster_player_image: true })
+    else
+      span(class: "flex shrink-0 items-center justify-center text-[.55rem] font-black text-slate-500", style: player_image_style) { player.position }
     end
   end
+
+  def player_image_style = "height: 2.75rem; width: 2.25rem"
 
   def player_name(player)
     return player.name unless player.position == "DST"

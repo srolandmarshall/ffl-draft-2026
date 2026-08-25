@@ -15,7 +15,8 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
     room_children = css_select("##{room_id} > *")
     assert_equal "draft-sunday-draft-clock", room_children.first["id"]
-    assert_equal "Draft room view", room_children[1]["aria-label"]
+    assert room_children[1].at_css("#draft-sunday-draft-recent-picks")
+    assert_equal "Draft room view", room_children[2]["aria-label"]
     assert_select "p", text: /You're up now/
     assert_select "a", text: /Export/, count: 0
     assert_select "[data-controller='pick-timer'][data-pick-timer-paused-value='false']"
