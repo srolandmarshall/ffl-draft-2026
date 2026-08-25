@@ -13,6 +13,10 @@ Turbo.StreamActions.refresh_frame = function () {
   }
 }
 
+Turbo.StreamActions.visit = function () {
+  Turbo.visit(this.getAttribute("target"))
+}
+
 Turbo.StreamActions.draft_turn = function () {
   const room = document.getElementById(this.target)
   if (!room) return

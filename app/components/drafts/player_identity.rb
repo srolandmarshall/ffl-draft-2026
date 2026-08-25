@@ -79,17 +79,17 @@ class Components::Drafts::PlayerIdentity < Components::Base
   def position_line
     div(class: "mt-1 flex items-center gap-2") do
       position_badge
-      team_logo(size: "size-5")
+      team_logo(size: "size-7")
       sr_only_team
     end
   end
 
   def position_badge
-    span(class: "rounded border px-2 py-0.5 text-[.65rem] font-bold #{position_badge_classes(@player.position)}") { @player.position }
+    span(class: "inline-flex h-7 min-w-7 items-center justify-center rounded border px-2 text-xs font-bold leading-none #{position_badge_classes(@player.position)}") { @player.position }
   end
 
-  def team_logo(size: "size-6")
-    img(src: nfl_team_logo_url(@player.pro_team), alt: "", title: @player.pro_team, loading: "lazy", class: "#{size} object-contain")
+  def team_logo(size: "size-7")
+    img(src: nfl_team_logo_url(@player.pro_team), alt: "", title: @player.pro_team, loading: "lazy", class: "#{size} rounded bg-slate-400/50 p-0.5 object-contain")
   end
 
   def sr_only_team

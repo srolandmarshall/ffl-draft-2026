@@ -22,5 +22,7 @@ class Components::Drafts::PlayerFiltersTest < ActiveSupport::TestCase
     assert_includes html, "name=\"teams[]\" value=\"ATL\" checked"
     assert_includes html, "value=\"Alex\""
     assert_includes html, "1 selected"
+    assert_match(/title="ATL"[^>]+size-7[^>]+bg-slate-400\/50/, html)
+    assert_match(/title="BUF"[^>]+size-7[^>]+bg-slate-400\/50/, html)
   end
 end

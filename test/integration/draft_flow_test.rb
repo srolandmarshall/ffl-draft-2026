@@ -93,11 +93,28 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "h2", "Draft board"
+    assert_select "p", text: "Rounds run top to bottom. Snake rounds reverse pick order.", count: 0
     assert_select "div[title='#{teams(:one).name}']", text: teams(:one).abbreviation
     assert_select "[data-draft-board-row]", count: drafts(:one).rounds
+    assert_select "[data-draft-board-row]", count: drafts(:one).rounds do |rows|
+      rows.each { |row| assert_includes row["class"], "min-[900px]:grid" }
+    end
+    assert_select "[data-draft-board-row='1'] > div:first-child.whitespace-nowrap", text: "R1", count: 1
+    assert_select "[data-draft-board-row='2'] > div:first-child.whitespace-nowrap", text: "R2", count: 1
+    assert_select "[data-mobile-draft-pick]", count: drafts(:one).total_picks do |rows|
+      rows.each { |row| assert_includes row["class"], "min-[900px]:hidden" }
+    end
+    assert_select "[data-mobile-draft-pick='1']", text: /1\.1.*#{teams(:one).abbreviation}.*Open/m, count: 1
+    assert_select "#draft-#{drafts(:one).public_id}-board-content > div > div.sticky.hidden", count: 1 do |headers|
+      assert_includes headers.first["class"], "min-[900px]:grid"
+    end
     assert_select "[aria-label='#{teams(:one).name}, your team']", text: teams(:one).abbreviation
     assert_select "[data-draft-board-team-id='#{teams(:one).id}']", count: drafts(:one).rounds do |cells|
       cells.each { |cell| assert_includes cell["class"], "bg-lime-300/10" }
+    end
+    assert_select "#draft-#{drafts(:one).public_id}-board-content > div.divide-y", count: 1 do |containers|
+      refute_includes containers.first["class"], "max-h-[42rem]"
+      refute_includes containers.first["class"], "overflow-y-auto"
     end
     assert_select "nav[aria-label='Draft room view'] span", "Player list"
   end
@@ -128,11 +145,46 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     get draft_path(draft.public_id, view: "board")
 
     assert_response :success
-    assert_select ".text-yellow-300", text: "1:01", minimum: 2
+    assert_select ".text-yellow-300", text: "1:01", minimum: 1
     assert_select "li", text: /#{teams(:one).abbreviation} · R1 · Pick 1/
     assert_select "[data-recent-pick] img[src*='/rails/active_storage/']", count: 1
-    assert_select "[data-draft-board-pick='true'] img[src*='/rails/active_storage/']", count: 1
+    assert_select "[data-draft-board-pick='true'] img[src*='/rails/active_storage/']", count: 2
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number}[title*='Pick time 1:01']", count: 1
+    team_logo_url = ApplicationController.helpers.nfl_team_logo_url(players(:one).pro_team)
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} img.size-7[src='#{team_logo_url}'][title='#{players(:one).pro_team}']", count: 1
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} > span.absolute", text: "1.1", count: 1
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} [data-mobile-draft-pick='#{pick.overall_number}']", text: /1\.1.*#{teams(:one).abbreviation}.*#{players(:one).name}.*#{players(:one).position}/m, count: 1 do |mobile_rows|
+      assert_select mobile_rows.first, "img", count: 2
+      assert_select mobile_rows.first, ".h-10.w-8 img[src*='/rails/active_storage/']", count: 1
+      assert_select mobile_rows.first, "img.h-9.w-7[src='#{team_logo_url}']", count: 1
+    end
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number}", text: /ADP/, count: 0
     assert_select "[data-pick-timer-elapsed-value]"
+  end
+
+  test "draft board uses the team logo for a defense pick" do
+    draft = drafts(:one)
+    defense = players(:two)
+    defense.update!(name: "Buffalo Bills Defense", position: "DST", pro_team: "BUF", adp: 100)
+    pick = draft.picks.create!(team: teams(:one), player: defense, round: 1, overall_number: 1, elapsed_seconds: 42)
+    draft.update!(status: :complete, completed_at: Time.current)
+    sign_in_as users(:member)
+
+    get draft_path(draft.public_id, view: "board")
+
+    logo_url = ApplicationController.helpers.nfl_team_logo_url(defense.pro_team)
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} [class~='bg-slate-400/50'] img[src='#{logo_url}'][title='BUF']", count: 2
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} span", text: "Buffalo Bills", count: 1 do |names|
+      refute_includes names.first["class"], "truncate"
+      refute_includes names.first["class"], "hidden"
+      assert_includes names.first["class"], "text-balance"
+    end
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} p", text: "Buffalo Bills", count: 1
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number}[title*='Pick time 0:42']", count: 1
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} img[src='#{logo_url}']", count: 2
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number}", text: /DST - ADP 100\.0/, count: 1
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} [data-mobile-draft-pick='#{pick.overall_number}'] img", count: 1
+    assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number} [data-mobile-draft-pick='#{pick.overall_number}'] .size-8 img", count: 1
   end
 
   test "commissioner pauses and resumes the current pick timer" do
@@ -239,7 +291,8 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h2", "Draft results"
     assert_select "a", "Export CSV"
-    assert_select "a", "Export JSON"
+    assert_select "a", text: "Export JSON", count: 0
+    assert_select "button", text: "Undo last pick", count: 0
     assert_select "h2", "Draft board"
   end
 

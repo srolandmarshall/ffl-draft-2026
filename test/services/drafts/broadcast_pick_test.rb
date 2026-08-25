@@ -25,6 +25,19 @@ class Drafts::BroadcastPickTest < ActiveSupport::TestCase
     end
   end
 
+  test "a completed draft broadcasts one top-level visit without stale frame updates" do
+    draft = drafts(:one)
+    pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 12)
+    draft.update!(status: :complete, completed_at: Time.current)
+    clear_enqueued_jobs
+
+    assert_no_enqueued_jobs do
+      assert_broadcast_on(draft.to_gid_param, '<turbo-stream action="visit" target="/drafts/sunday-draft"><template></template></turbo-stream>') do
+        Drafts::BroadcastPick.new(pick).call
+      end
+    end
+  end
+
   test "renders recent picks and the changed board cells without the application layout" do
     draft = drafts(:one)
     pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 12)
