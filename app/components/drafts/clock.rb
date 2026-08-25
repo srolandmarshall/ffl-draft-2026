@@ -36,6 +36,7 @@ class Components::Drafts::Clock < Components::Base
           plain " · R#{last_pick.round} · Pick #{last_pick.overall_number}"
         end if last_pick
         selected_team_status
+        sound_control
       else
         p(class: "font-bold") { "Draft room is ready" }
         p(class: "text-xs text-slate-500") { "Waiting for the commissioner to start." }
@@ -58,6 +59,17 @@ class Components::Drafts::Clock < Components::Base
       span(class: "text-slate-300") { "#{@selected_team.name}:" }
       plain " #{status}"
     end
+  end
+
+  def sound_control
+    return if @selected_team.nil? || @current_user&.commissioner?
+
+    button(
+      type: "button",
+      class: "mt-2 cursor-pointer rounded border border-white/15 px-2 py-1 text-[.6rem] font-bold text-slate-400 transition hover:border-white/40 hover:text-white",
+      aria: { pressed: "true", label: "Toggle your-turn sound" },
+      data: { draft_alert_target: "toggle", action: "draft-alert#toggleSound" }
+    ) { "Sound on" }
   end
 
   def clock_timer

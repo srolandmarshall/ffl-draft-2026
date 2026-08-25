@@ -37,7 +37,8 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "[data-draft-player-id='#{players(:one).id}']", minimum: 1
     assert_select "#flash"
     room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
-    assert_select "##{room_id}[data-controller='draft-pick'][data-action='draft:turn->draft-pick#turnChanged'][data-draft-pick-selected-team-id-value='#{teams(:one).id}'][data-draft-pick-commissioner-value='false']"
+    assert_select "##{room_id}[data-controller~='draft-pick'][data-controller~='draft-alert'][data-action~='draft:turn->draft-pick#turnChanged'][data-action~='draft:turn->draft-alert#turnChanged'][data-draft-pick-selected-team-id-value='#{teams(:one).id}'][data-draft-pick-commissioner-value='false'][data-draft-alert-selected-team-id-value='#{teams(:one).id}'][data-draft-alert-current-team-id-value='#{teams(:one).id}'][data-draft-alert-enabled-value='true'][data-draft-alert-sound-url-value='/its-your-pick.mp3']"
+    assert_select "button[data-draft-alert-target='toggle'][data-action='draft-alert#toggleSound'][aria-label='Toggle your-turn sound'][aria-pressed='true']", text: "Sound on", count: 1
     assert_select "form", minimum: 1 do
       assert_select "button[type='button'][data-action='draft-pick#prepare']", "Draft"
       assert_select "button[type='submit'][data-draft-pick-target='confirm']", "✓"
@@ -125,6 +126,8 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     get draft_path(drafts(:one).public_id, view: "board")
 
     assert_response :success
+    assert_select "[data-draft-alert-enabled-value='false']", count: 1
+    assert_select "[data-draft-alert-target='toggle']", count: 0
     assert_select "[aria-label$=', your team']", count: 0
     assert_select "[data-draft-board-team-id].bg-lime-300\\/10", count: 0
   end
