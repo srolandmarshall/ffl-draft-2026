@@ -42,7 +42,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "td", text: "17", minimum: 1
     assert_select "td", text: /333.3/
     assert_select "p", text: /ESPN scoring rules/
-    assert_select "img[src*='/rails/active_storage/'][loading='lazy']", minimum: 2
+    assert_select "img[src*='/rails/active_storage/representations/proxy/'][loading='lazy']", minimum: 2
     team_logo_url = ApplicationController.helpers.nfl_team_logo_url(players(:one).pro_team)
     assert_select "img[src='#{team_logo_url}'][title='#{players(:one).pro_team}']", minimum: 2
     assert_select "[data-controller='draft-filter']"
