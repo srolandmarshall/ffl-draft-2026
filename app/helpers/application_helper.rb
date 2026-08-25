@@ -17,6 +17,15 @@ module ApplicationHelper
     "DST" => "peer-checked:border-cyan-300 peer-checked:bg-cyan-400 peer-checked:text-slate-950"
   }.freeze
 
+  POSITION_SURFACE_CLASSES = {
+    "QB" => "border-amber-400/40 bg-amber-400/20",
+    "RB" => "border-emerald-400/40 bg-emerald-400/20",
+    "WR" => "border-blue-400/40 bg-blue-400/20",
+    "TE" => "border-violet-400/40 bg-violet-400/20",
+    "K" => "border-pink-400/40 bg-pink-400/20",
+    "DST" => "border-cyan-400/40 bg-cyan-400/20"
+  }.freeze
+
   POSITION_CHART_COLORS = {
     "QB" => "#fbbf24",
     "RB" => "#34d399",
@@ -39,6 +48,10 @@ module ApplicationHelper
 
   def position_filter_classes(position)
     POSITION_FILTER_CLASSES.fetch(position, "peer-checked:border-white peer-checked:bg-white peer-checked:text-slate-950")
+  end
+
+  def position_surface_classes(position)
+    POSITION_SURFACE_CLASSES.fetch(position, "border-white/20 bg-white/10")
   end
 
   def nfl_team_logo_url(team)

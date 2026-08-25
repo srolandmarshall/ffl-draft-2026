@@ -28,6 +28,8 @@ class Components::Drafts::TeamRosterTest < ActiveSupport::TestCase
     assert_includes html, "data-roster-player-image"
     assert_includes html, "style=\"height: 2.75rem; width: 2.25rem\""
     assert_match(/data-roster-slot="QB"[^>]*data-roster-filled="true"[^>]*data-roster-pick-id="#{pick.id}"/, html)
+    filled_slot = Nokogiri::HTML5.fragment(html).at_css("[data-roster-pick-id='#{pick.id}']")
+    assert_includes filled_slot["class"], "bg-amber-400/20"
   end
 
   test "fills dedicated starters, then flex, then bench in draft order" do

@@ -65,7 +65,7 @@ class Components::Drafts::Players < Components::Base
 
   def desktop_row(player)
     stats = PlayerStats.new(@draft, player)
-    tr(class: "hover:bg-white/[.03]", data: { draft_player_id: player.id }) do
+    tr(class: "#{position_surface_classes(player.position)} transition hover:brightness-110", data: { draft_player_id: player.id }) do
       td(class: "px-3 py-2.5") { render Components::Drafts::PlayerIdentity.new(player:, variant: :desktop) }
       td(class: "px-2 py-2.5 text-center") { span(class: "font-bold tabular-nums text-slate-300") { player.bye_week || "—" } }
       td(class: "px-2 py-2.5 text-right") { span(class: "text-base font-black tabular-nums text-lime-400") { points(stats) } }
@@ -85,7 +85,7 @@ class Components::Drafts::Players < Components::Base
 
   def mobile_row(player)
     stats = PlayerStats.new(@draft, player)
-    article(class: "px-3 py-2.5 even:bg-white/[.02]", data: { draft_player_id: player.id, mobile_player_row: true }) do
+    article(class: "px-3 py-2.5 #{position_surface_classes(player.position)}", data: { draft_player_id: player.id, mobile_player_row: true }) do
       div(class: "flex items-start justify-between gap-2") do
         render Components::Drafts::PlayerIdentity.new(player:, variant: :mobile)
         render Components::Drafts::Action.new(draft: @draft, player:, can_make_pick: @can_make_pick)

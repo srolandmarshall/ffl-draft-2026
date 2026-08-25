@@ -70,8 +70,14 @@ class Components::Drafts::TeamRoster < Components::Base
   def bench_slots = @slots.select(&:bench)
 
   def roster_slot(slot)
+    surface_classes = if slot.filled?
+      position_surface_classes(slot.pick.player.position)
+    else
+      "border-dashed border-white/10 bg-slate-950/20"
+    end
+
     article(
-      class: "flex min-w-0 items-center gap-2.5 rounded-lg border px-2.5 py-1.5 #{slot.filled? ? 'border-white/10 bg-slate-950/40' : 'border-dashed border-white/10 bg-slate-950/20'}",
+      class: "flex min-w-0 items-center gap-2.5 rounded-lg border px-2.5 py-1.5 #{surface_classes}",
       style: "height: 3.5rem",
       data: { roster_slot: slot.label, roster_slot_position: slot.position, roster_filled: slot.filled?.to_s, roster_pick_id: slot.pick&.id }
     ) do
