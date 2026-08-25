@@ -1,8 +1,0 @@
-<%= form_with url: draft_picks_path(draft.public_id), method: :post, class: "inline-flex justify-end", data: { controller: "draft-pick" } do %>
-  <%= hidden_field_tag :player_id, player.id %>
-  <button type="button" <%= "disabled" unless can_make_pick %> class="h-7 w-[3.75rem] rounded-lg text-xs font-semibold <%= can_make_pick ? 'cursor-pointer bg-lime-400 text-slate-950 hover:bg-lime-300' : 'cursor-not-allowed bg-white/5 text-slate-600' %>" data-draft-pick-target="trigger" data-action="draft-pick#prepare">Draft</button>
-  <span class="inline-flex items-center gap-1" hidden data-draft-pick-target="confirmation">
-    <button type="submit" class="flex size-7 cursor-pointer items-center justify-center rounded border border-lime-300 bg-lime-400 text-base font-black leading-none text-slate-950 hover:bg-lime-300" title="Confirm <%= player.name %>" aria-label="Confirm drafting <%= player.name %>" data-draft-pick-target="confirm">✓</button>
-    <button type="button" class="flex size-7 cursor-pointer items-center justify-center rounded border border-white/20 bg-white/5 text-base font-bold leading-none text-slate-300 hover:border-red-400 hover:text-red-300" title="Cancel" aria-label="Cancel drafting <%= player.name %>" data-action="draft-pick#cancel">×</button>
-  </span>
-<% end %>

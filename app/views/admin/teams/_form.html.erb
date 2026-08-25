@@ -1,4 +1,4 @@
-<%= render "shared/errors", record: team %>
+<%= render Components::FormErrors.new(team) %>
 <%= form_with model: [:admin, league, team], class: "space-y-5" do |form| %>
   <div><%= form.label :name, class: "mb-2 block text-sm font-bold" %><%= form.text_field :name, autofocus: true, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>
   <div><%= form.label :owner_name, class: "mb-2 block text-sm font-bold" %><%= form.text_field :owner_name, class: "w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5" %></div>

@@ -82,7 +82,7 @@ module ApplicationHelper
     minutes, remaining_seconds = seconds.divmod(60)
     hours, remaining_minutes = minutes.divmod(60)
 
-    hours.positive? ? format("%d:%02d:%02d", hours, remaining_minutes, remaining_seconds) : format("%d:%02d", minutes, remaining_seconds)
+    hours.positive? ? Kernel.format("%d:%02d:%02d", hours, remaining_minutes, remaining_seconds) : Kernel.format("%d:%02d", minutes, remaining_seconds)
   end
 
   def pick_duration_classes(seconds)

@@ -14,6 +14,7 @@ class PickTimersController < ApplicationController
     else raise ActionController::BadRequest, "Unknown timer state"
     end
 
+    draft.broadcast_action_later_to(draft, action: :refresh_frame, target: "draft-#{draft.public_id}-clock", render: false)
     redirect_to draft_path(draft.public_id)
   rescue ActiveRecord::RecordInvalid
     redirect_to draft_path(params[:draft_public_id]), alert: "Only a live draft timer can be paused."

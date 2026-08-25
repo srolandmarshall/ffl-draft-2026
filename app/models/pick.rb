@@ -8,5 +8,5 @@ class Pick < ApplicationRecord
   validates :overall_number, uniqueness: { scope: :draft_id }
   validates :player_id, uniqueness: { scope: :draft_id, message: "has already been drafted" }
 
-  after_create_commit -> { broadcast_refresh_later_to draft }
+  after_create_commit -> { Drafts::BroadcastPick.new(self).call }
 end

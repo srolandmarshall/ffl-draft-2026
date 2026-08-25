@@ -1,19 +1,21 @@
 <%= turbo_stream_from @draft %>
 <% content_for :title, @draft.name %>
 
-<div class="mb-4 flex items-start justify-between gap-3 sm:mb-7 sm:items-end">
-  <div class="min-w-0">
-    <p class="text-sm font-bold text-lime-400"><%= @draft.league.name %> · <%= @draft.league.season %></p>
-    <h1 class="truncate text-xl font-bold sm:text-2xl"><%= @draft.name %></h1>
-    <p class="mt-1 text-[.65rem] leading-relaxed text-slate-400 sm:mt-2 sm:text-xs"><%= @draft.team_count %> teams · <%= @draft.draft_type.titleize %> · <%= @draft.ppr.to_f %> PPR · <%= @draft.roster_summary %></p>
-  </div>
-  <div class="shrink-0 pt-1 sm:pt-0">
-    <span class="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[.6rem] font-semibold uppercase tracking-wide text-slate-400 sm:text-xs">Status: <%= @draft.status %></span>
-  </div>
-</div>
+<%= turbo_frame_tag "draft-#{@draft.public_id}-header" do %>
+  <%= render Components::Drafts::Header.new(@draft) %>
+<% end %>
 
-<% if @draft.complete? %>
-  <%= render "results", draft: @draft, picks: @picks, pick_elapsed_seconds: @pick_elapsed_seconds %>
-<% else %>
-  <%= render "room", draft: @draft, selected_team: @selected_team, picks_until_selected_team: @picks_until_selected_team, picks: @picks, available_players: @available_players, pick_elapsed_seconds: @pick_elapsed_seconds, current_pick_elapsed_seconds: @current_pick_elapsed_seconds %>
+<%= turbo_frame_tag "draft-#{@draft.public_id}-content" do %>
+  <% if @draft.complete? %>
+    <%= turbo_frame_tag "draft-#{@draft.public_id}-results" do %>
+      <%= render Components::Drafts::Results.new(draft: @draft, picks: @picks, pick_elapsed_seconds: @pick_elapsed_seconds, current_user:) %>
+    <% end %>
+    <%= turbo_frame_tag "draft-#{@draft.public_id}-board" do %>
+      <%= render Components::Drafts::Board.new(draft: @draft, picks: @picks, pick_elapsed_seconds: @pick_elapsed_seconds, selected_team: @selected_team) %>
+    <% end %>
+  <% else %>
+    <%= turbo_frame_tag "draft-#{@draft.public_id}-room" do %>
+      <%= render "room", draft: @draft, selected_team: @selected_team, picks_until_selected_team: @picks_until_selected_team, picks: @picks, available_players: @available_players, available_teams: @available_teams, player_filters: @player_filters, pick_elapsed_seconds: @pick_elapsed_seconds, current_pick_elapsed_seconds: @current_pick_elapsed_seconds %>
+    <% end %>
+  <% end %>
 <% end %>
