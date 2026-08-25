@@ -8,6 +8,8 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "h1", drafts(:one).name
+    assert_select "[data-user-identity]", text: teams(:one).name, count: 1
+    assert_select "[data-user-identity]", text: users(:member).email, count: 0
     assert_select "turbo-frame#draft-sunday-draft-header"
     assert_select "turbo-frame#draft-sunday-draft-content"
     assert_select "turbo-frame#draft-sunday-draft-room"
