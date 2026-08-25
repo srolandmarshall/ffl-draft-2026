@@ -156,6 +156,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
       assert_select "span", text: "Player list", count: 1
       assert_select "span", text: "Team Rosters", count: 1
       assert_select "span", text: "Draft board", count: 1
+      assert_select "a[href*='view=my_team'][style='background-color: var(--color-blue-300)']", count: 1
     end
     assert_select "#draft-#{draft.public_id}-team-roster [data-roster-team-id='#{teams(:one).id}']", count: 1
     assert_select "[data-roster-pick-id='#{pick.id}']", text: /#{players(:one).name}.*R1 · Pick 1/m, count: 1
@@ -181,7 +182,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "#draft-#{draft.public_id}-team-roster [data-roster-team-id='#{other_team.id}']", count: 1
     assert_select "nav[aria-label='Choose roster team'] a", count: 2
-    assert_select "nav[aria-label='Choose roster team'] a[aria-current='page']", text: other_team.abbreviation, count: 1
+    assert_select "nav[aria-label='Choose roster team'] a[aria-current='page'][style*='background-color: var(--color-blue-300)']", text: other_team.abbreviation, count: 1
     assert_equal teams(:one).abbreviation, css_select("nav[aria-label='Choose roster team'] a").first.text.strip
   end
 

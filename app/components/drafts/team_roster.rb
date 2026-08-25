@@ -37,7 +37,8 @@ class Components::Drafts::TeamRoster < Components::Base
         selected = entry.team_id == @team&.id
         a(
           href: draft_path(@draft.public_id, view: "my_team", team_id: entry.team_id),
-          class: "shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold transition #{selected ? 'border-blue-300 bg-blue-300 text-slate-950' : 'border-white/15 text-slate-300 hover:border-white/40 hover:text-white'}",
+          class: "shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold transition #{selected ? 'text-slate-950' : 'border-white/15 text-slate-300 hover:border-white/40 hover:text-white'}",
+          style: ("background-color: var(--color-blue-300); border-color: var(--color-blue-300)" if selected),
           aria: { current: ("page" if selected) }
         ) { entry.team.abbreviation }
       end
