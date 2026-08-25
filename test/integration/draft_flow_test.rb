@@ -36,7 +36,9 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "[data-draft-filter-target='position']", count: Player::POSITIONS.size
     assert_select "[data-draft-player-id='#{players(:one).id}']", minimum: 1
     assert_select "#flash"
-    assert_select "form[data-controller='draft-pick']", minimum: 1 do
+    room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
+    assert_select "##{room_id}[data-controller='draft-pick'][data-action='draft:turn->draft-pick#turnChanged'][data-draft-pick-selected-team-id-value='#{teams(:one).id}'][data-draft-pick-commissioner-value='false']"
+    assert_select "form", minimum: 1 do
       assert_select "button[type='button'][data-action='draft-pick#prepare']", "Draft"
       assert_select "button[type='submit'][data-draft-pick-target='confirm']", "✓"
       assert_select "button[type='button'][data-action='draft-pick#cancel']", "×"
@@ -136,6 +138,31 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
 
     assert_equal expected_team, Pick.last.team
     assert_redirected_to draft_path(draft.public_id)
+  end
+
+  test "commissioner undoes the latest pick" do
+    draft = drafts(:one)
+    pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1)
+    sign_in_as users(:commissioner)
+
+    assert_difference("Pick.count", -1) do
+      delete draft_pick_path(draft.public_id, pick)
+    end
+
+    assert_redirected_to draft_path(draft.public_id)
+    assert_predicate draft.reload, :pick_timer_paused?
+  end
+
+  test "regular users cannot undo a pick" do
+    draft = drafts(:one)
+    pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1)
+    sign_in_as users(:member)
+
+    assert_no_difference("Pick.count") do
+      delete draft_pick_path(draft.public_id, pick)
+    end
+
+    assert_redirected_to root_path
   end
 
   test "draft export is available as CSV" do

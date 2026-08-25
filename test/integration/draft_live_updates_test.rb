@@ -22,9 +22,8 @@ class DraftLiveUpdatesTest < ActionDispatch::IntegrationTest
       commissioner.post draft_picks_path(draft.public_id), params: { player_id: player.id }, headers: turbo_frame_headers("draft-#{draft.public_id}-room")
     end
 
-    assert_equal 302, commissioner.response.status
-    commissioner.follow_redirect!
-    assert_includes commissioner.response.body, "draft-#{draft.public_id}-room"
+    assert_equal 204, commissioner.response.status
+    assert_empty commissioner.response.body
 
     member.get draft_path(draft.public_id)
     body = member.response.body

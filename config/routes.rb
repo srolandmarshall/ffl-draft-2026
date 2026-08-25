@@ -4,7 +4,7 @@ Rails.application.routes.draw do
   resource :session, only: %i[new create destroy]
 
   resources :drafts, only: :show, param: :public_id do
-    resources :picks, only: :create
+    resources :picks, only: %i[create destroy]
     resource :pick_timer, only: :update
     resource :export, only: :show
   end

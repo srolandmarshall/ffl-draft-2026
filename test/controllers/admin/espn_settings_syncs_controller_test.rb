@@ -73,6 +73,21 @@ class Admin::EspnSettingsSyncsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "kona_player_info", URI.decode_www_form(requested_uri.query).to_h.fetch("view")
   end
 
+  test "ESPN client returns current player injury updates" do
+    payload = {
+      "players" => [
+        { "player" => { "id" => 77_001, "fullName" => "Alex Archer", "injuryStatus" => "QUESTIONABLE", "injured" => true } }
+      ]
+    }
+    response = Struct.new(:code, :body).new("200", payload.to_json)
+    client = DataSources::Espn::Client.new(fetcher: ->(_uri) { response })
+
+    updates = client.fetch_player_updates(year: 2026, league_id: 123_456)
+
+    assert_equal 77_001, updates.first.fetch("id")
+    assert_equal "QUESTIONABLE", updates.first.fetch("injuryStatus")
+  end
+
   test "settings object exposes domain values instead of its ESPN JSON shape" do
     settings = DataSources::Espn::LeagueSettings.from_payload(SETTINGS_PAYLOAD)
 
@@ -102,6 +117,7 @@ class Admin::EspnSettingsSyncsControllerTest < ActionDispatch::IntegrationTest
     client.define_singleton_method(:fetch_players) do |**|
       [ { "id" => 77_001, "fullName" => "Josh Allen", "defaultPositionId" => 1 } ]
     end
+    client.define_singleton_method(:fetch_player_updates) { |**| [] }
     client.define_singleton_method(:fetch_player_scores) do |**|
       [ DataSources::Espn::Client::PlayerScore.new(espn_id: 1, points: BigDecimal("321.45"), stats: {}) ]
     end

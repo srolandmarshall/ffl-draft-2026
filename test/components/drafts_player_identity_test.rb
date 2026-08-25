@@ -13,6 +13,8 @@ class Components::Drafts::PlayerIdentityTest < ActiveSupport::TestCase
       assert_includes html, player.position
       assert_includes html, player.pro_team
       assert_includes html, "sr-only"
+      assert_includes html, "Questionable"
+      assert_includes html, "ESPN injury status"
     end
   end
 end

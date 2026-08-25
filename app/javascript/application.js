@@ -3,5 +3,26 @@ import { Turbo } from "@hotwired/turbo-rails"
 import "controllers"
 
 Turbo.StreamActions.refresh_frame = function () {
-  document.getElementById(this.target)?.reload()
+  const frame = document.getElementById(this.target)
+  if (!frame) return
+
+  if (frame.hasAttribute("src")) {
+    frame.reload()
+  } else {
+    frame.src = window.location.href
+  }
+}
+
+Turbo.StreamActions.draft_turn = function () {
+  const room = document.getElementById(this.target)
+  if (!room) return
+
+  room.dispatchEvent(new CustomEvent("draft:turn", {
+    detail: {
+      teamId: this.getAttribute("team-id"),
+      teamName: this.getAttribute("team-name"),
+      round: this.getAttribute("round"),
+      pick: this.getAttribute("pick")
+    }
+  }))
 }

@@ -23,6 +23,18 @@ module Drafts
         targets: "[data-draft-player-id='#{pick.player_id}']",
         render: false
       )
+      draft.broadcast_action_to(
+        draft,
+        action: :draft_turn,
+        target: room_target,
+        attributes: {
+          "team-id" => current_team&.id,
+          "team-name" => current_team&.name,
+          "round" => draft.current_round,
+          "pick" => draft.next_overall_number
+        },
+        render: false
+      )
       draft.broadcast_action_later_to(draft, action: :refresh_frame, target: clock_target, render: false)
       draft.broadcast_replace_later_to(
         draft,
@@ -55,13 +67,21 @@ module Drafts
     def board_target = "draft-#{draft.public_id}-board-content"
     def clock_target = "draft-#{draft.public_id}-clock"
     def content_target = "draft-#{draft.public_id}-content"
+    def room_target = ActionView::RecordIdentifier.dom_id(draft, :room)
+    def current_team = @current_team ||= draft.current_team
 
     def recent_picks_html
-      ApplicationController.renderer.render(Components::Drafts::RecentPicks.new(draft:, picks:, pick_elapsed_seconds:))
+      ApplicationController.renderer.render(
+        Components::Drafts::RecentPicks.new(draft:, picks:, pick_elapsed_seconds:),
+        layout: false
+      )
     end
 
     def board_html
-      ApplicationController.renderer.render(Components::Drafts::Board.new(draft:, picks:, pick_elapsed_seconds:))
+      ApplicationController.renderer.render(
+        Components::Drafts::Board.new(draft:, picks:, pick_elapsed_seconds:),
+        layout: false
+      )
     end
   end
 end
