@@ -15,13 +15,15 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
     room_children = css_select("##{room_id} > *")
     assert_equal "draft-sunday-draft-clock", room_children.first["id"]
-    assert_equal "Draft room view", room_children[1]["aria-label"]
+    assert room_children[1].at_css("#draft-sunday-draft-recent-picks")
+    assert_equal "Draft room view", room_children[2]["aria-label"]
     assert_select "p", text: /You're up now/
     assert_select "a", text: /Export/, count: 0
     assert_select "[data-controller='pick-timer'][data-pick-timer-paused-value='false']"
     assert_select "p", text: /Recent picks/
-    assert_select "nav[aria-label='Draft room view'] a", count: 2
+    assert_select "nav[aria-label='Draft room view'] a", count: 3
     assert_select "nav[aria-label='Draft room view'] span", "Draft board"
+    assert_equal [ "Player list", "Team Rosters", "Draft board" ], css_select("nav[aria-label='Draft room view'] a > span:first-child").map { |span| span.text.strip }
     assert_select "th", "2025 production"
     assert_select "th", "2025 FP"
     assert_equal [ "Player", "Bye", "2025 FP", "Games", "TDs", "2025 production", "Action" ], css_select("thead th").map { |header| header.text.strip }
@@ -147,6 +149,64 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
       refute_includes containers.first["class"], "overflow-y-auto"
     end
     assert_select "nav[aria-label='Draft room view'] span", "Player list"
+  end
+
+  test "manager my team view is locked to the assigned roster" do
+    draft = drafts(:one)
+    other_team = draft.league.teams.create!(name: "Green Foxes", owner_name: "Morgan", abbreviation: "GRN")
+    draft.draft_entries.create!(team: other_team, position: 2)
+    pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 19)
+    sign_in_as users(:member)
+
+    get draft_path(draft.public_id, view: "my_team", team_id: other_team.id)
+
+    assert_response :success
+    assert_select "nav[aria-label='Draft room view']", count: 1 do
+      assert_select "span", text: "Player list", count: 1
+      assert_select "span", text: "Team Rosters", count: 1
+      assert_select "span", text: "Draft board", count: 1
+      assert_select "a[href*='view=my_team'][style='background-color: var(--color-blue-300)']", count: 1
+    end
+    assert_select "#draft-#{draft.public_id}-team-roster [data-roster-team-id='#{teams(:one).id}']", count: 1
+    assert_select "[data-roster-pick-id='#{pick.id}']", text: /#{players(:one).name}.*R1 · Pick 1/m, count: 1
+    assert_select "[data-roster-pick-id='#{pick.id}'] [title='Time used for this pick']", count: 0
+    assert_select "nav[aria-label='Choose roster team']", count: 0
+  end
+
+  test "commissioner chooses the roster shown in my team view" do
+    draft = drafts(:one)
+    other_team = draft.league.teams.create!(name: "Green Foxes", owner_name: "Morgan", abbreviation: "GRN")
+    draft.draft_entries.create!(team: other_team, position: 2)
+    teams(:one).team_memberships.create!(user: users(:commissioner))
+    sign_in_as users(:commissioner)
+
+    get draft_path(draft.public_id, view: "my_team")
+
+    assert_response :success
+    assert_select "#draft-#{draft.public_id}-team-roster [data-roster-team-id='#{teams(:one).id}']", count: 1
+    assert_equal teams(:one).abbreviation, css_select("nav[aria-label='Choose roster team'] a").first.text.strip
+
+    get draft_path(draft.public_id, view: "my_team", team_id: other_team.id)
+
+    assert_response :success
+    assert_select "#draft-#{draft.public_id}-team-roster [data-roster-team-id='#{other_team.id}']", count: 1
+    assert_select "nav[aria-label='Choose roster team'] a", count: 2
+    assert_select "nav[aria-label='Choose roster team'] a[aria-current='page'][style*='background-color: var(--color-blue-300)']", text: other_team.abbreviation, count: 1
+    assert_equal teams(:one).abbreviation, css_select("nav[aria-label='Choose roster team'] a").first.text.strip
+  end
+
+  test "completed draft keeps the team roster available" do
+    draft = drafts(:one)
+    pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 27)
+    draft.update!(status: :complete, completed_at: Time.current)
+    sign_in_as users(:member)
+
+    get draft_path(draft.public_id, view: "my_team")
+
+    assert_response :success
+    assert_select "a", text: "Team Rosters", minimum: 1
+    assert_select "#draft-#{draft.public_id}-team-roster [data-roster-pick-id='#{pick.id}']", count: 1
+    assert_select "#draft-#{draft.public_id}-board", count: 0
   end
 
   test "commissioner without a team sees an unpersonalized board" do

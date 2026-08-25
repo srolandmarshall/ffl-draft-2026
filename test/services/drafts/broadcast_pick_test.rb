@@ -18,12 +18,12 @@ class Drafts::BroadcastPickTest < ActiveSupport::TestCase
     end
   end
 
-  test "queues six deferred targeted updates after broadcasting the turn immediately" do
+  test "queues seven deferred targeted updates after broadcasting the turn immediately" do
     draft = drafts(:one)
     pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 12)
     clear_enqueued_jobs
 
-    assert_enqueued_jobs 6 do
+    assert_enqueued_jobs 7 do
       Drafts::BroadcastPick.new(pick).call
     end
   end
