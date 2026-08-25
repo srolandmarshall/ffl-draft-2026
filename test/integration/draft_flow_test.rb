@@ -11,6 +11,11 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#draft-sunday-draft-header"
     assert_select "turbo-frame#draft-sunday-draft-content"
     assert_select "turbo-frame#draft-sunday-draft-room"
+    assert_select "turbo-frame#draft-sunday-draft-clock.sticky.top-0.z-30"
+    room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
+    room_children = css_select("##{room_id} > *")
+    assert_equal "draft-sunday-draft-clock", room_children.first["id"]
+    assert_equal "Draft room view", room_children[1]["aria-label"]
     assert_select "p", text: /You're up now/
     assert_select "a", text: /Export/, count: 0
     assert_select "[data-controller='pick-timer'][data-pick-timer-paused-value='false']"
@@ -40,7 +45,6 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     end
     assert_select "[data-mobile-player-row] dl[class~='mt-1.5'] dd.text-base", minimum: 3
     assert_select "#flash"
-    room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
     assert_select "##{room_id}[data-controller='draft-pick'][data-action='draft:turn->draft-pick#turnChanged'][data-draft-pick-selected-team-id-value='#{teams(:one).id}'][data-draft-pick-commissioner-value='false']"
     assert_select "form", minimum: 1 do
       assert_select "button[type='button'][data-action='draft-pick#prepare']", "Draft"
@@ -76,6 +80,23 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "input[name='query'][value='search sleeper']"
   end
 
+  test "player list backfills to 36 after players are drafted" do
+    40.times do |index|
+      Player.create!(name: "Available Player #{index + 1}", position: "WR", pro_team: "ATL", adp: index + 1)
+    end
+    draft = drafts(:one)
+    drafted_player = Player.by_adp.first
+    draft.picks.create!(team: teams(:one), player: drafted_player, round: 1, overall_number: 1)
+    sign_in_as users(:member)
+
+    get players_draft_path(draft.public_id)
+
+    assert_response :success
+    rendered_player_ids = css_select("[data-draft-player-id]").map { |element| element["data-draft-player-id"] }.uniq
+    assert_equal 36, rendered_player_ids.size
+    refute_includes rendered_player_ids, drafted_player.id.to_s
+  end
+
   test "position and team filters search beyond the default player window" do
     36.times do |index|
       Player.create!(name: "Window Player #{index + 1}", position: "RB", pro_team: "BUF", adp: index + 1)
@@ -89,6 +110,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "[data-draft-player-id='#{deep_player.id}']", count: 2
     assert_select "input[name='positions[]'][value='TE'][checked]"
     assert_select "input[name='teams[]'][value='SEA'][checked]"
+    assert_select "turbo-frame[data-player-refresh-url*='positions%5B%5D=TE'][data-player-refresh-url*='teams%5B%5D=SEA']"
   end
 
   test "draft room has a secondary board view" do

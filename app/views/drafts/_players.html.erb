@@ -1,4 +1,4 @@
-<%= turbo_frame_tag "draft-#{draft.public_id}-players" do %>
+<%= turbo_frame_tag "draft-#{draft.public_id}-players", data: { player_refresh_url: players_draft_path(draft.public_id, player_filters.compact_blank) } do %>
   <div class="rounded-lg border border-white/10 bg-slate-900">
     <%= render Components::Drafts::PlayerFilters.new(draft:, players: available_players, available_teams:, filters: player_filters) %>
     <div>
