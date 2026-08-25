@@ -7,11 +7,12 @@ class Components::Drafts::ResultsTest < ActiveSupport::TestCase
     draft = drafts(:one)
     draft.update!(status: :complete)
     html = ApplicationController.renderer.render(
-      Components::Drafts::Results.new(draft:, picks: draft.picks, pick_elapsed_seconds: {})
+      Components::Drafts::Results.new(draft:, picks: draft.picks, pick_elapsed_seconds: {}, current_user: users(:commissioner))
     )
 
     assert_includes html, "Draft results"
     assert_includes html, "Export CSV"
-    assert_includes html, "Export JSON"
+    refute_includes html, "Export JSON"
+    refute_includes html, "Undo last pick"
   end
 end

@@ -14,6 +14,13 @@ export default class extends Controller {
     window.clearInterval(this.interval)
   }
 
+  reset() {
+    this.elapsedValue = 0
+    this.pausedValue = false
+    this.connectedAt = Date.now()
+    this.tick()
+  }
+
   tick() {
     const runningFor = this.pausedValue ? 0 : Math.floor((Date.now() - this.connectedAt) / 1000)
     const seconds = this.elapsedValue + runningFor

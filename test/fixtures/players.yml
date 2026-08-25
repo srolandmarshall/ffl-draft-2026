@@ -9,6 +9,8 @@ one:
   bye_week: 8
   active: true
   rookie: true
+  injury_status: QUESTIONABLE
+  injury_updated_at: 2026-08-24 20:00:00
   stats_season: 2025
   actual_stats:
     games: 17

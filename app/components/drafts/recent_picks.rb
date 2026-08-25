@@ -1,16 +1,17 @@
 # frozen_string_literal: true
 
 class Components::Drafts::RecentPicks < Components::Base
-  def initialize(draft:, picks:, pick_elapsed_seconds:)
+  def initialize(draft:, picks:, pick_elapsed_seconds:, pick_count: picks.size)
     @draft = draft
     @picks = picks
     @pick_elapsed_seconds = pick_elapsed_seconds
+    @pick_count = pick_count
   end
 
   def view_template
     section(id: "draft-#{@draft.public_id}-recent-picks", class: "w-full overflow-hidden rounded-xl border border-white/10 bg-slate-900") do
       div(class: "border-b border-white/10") do
-        p(class: "border-b border-white/10 px-3 py-1.5 text-[.65rem] font-bold uppercase tracking-wider text-slate-400") { "Recent picks · #{@picks.size}/#{@draft.total_picks}" }
+        p(class: "border-b border-white/10 px-3 py-1.5 text-[.65rem] font-bold uppercase tracking-wider text-slate-400") { "Recent picks · #{@pick_count}/#{@draft.total_picks}" }
         ol(class: "grid max-h-32 grid-cols-2 overflow-y-auto sm:grid-cols-4") do
           @picks.last(4).reverse_each { |pick| pick_item(pick) }
           li(class: "col-span-full px-4 py-4 text-center text-xs text-slate-500") { "No picks yet." } if @picks.empty?
