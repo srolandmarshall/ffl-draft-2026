@@ -11,6 +11,14 @@ module Admin
       @drafts = @league.drafts.order(created_at: :desc)
       @espn_seasons = @league.espn_seasons.includes(:draft_picks).newest_first
       @espn_settings = DataSources::Espn::LeagueSettings.from_settings(@league.espn_settings) if @league.espn_settings.present?
+      @league_page = AdminLeaguePage.new(
+        league: @league,
+        teams: @teams,
+        drafts: @drafts,
+        espn_seasons: @espn_seasons,
+        espn_settings: @espn_settings,
+        espn_connected: espn_connected?
+      )
     end
 
     def new

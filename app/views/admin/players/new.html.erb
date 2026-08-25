@@ -1,1 +1,1 @@
-<div class="mx-auto max-w-2xl"><p class="text-sm font-bold text-lime-400">Player pool</p><h1 class="mb-7 text-2xl font-semibold">Add player</h1><div class="rounded-lg border border-white/10 bg-slate-900 p-6"><%= render "form", player: @player %></div></div>
+<%= render Components::Admin::ResourceFormPage.new(kicker: "Player pool", title: "Add player", form: Components::Admin::Players::Form.new(player: @player)) %>
