@@ -92,3 +92,23 @@ jobs:
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [ scan_ruby, scan_js, lint, test ]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: fly-production
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Fly CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy to Fly
+        run: flyctl deploy --remote-only --app ffl-draft
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
