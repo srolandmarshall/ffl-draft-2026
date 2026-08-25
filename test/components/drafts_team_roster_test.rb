@@ -8,7 +8,11 @@ class Components::Drafts::TeamRosterTest < ActiveSupport::TestCase
 
     assert_includes html, "My team"
     assert_includes html, teams(:one).name
-    assert_includes html, "No picks yet"
+    assert_includes html, "0 of #{drafts(:one).roster_size} roster slots filled"
+    assert_equal drafts(:one).roster_size, html.scan(/data-roster-slot=/).size
+    assert_equal drafts(:one).roster_size, html.scan(/data-roster-filled="false"/).size
+    assert_includes html, "Starting lineup"
+    assert_includes html, "Bench"
     refute_includes html, "Choose roster team"
   end
 
@@ -19,7 +23,28 @@ class Components::Drafts::TeamRosterTest < ActiveSupport::TestCase
     assert_includes html, players(:one).name
     assert_includes html, "R1 · Pick 1"
     assert_includes html, "1:01"
-    assert_match(/<h3[^>]*>QB<\/h3>/, html)
+    assert_match(/data-roster-slot="QB"[^>]*data-roster-filled="true"[^>]*data-roster-pick-id="#{pick.id}"/, html)
+  end
+
+  test "fills dedicated starters, then flex, then bench in draft order" do
+    draft = drafts(:one)
+    draft.update!(qb_slots: 1, rb_slots: 1, wr_slots: 1, te_slots: 1, flex_slots: 1, k_slots: 0, dst_slots: 0, bench_slots: 2)
+    picks = [
+      build_pick(draft, "First Back", "RB", 1),
+      build_pick(draft, "Flex Back", "RB", 2),
+      build_pick(draft, "Bench Back", "RB", 3),
+      build_pick(draft, "Wide Starter", "WR", 4)
+    ]
+
+    html = render_roster(picks: picks.reverse)
+
+    assert_slot_contains html, "RB", picks[0]
+    assert_slot_contains html, "FLEX", picks[1]
+    assert_slot_contains html, "BN 1", picks[2]
+    assert_slot_contains html, "WR", picks[3]
+    assert_match(/data-roster-slot="QB"[^>]*data-roster-filled="false"/, html)
+    assert_match(/data-roster-slot="TE"[^>]*data-roster-filled="false"/, html)
+    assert_match(/data-roster-slot="BN 2"[^>]*data-roster-filled="false"/, html)
   end
 
   test "renders a commissioner team selector" do
@@ -41,5 +66,14 @@ class Components::Drafts::TeamRosterTest < ActiveSupport::TestCase
         draft: drafts(:one), team:, picks:, pick_elapsed_seconds: elapsed, commissioner:
       )
     )
+  end
+
+  def build_pick(draft, name, position, overall_number)
+    player = Player.create!(name:, position:, pro_team: "ATL", active: true)
+    draft.picks.build(id: overall_number, team: teams(:one), player:, round: 1, overall_number:)
+  end
+
+  def assert_slot_contains(html, label, pick)
+    assert_match(/data-roster-slot="#{Regexp.escape(label)}"[^>]*data-roster-filled="true"[^>]*data-roster-pick-id="#{pick.id}"/, html)
   end
 end

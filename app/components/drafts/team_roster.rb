@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
 class Components::Drafts::TeamRoster < Components::Base
-  POSITION_ORDER = %w[QB RB WR TE K DST].freeze
-
   def initialize(draft:, team:, picks:, pick_elapsed_seconds:, commissioner: false)
     @draft = draft
     @team = team
     @picks = picks.select { |pick| pick.team_id == team&.id }
+    @slots = ::Drafts::RosterSlots.new(draft:, picks: @picks).call
     @pick_elapsed_seconds = pick_elapsed_seconds
     @commissioner = commissioner
   end
@@ -15,7 +14,7 @@ class Components::Drafts::TeamRoster < Components::Base
     section(class: "overflow-hidden rounded-xl border border-white/10 bg-slate-900", data: { roster_team_id: @team&.id }) do
       roster_header
       team_selector if @commissioner
-      @picks.any? ? roster_groups : empty_state
+      roster_skeleton
     end
   end
 
@@ -26,7 +25,7 @@ class Components::Drafts::TeamRoster < Components::Base
       p(class: "text-[.65rem] font-bold uppercase tracking-[.2em] text-blue-300") { @commissioner ? "Roster review" : "My team" }
       h2(class: "mt-1 break-words text-xl font-black text-white sm:text-2xl") { @team&.name || "No team available" }
       p(class: "mt-1 text-xs text-slate-400") do
-        plain "#{@picks.size} #{@picks.size == 1 ? 'player' : 'players'} drafted"
+        plain "#{@picks.size} of #{@draft.roster_size} roster slots filled"
         plain " · #{@team.owner_name}" if @team&.owner_name.present?
       end
     end
@@ -45,41 +44,61 @@ class Components::Drafts::TeamRoster < Components::Base
     end
   end
 
-  def roster_groups
+  def roster_skeleton
     div(class: "divide-y divide-white/10") do
-      grouped_picks.each do |position, picks|
-        section(class: "p-3 sm:p-4") do
-          div(class: "mb-2 flex items-center justify-between gap-3") do
-            h3(class: "text-xs font-black uppercase tracking-wider text-slate-300") { position }
-            span(class: "text-[.65rem] font-bold text-slate-500") { "#{picks.size} drafted" }
+      slot_group("Starting lineup", starter_slots)
+      slot_group("Bench", bench_slots)
+    end
+  end
+
+  def slot_group(title, slots)
+    return if slots.empty?
+
+    section(class: "p-3 sm:p-4") do
+      div(class: "mb-2 flex items-center justify-between gap-3") do
+        h3(class: "text-xs font-black uppercase tracking-wider text-slate-300") { title }
+        span(class: "text-[.65rem] font-bold text-slate-500") { "#{slots.count(&:filled?)} of #{slots.size} filled" }
+      end
+      div(class: "grid gap-2 sm:grid-cols-2 xl:grid-cols-3") do
+        slots.each { |slot| roster_slot(slot) }
+      end
+    end
+  end
+
+  def starter_slots = @slots.reject(&:bench)
+  def bench_slots = @slots.select(&:bench)
+
+  def roster_slot(slot)
+    article(
+      class: "flex min-h-16 min-w-0 items-center gap-2.5 rounded-lg border p-2.5 #{slot.filled? ? 'border-white/10 bg-slate-950/40' : 'border-dashed border-white/10 bg-slate-950/20'}",
+      data: { roster_slot: slot.label, roster_slot_position: slot.position, roster_filled: slot.filled?.to_s, roster_pick_id: slot.pick&.id }
+    ) do
+      span(class: "flex w-11 shrink-0 items-center justify-center self-stretch rounded-md border border-white/10 bg-white/5 px-1 text-center text-[.65rem] font-black text-blue-300") { slot.label }
+      if slot.filled?
+        player_image(slot.pick.player)
+        div(class: "min-w-0 flex-1") do
+          p(class: "break-words text-sm font-bold leading-tight text-white") { player_name(slot.pick.player) }
+          div(class: "mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[.65rem] font-semibold text-slate-400") do
+            span { slot.pick.player.position }
+            span { slot.pick.player.pro_team }
+            span { "R#{slot.pick.round} · Pick #{slot.pick.overall_number}" }
           end
-          div(class: "grid gap-2 sm:grid-cols-2 xl:grid-cols-3") do
-            picks.each { |pick| roster_pick(pick) }
-          end
+        end
+        span(class: "shrink-0 font-mono text-xs font-bold tabular-nums #{pick_duration_classes(elapsed_seconds(slot.pick))}", title: "Time used for this pick") { format_pick_duration(elapsed_seconds(slot.pick)) }
+      else
+        div(class: "min-w-0 flex-1") do
+          p(class: "text-sm font-semibold text-slate-500") { "Available" }
+          p(class: "mt-0.5 text-[.65rem] text-slate-600") { slot_hint(slot) }
         end
       end
     end
   end
 
-  def grouped_picks
-    @picks.group_by { |pick| pick.player.position }.sort_by do |position, _picks|
-      [ POSITION_ORDER.index(position) || POSITION_ORDER.size, position ]
-    end
-  end
+  def slot_hint(slot)
+    return "Any position" if slot.bench
+    return "RB, WR, or TE" if slot.position == "FLEX"
 
-  def roster_pick(pick)
-    article(class: "flex min-w-0 items-center gap-3 rounded-lg border border-white/10 bg-slate-950/40 p-2.5", data: { roster_pick_id: pick.id }) do
-      player_image(pick.player)
-      div(class: "min-w-0 flex-1") do
-        p(class: "break-words text-sm font-bold leading-tight text-white") { player_name(pick.player) }
-        div(class: "mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[.65rem] font-semibold text-slate-400") do
-          span { pick.player.position }
-          span { pick.player.pro_team }
-          span { "R#{pick.round} · Pick #{pick.overall_number}" }
-        end
-      end
-      span(class: "shrink-0 font-mono text-xs font-bold tabular-nums #{pick_duration_classes(elapsed_seconds(pick))}", title: "Time used for this pick") { format_pick_duration(elapsed_seconds(pick)) }
-    end
+    slot.label
   end
 
   def player_image(player)
@@ -102,12 +121,5 @@ class Components::Drafts::TeamRoster < Components::Base
 
   def elapsed_seconds(pick)
     @pick_elapsed_seconds.fetch(pick.id) { @pick_elapsed_seconds.fetch(pick.id.to_s, pick.elapsed_seconds.to_i) }
-  end
-
-  def empty_state
-    div(class: "px-4 py-12 text-center") do
-      p(class: "font-bold text-slate-200") { "No picks yet" }
-      p(class: "mt-1 text-sm text-slate-500") { "This roster will update here as players are drafted." }
-    end
   end
 end
