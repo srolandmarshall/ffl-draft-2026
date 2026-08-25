@@ -62,7 +62,7 @@ module Drafts
     delegate :draft, to: :pick
 
     def recent_pick_window
-      @recent_pick_window ||= draft.picks.includes(:team, player: { headshot_attachment: :blob }).last(5)
+      @recent_pick_window ||= draft.picks.includes(:team, player: { headshot_attachment: :blob }).last(13)
     end
 
     def pick_elapsed_seconds
@@ -86,7 +86,7 @@ module Drafts
       ApplicationController.renderer.render(
         Components::Drafts::RecentPicks.new(
           draft:,
-          picks: recent_pick_window.last(4),
+          picks: recent_pick_window.last(12),
           pick_elapsed_seconds:,
           pick_count: pick.overall_number
         ),
