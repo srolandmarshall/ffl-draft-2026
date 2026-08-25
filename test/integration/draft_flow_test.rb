@@ -126,7 +126,10 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "[data-mobile-draft-pick]", count: drafts(:one).total_picks do |rows|
       rows.each { |row| assert_includes row["class"], "min-[900px]:hidden" }
     end
-    assert_select "[data-mobile-draft-pick='1']", text: /1\.1.*#{teams(:one).abbreviation}.*Open/m, count: 1
+    assert_select "[data-mobile-draft-pick='1']", text: "1.1", count: 1 do |empty_picks|
+      assert_equal "1.1", empty_picks.first.text.strip
+    end
+    assert_select "[data-draft-board-pick='false']", text: /Open/, count: 0
     assert_select "#draft-#{drafts(:one).public_id}-board-content > div > div.sticky.hidden", count: 1 do |headers|
       assert_includes headers.first["class"], "min-[900px]:grid"
     end
