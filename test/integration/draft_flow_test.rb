@@ -435,6 +435,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     get admin_players_path
     assert_response :success
     assert_select "th", "ADP"
+    assert_select "button", "Sync ESPN player pool"
 
     get new_admin_adp_import_path
     assert_response :success

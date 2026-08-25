@@ -27,7 +27,7 @@ class Components::Admin::Players::Index < Components::Base
       end
       div(class: "flex flex-wrap gap-3") do
         link("Refresh ADP", new_admin_adp_import_path)
-        button_to("Match ESPN IDs", admin_espn_player_sync_path, class: action_classes)
+        button_to("Sync ESPN player pool", admin_espn_player_sync_path, class: action_classes)
         button_to("Refresh actual stats", admin_nflverse_player_sync_path, class: action_classes)
         link("Import CSV", new_admin_player_import_path)
         a(href: new_admin_player_path, class: "rounded bg-lime-400 px-4 py-2 font-semibold text-slate-950") { "+ Add player" }
