@@ -110,6 +110,7 @@ class Admin::EspnConnectionsControllerTest < ActionDispatch::IntegrationTest
     Object.new.tap do |client|
       client.define_singleton_method(:fetch_league_snapshot) { |**| snapshot }
       client.define_singleton_method(:fetch_players) { |**| [] }
+      client.define_singleton_method(:fetch_player_updates) { |**| [] }
       client.define_singleton_method(:fetch_player_scores) do |**|
         [ DataSources::Espn::Client::PlayerScore.new(espn_id: 1, points: BigDecimal("333.3"), stats: {}) ]
       end

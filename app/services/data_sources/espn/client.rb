@@ -27,10 +27,13 @@ module DataSources
         LeagueSnapshot.from_payload(payload)
       end
 
-      def fetch_player_scores(year:, league_id:)
+      def fetch_player_updates(year:, league_id:)
         payload = fetch(league_player_scores_uri(year:, league_id:))
-        scores = payload.fetch("players", []).filter_map do |entry|
-          player = entry.fetch("player", entry)
+        payload.fetch("players", []).map { |entry| entry.fetch("player", entry) }
+      end
+
+      def fetch_player_scores(year:, league_id:)
+        scores = fetch_player_updates(year:, league_id:).filter_map do |player|
           stat = Array(player["stats"]).find do |candidate|
             candidate["seasonId"].to_i == year.to_i &&
               candidate["scoringPeriodId"].to_i.zero? &&

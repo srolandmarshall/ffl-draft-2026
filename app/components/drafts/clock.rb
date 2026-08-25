@@ -64,9 +64,15 @@ class Components::Drafts::Clock < Components::Base
     div(class: "shrink-0 text-right", data: { controller: "pick-timer", pick_timer_elapsed_value: @current_pick_elapsed_seconds.to_i.to_s, pick_timer_paused_value: @draft.pick_timer_paused?.to_s }) do
       div(class: "flex justify-end") { span(class: "rounded bg-white/10 px-1.5 py-0.5 text-[.5rem] font-bold uppercase text-slate-300") { "Paused" } } if @draft.pick_timer_paused?
       p(class: "font-mono text-xl font-bold tabular-nums text-slate-100", data: { pick_timer_target: "elapsed" }) { "0:00" }
-      if @current_user&.commissioner?
-        raw button_to(@draft.pick_timer_paused? ? "Resume" : "Pause", draft_pick_timer_path(@draft.public_id), method: :patch, params: { state: @draft.pick_timer_paused? ? "resume" : "pause" }, class: "cursor-pointer text-[.6rem] font-bold text-slate-400 underline hover:text-white")
-      end
+      commissioner_controls if @current_user&.commissioner?
+    end
+  end
+
+  def commissioner_controls
+    div(class: "mt-1 flex justify-end gap-2") do
+      raw button_to(@draft.pick_timer_paused? ? "Resume" : "Pause", draft_pick_timer_path(@draft.public_id), method: :patch, params: { state: @draft.pick_timer_paused? ? "resume" : "pause" }, class: "cursor-pointer text-[.6rem] font-bold text-slate-400 underline hover:text-white")
+      last_pick = @picks.last
+      raw button_to("Undo last", draft_pick_path(@draft.public_id, last_pick), method: :delete, class: "cursor-pointer text-[.6rem] font-bold text-red-200 underline hover:text-white", form: { data: { turbo_confirm: "Undo #{last_pick.player.name} as the latest pick? The clock will pause." } }) if last_pick
     end
   end
 end

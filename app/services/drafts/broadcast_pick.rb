@@ -57,11 +57,17 @@ module Drafts
     def content_target = "draft-#{draft.public_id}-content"
 
     def recent_picks_html
-      ApplicationController.renderer.render(Components::Drafts::RecentPicks.new(draft:, picks:, pick_elapsed_seconds:))
+      ApplicationController.renderer.render(
+        Components::Drafts::RecentPicks.new(draft:, picks:, pick_elapsed_seconds:),
+        layout: false
+      )
     end
 
     def board_html
-      ApplicationController.renderer.render(Components::Drafts::Board.new(draft:, picks:, pick_elapsed_seconds:))
+      ApplicationController.renderer.render(
+        Components::Drafts::Board.new(draft:, picks:, pick_elapsed_seconds:),
+        layout: false
+      )
     end
   end
 end

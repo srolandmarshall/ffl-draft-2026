@@ -14,6 +14,7 @@ class Components::Drafts::PlayerIdentity < Components::Base
           div(class: "flex items-center gap-2") do
             player_name
             rookie_badge
+            injury_badge
           end
           position_line
         else
@@ -23,6 +24,7 @@ class Components::Drafts::PlayerIdentity < Components::Base
             team_logo
             sr_only_team
             rookie_badge
+            injury_badge
           end
         end
       end
@@ -58,6 +60,20 @@ class Components::Drafts::PlayerIdentity < Components::Base
 
     classes = @variant == :desktop ? "inline-flex shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[.6rem] font-bold uppercase tracking-wide text-white" : "rounded-full bg-white/10 px-2 py-0.5 text-[.6rem] font-bold uppercase"
     span(class: classes) { "Rookie" }
+  end
+
+  def injury_badge
+    return unless @player.injured?
+
+    span(
+      class: "shrink-0 rounded-full border border-red-400/40 bg-red-400/10 px-2 py-0.5 text-[.6rem] font-bold uppercase tracking-wide text-red-200",
+      title: injury_badge_title
+    ) { @player.injury_status_label }
+  end
+
+  def injury_badge_title
+    updated = @player.injury_updated_at&.to_fs(:long)
+    [ "ESPN injury status: #{@player.injury_status_label}", ("Updated #{updated}" if updated) ].compact.join(" · ")
   end
 
   def position_line

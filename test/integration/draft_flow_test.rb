@@ -138,6 +138,31 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to draft_path(draft.public_id)
   end
 
+  test "commissioner undoes the latest pick" do
+    draft = drafts(:one)
+    pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1)
+    sign_in_as users(:commissioner)
+
+    assert_difference("Pick.count", -1) do
+      delete draft_pick_path(draft.public_id, pick)
+    end
+
+    assert_redirected_to draft_path(draft.public_id)
+    assert_predicate draft.reload, :pick_timer_paused?
+  end
+
+  test "regular users cannot undo a pick" do
+    draft = drafts(:one)
+    pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1)
+    sign_in_as users(:member)
+
+    assert_no_difference("Pick.count") do
+      delete draft_pick_path(draft.public_id, pick)
+    end
+
+    assert_redirected_to root_path
+  end
+
   test "draft export is available as CSV" do
     sign_in_as users(:member)
     get draft_export_path(drafts(:one).public_id, format: :csv)

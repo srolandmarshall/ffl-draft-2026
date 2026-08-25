@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 class Components::Drafts::Results < Components::Base
-  def initialize(draft:, picks:, pick_elapsed_seconds:)
+  def initialize(draft:, picks:, pick_elapsed_seconds:, current_user: nil)
     @draft = draft
     @picks = picks
     @pick_elapsed_seconds = pick_elapsed_seconds
+    @current_user = current_user
   end
 
   def view_template
@@ -15,6 +16,10 @@ class Components::Drafts::Results < Components::Base
         p(class: "mt-1 text-sm text-slate-400") { "#{@picks.size} selections across #{@draft.rounds} rounds." }
       end
       div(class: "flex flex-wrap gap-2") do
+        if @current_user&.commissioner? && @picks.any?
+          last_pick = @picks.last
+          raw button_to("Undo last pick", draft_pick_path(@draft.public_id, last_pick), method: :delete, class: "cursor-pointer rounded-lg border border-red-400/40 bg-red-400/10 px-4 py-2 text-sm font-bold text-red-200 hover:border-red-400", form: { data: { turbo_confirm: "Undo #{last_pick.player.name} as the latest pick? The draft will reopen with the clock paused." } })
+        end
         if @draft.league.espn_seasons.exists?
           a(href: league_history_path(@draft.league), class: "rounded-lg bg-lime-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-lime-300") { "League history" }
         end
