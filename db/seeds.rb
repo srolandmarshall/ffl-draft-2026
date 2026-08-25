@@ -30,8 +30,11 @@ league.save!
 
 teams = team_data.map do |team_attributes|
   owners = team_attributes.fetch("owners")
-  team = league.teams.find_or_initialize_by(name: team_attributes.fetch("name"))
+  team = league.teams.find_by(name: team_attributes.fetch("name")) ||
+    league.teams.find_by(draft_order: team_attributes.fetch("position")) ||
+    league.teams.new
   team.assign_attributes(
+    name: team_attributes.fetch("name"),
     abbreviation: team_attributes.fetch("abbreviation"),
     draft_order: team_attributes.fetch("position"),
     owner_name: owners.map { |owner| owner.fetch("name") }.join(" & ")

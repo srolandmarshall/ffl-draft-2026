@@ -20,7 +20,7 @@ class ApplicationController < ActionController::Base
   def authenticate_user!
     return if signed_in?
 
-    session[:return_to] = request.fullpath if request.get?
+    session[:return_to] = request.fullpath if request.get? || request.head?
     redirect_to new_session_path, alert: "Enter your email to continue."
   end
 end
