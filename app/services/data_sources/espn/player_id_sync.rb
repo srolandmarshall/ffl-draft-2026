@@ -9,7 +9,7 @@ module DataSources
         17 => "NE", 18 => "NO", 19 => "NYG", 20 => "NYJ", 21 => "PHI", 22 => "ARI", 23 => "PIT", 24 => "LAC",
         25 => "SF", 26 => "SEA", 27 => "TB", 28 => "WAS", 29 => "CAR", 30 => "JAX", 33 => "BAL", 34 => "HOU"
       }.freeze
-      Result = Data.define(:matched, :unmatched)
+      Result = Data.define(:matched, :created)
 
       def initialize(rows)
         @rows = rows
@@ -18,7 +18,7 @@ module DataSources
 
       def call
         matched = 0
-        unmatched = 0
+        created = 0
 
         Player.transaction do
           eligible_rows.each do |row|
@@ -27,12 +27,13 @@ module DataSources
               player.update!(player_attributes(row))
               matched += 1
             else
-              unmatched += 1
+              players << Player.create!(new_player_attributes(row))
+              created += 1
             end
           end
         end
 
-        Result.new(matched:, unmatched:)
+        Result.new(matched:, created:)
       end
 
       private
@@ -46,8 +47,11 @@ module DataSources
       end
 
       def match(row)
+        espn_id = row.fetch("id").to_i
         position = POSITION_MAP.fetch(row["defaultPositionId"])
         team = PRO_TEAM_MAP.fetch(row["proTeamId"])
+        id_match = players.find { |player| player.espn_id == espn_id }
+        return id_match if id_match
         return players.find { |player| player.position == position && player.pro_team == team } if position == "DST"
 
         exact_match = players.find do |player|
@@ -59,6 +63,15 @@ module DataSources
           player.position == position && normalize_name(player.name) == normalize_name(row["fullName"])
         end
         name_matches.one? ? name_matches.first : nil
+      end
+
+      def new_player_attributes(row)
+        {
+          name: row.fetch("fullName"),
+          position: POSITION_MAP.fetch(row.fetch("defaultPositionId")),
+          pro_team: PRO_TEAM_MAP.fetch(row.fetch("proTeamId")),
+          active: true
+        }.merge(player_attributes(row))
       end
 
       def player_attributes(row)
