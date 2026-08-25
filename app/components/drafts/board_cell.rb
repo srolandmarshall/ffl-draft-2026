@@ -41,7 +41,7 @@ class Components::Drafts::BoardCell < Components::Base
 
   def cell_classes
     if @pick
-      position_badge_classes(@pick.player.position)
+      position_surface_classes(@pick.player.position)
     elsif @overall_number == @next_overall_number && @draft.live?
       "border-lime-400/70 bg-lime-400/5"
     else
