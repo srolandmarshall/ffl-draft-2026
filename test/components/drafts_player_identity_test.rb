@@ -19,7 +19,11 @@ class Components::Drafts::PlayerIdentityTest < ActiveSupport::TestCase
 
     assert_match(/title="#{player.pro_team}"[^>]+size-7[^>]+bg-slate-400\/50/, desktop)
     assert_match(/class="[^"]*h-7[^"]*min-w-7[^"]*"[^>]*>#{player.position}</, desktop)
+    assert_includes desktop, "break-words"
+    refute_includes desktop, "truncate"
     assert_match(/title="#{player.pro_team}"[^>]+size-6[^>]+bg-slate-400\/50/, mobile)
     assert_match(/class="[^"]*h-6[^"]*min-w-6[^"]*"[^>]*>#{player.position}</, mobile)
+    assert_includes mobile, "break-words"
+    refute_includes mobile, "truncate"
   end
 end

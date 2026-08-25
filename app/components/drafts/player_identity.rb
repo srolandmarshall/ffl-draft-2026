@@ -51,8 +51,7 @@ class Components::Drafts::PlayerIdentity < Components::Base
   end
 
   def player_name
-    classes = @variant == :desktop ? "truncate text-sm font-bold text-white" : "text-sm font-bold leading-tight text-white"
-    span(class: classes) { @player.name }
+    span(class: "break-words text-sm font-bold leading-tight text-white") { @player.name }
   end
 
   def rookie_badge
