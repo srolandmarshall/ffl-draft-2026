@@ -8,7 +8,7 @@ class Components::Drafts::Action < Components::Base
   end
 
   def view_template
-    form(action: draft_picks_path(@draft.public_id), method: "post", class: "inline-flex justify-end", data: { controller: "draft-pick" }) do
+    form(action: draft_picks_path(@draft.public_id), method: "post", class: "inline-flex justify-end") do
       input(type: "hidden", name: "authenticity_token", value: form_authenticity_token)
       input(type: "hidden", name: "player_id", value: @player.id)
       button(type: "button", disabled: !@can_make_pick, class: trigger_classes, data: { draft_pick_target: "trigger", action: "draft-pick#prepare" }) { "Draft" }
@@ -22,7 +22,6 @@ class Components::Drafts::Action < Components::Base
   private
 
   def trigger_classes
-    base = "h-7 w-[3.75rem] rounded-lg text-xs font-semibold"
-    @can_make_pick ? "#{base} cursor-pointer bg-lime-400 text-slate-950 hover:bg-lime-300" : "#{base} cursor-not-allowed bg-white/5 text-slate-600"
+    "h-7 w-[3.75rem] rounded-lg text-xs font-semibold enabled:cursor-pointer enabled:bg-lime-400 enabled:text-slate-950 enabled:hover:bg-lime-300 disabled:cursor-not-allowed disabled:bg-white/5 disabled:text-slate-600"
   end
 end
