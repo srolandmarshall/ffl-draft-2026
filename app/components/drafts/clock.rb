@@ -11,7 +11,7 @@ class Components::Drafts::Clock < Components::Base
   end
 
   def view_template
-    section(class: "w-full overflow-hidden rounded-xl border border-white/15 bg-slate-900/95 shadow-lg shadow-black/30 backdrop-blur") do
+    section(class: "h-full w-full overflow-hidden rounded-xl border border-white/15 bg-slate-900/95 shadow-lg shadow-black/30 backdrop-blur") do
       div(class: "p-3 sm:p-4") do
         div(class: "flex min-w-0 items-start justify-between gap-3 sm:items-center sm:gap-6") do
           clock_identity

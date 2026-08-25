@@ -15,11 +15,11 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
     assert_select "##{room_id} > [data-draft-room-layout]", count: 1
     assert_select "##{room_id} [data-draft-room-sidebar]", count: 1 do
-      assert_select "turbo-frame#draft-sunday-draft-clock", count: 1
       assert_select "#draft-sunday-draft-recent-picks", count: 1
     end
+    assert_select "##{room_id} > [data-draft-room-layout] > turbo-frame#draft-sunday-draft-clock.lg\\:col-start-1.lg\\:row-start-1", count: 1
+    assert_select "##{room_id} > [data-draft-room-layout] > nav[aria-label='Draft room view'].lg\\:col-start-2.lg\\:row-start-1", count: 1
     assert_select "##{room_id} [data-draft-room-content]", count: 1 do
-      assert_select "nav[aria-label='Draft room view']", count: 1
       assert_select "section.min-w-0", count: 1
     end
     assert_select "p", text: /You're up now/
@@ -128,10 +128,11 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
     assert_select "##{room_id} > [data-draft-room-layout]", count: 1 do
-      assert_select "turbo-frame#draft-sunday-draft-clock", count: 1
+      assert_select "> turbo-frame#draft-sunday-draft-clock.lg\\:col-start-1.lg\\:row-start-1", count: 1
+      assert_select "> nav[aria-label='Draft room view'].lg\\:col-start-2.lg\\:row-start-1", count: 1
       assert_select "[data-draft-room-sidebar]", count: 0
       assert_select "#draft-sunday-draft-recent-picks", count: 0
-      assert_select "[data-draft-room-content]", count: 1
+      assert_select "[data-draft-room-content].lg\\:col-span-2.lg\\:row-start-2", count: 1
     end
     assert_select "h2", "Draft board"
     assert_select "p", text: "Rounds run top to bottom. Snake rounds reverse pick order.", count: 0

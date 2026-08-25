@@ -23,38 +23,34 @@ class Components::Drafts::Room < Components::Base
         draft_alert_sound_url_value: "/its-your-pick.mp3"
       }
     ) do
-      @view == "board" ? board_room_layout : sidebar_room_layout
+      room_layout
     end
   end
 
   private
 
-  def board_room_layout
-    div(class: "space-y-4", data: { draft_room_layout: true }) do
+  def room_layout
+    div(class: "grid gap-4 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] lg:items-stretch xl:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]", data: { draft_room_layout: true }) do
       clock
+      navigation
+      recent_picks_panel unless board_view?
       room_content
     end
   end
 
-  def sidebar_room_layout
-    div(class: "grid gap-4 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] lg:items-start xl:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]", data: { draft_room_layout: true }) do
-      aside(class: "min-w-0 space-y-4 lg:sticky lg:top-4", data: { draft_room_sidebar: true }) do
-        clock
-        render recent_picks
-      end
-      room_content
-    end
+  def recent_picks_panel
+    aside(class: "min-w-0 lg:col-start-1 lg:row-start-2", data: { draft_room_sidebar: true }) { render recent_picks }
   end
 
   def room_content
-    main(class: "min-w-0 space-y-4", data: { draft_room_content: true }) do
-      navigation
+    desktop_position = board_view? ? "lg:col-span-2 lg:col-start-1" : "lg:col-start-2"
+    main(class: "min-w-0 lg:row-start-2 #{desktop_position}", data: { draft_room_content: true }) do
       section(class: "min-w-0") { render_active_view }
     end
   end
 
   def clock
-    turbo_frame_tag("draft-#{@draft.public_id}-clock", class: "sticky top-0 z-30 block") do
+    turbo_frame_tag("draft-#{@draft.public_id}-clock", class: "sticky top-0 z-30 block h-full min-w-0 lg:col-start-1 lg:row-start-1") do
       render Components::Drafts::Clock.new(
         draft: @draft,
         selected_team: @room.selected_team,
@@ -67,7 +63,7 @@ class Components::Drafts::Room < Components::Base
   end
 
   def navigation
-    nav(class: "grid grid-cols-3 overflow-hidden rounded-xl border border-white/15 bg-slate-900 shadow-xl shadow-black/20", aria: { label: "Draft room view" }) do
+    nav(class: "grid h-full min-w-0 grid-cols-3 overflow-hidden rounded-xl border border-white/15 bg-slate-900 shadow-xl shadow-black/20 lg:col-start-2 lg:row-start-1", aria: { label: "Draft room view" }) do
       navigation_link("Player list", "Search, compare, and make your pick", draft_path(@draft.public_id), active: @view.blank?)
       navigation_link("Team Rosters", @current_user.commissioner? ? "Choose and review a roster" : "Review your drafted roster", roster_path, active: @view == "my_team", roster: true)
       navigation_link("Draft board", "See every team and round at once", draft_path(@draft.public_id, view: "board"), active: @view == "board", board: true)
@@ -143,6 +139,8 @@ class Components::Drafts::Room < Components::Base
       render players
     end
   end
+
+  def board_view? = @view == "board"
 
   def roster_path
     draft_path(
