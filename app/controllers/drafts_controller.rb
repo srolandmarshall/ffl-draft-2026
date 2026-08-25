@@ -4,6 +4,7 @@ class DraftsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_draft
   before_action :authorize_draft!
+  before_action :disable_turbo_cache
 
   def show
     @selected_team = selected_team
@@ -87,5 +88,9 @@ class DraftsController < ApplicationController
       pick_elapsed_seconds: @pick_elapsed_seconds || {},
       current_pick_elapsed_seconds: @current_pick_elapsed_seconds || @draft.current_pick_elapsed_seconds
     )
+  end
+
+  def disable_turbo_cache
+    response.set_header("Turbo-Cache-Control", "no-cache")
   end
 end
