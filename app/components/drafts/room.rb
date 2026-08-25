@@ -23,20 +23,35 @@ class Components::Drafts::Room < Components::Base
         draft_alert_sound_url_value: "/its-your-pick.mp3"
       }
     ) do
-      div(class: "grid gap-4 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] lg:items-start xl:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]", data: { draft_room_layout: true }) do
-        aside(class: "min-w-0 space-y-4 lg:sticky lg:top-4", data: { draft_room_sidebar: true }) do
-          clock
-          render recent_picks
-        end
-        main(class: "min-w-0 space-y-4", data: { draft_room_content: true }) do
-          navigation
-          section(class: "min-w-0") { render_active_view }
-        end
-      end
+      @view == "board" ? board_room_layout : sidebar_room_layout
     end
   end
 
   private
+
+  def board_room_layout
+    div(class: "space-y-4", data: { draft_room_layout: true }) do
+      clock
+      room_content
+    end
+  end
+
+  def sidebar_room_layout
+    div(class: "grid gap-4 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] lg:items-start xl:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]", data: { draft_room_layout: true }) do
+      aside(class: "min-w-0 space-y-4 lg:sticky lg:top-4", data: { draft_room_sidebar: true }) do
+        clock
+        render recent_picks
+      end
+      room_content
+    end
+  end
+
+  def room_content
+    main(class: "min-w-0 space-y-4", data: { draft_room_content: true }) do
+      navigation
+      section(class: "min-w-0") { render_active_view }
+    end
+  end
 
   def clock
     turbo_frame_tag("draft-#{@draft.public_id}-clock", class: "sticky top-0 z-30 block") do

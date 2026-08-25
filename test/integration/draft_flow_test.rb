@@ -126,6 +126,13 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     get draft_path(drafts(:one).public_id, view: "board")
 
     assert_response :success
+    room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
+    assert_select "##{room_id} > [data-draft-room-layout]", count: 1 do
+      assert_select "turbo-frame#draft-sunday-draft-clock", count: 1
+      assert_select "[data-draft-room-sidebar]", count: 0
+      assert_select "#draft-sunday-draft-recent-picks", count: 0
+      assert_select "[data-draft-room-content]", count: 1
+    end
     assert_select "h2", "Draft board"
     assert_select "p", text: "Rounds run top to bottom. Snake rounds reverse pick order.", count: 0
     assert_select "div[title='#{teams(:one).name}']", text: teams(:one).abbreviation
@@ -243,7 +250,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "[data-draft-board-team-id].bg-lime-300\\/10", count: 0
   end
 
-  test "completed picks retain their elapsed time in the log and board" do
+  test "completed picks retain their elapsed time on the board" do
     draft = drafts(:one)
     draft.update!(started_at: Time.zone.parse("2026-08-14 12:00:00"))
     pick = draft.picks.create!(
@@ -259,9 +266,6 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     get draft_path(draft.public_id, view: "board")
 
     assert_response :success
-    assert_select ".text-yellow-300", text: "1:01", minimum: 1
-    assert_select "li", text: /#{teams(:one).abbreviation} · R1 · Pick 1/
-    assert_select "[data-recent-pick] img[src*='/rails/active_storage/']", count: 1
     assert_select "[data-draft-board-pick='true'] img[src*='/rails/active_storage/']", count: 2
     assert_select "#draft-#{draft.public_id}-board-cell-#{pick.overall_number}[title*='Pick time 1:01']", count: 1
     team_logo_url = ApplicationController.helpers.nfl_team_logo_url(players(:one).pro_team)
