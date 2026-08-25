@@ -11,6 +11,11 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#draft-sunday-draft-header"
     assert_select "turbo-frame#draft-sunday-draft-content"
     assert_select "turbo-frame#draft-sunday-draft-room"
+    assert_select "turbo-frame#draft-sunday-draft-clock.sticky.top-0.z-30"
+    room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
+    room_children = css_select("##{room_id} > *")
+    assert_equal "draft-sunday-draft-clock", room_children.first["id"]
+    assert_equal "Draft room view", room_children[1]["aria-label"]
     assert_select "p", text: /You're up now/
     assert_select "a", text: /Export/, count: 0
     assert_select "[data-controller='pick-timer'][data-pick-timer-paused-value='false']"
@@ -36,7 +41,6 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "[data-draft-filter-target='position']", count: Player::POSITIONS.size
     assert_select "[data-draft-player-id='#{players(:one).id}']", minimum: 1
     assert_select "#flash"
-    room_id = ActionView::RecordIdentifier.dom_id(drafts(:one), :room)
     assert_select "##{room_id}[data-controller='draft-pick'][data-action='draft:turn->draft-pick#turnChanged'][data-draft-pick-selected-team-id-value='#{teams(:one).id}'][data-draft-pick-commissioner-value='false']"
     assert_select "form", minimum: 1 do
       assert_select "button[type='button'][data-action='draft-pick#prepare']", "Draft"

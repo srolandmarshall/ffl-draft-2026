@@ -20,6 +20,8 @@ class Components::Drafts::ClockTest < ActiveSupport::TestCase
     assert_includes html, "data-draft-pick-target=\"currentTeam\""
     assert_includes html, "data-draft-pick-target=\"turnPosition\""
     assert_includes html, "draft:timer-reset->pick-timer#reset"
+    assert_includes html, "w-full"
+    refute_includes html, "fixed"
   end
 
   test "commissioner can undo the latest pick" do
