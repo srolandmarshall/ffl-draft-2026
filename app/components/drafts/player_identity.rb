@@ -14,7 +14,6 @@ class Components::Drafts::PlayerIdentity < Components::Base
           div(class: "flex items-center gap-2") do
             player_name
             rookie_badge
-            injury_badge
           end
           position_line
         else
@@ -23,8 +22,8 @@ class Components::Drafts::PlayerIdentity < Components::Base
             position_badge
             team_logo
             sr_only_team
-            rookie_badge
             injury_badge
+            rookie_badge
           end
         end
       end
@@ -80,6 +79,7 @@ class Components::Drafts::PlayerIdentity < Components::Base
       position_badge
       team_logo(size: "size-7")
       sr_only_team
+      injury_badge
     end
   end
 
