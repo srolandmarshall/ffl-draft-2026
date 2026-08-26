@@ -75,6 +75,18 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     assert_select "a", text: "Open room →", count: 0
   end
 
+  test "start and restart draft buttons break out of the drafts turbo frame" do
+    sign_in_as users(:commissioner)
+    live_draft = drafts(:one)
+    setup_draft = live_draft.league.drafts.create!(name: "Setup Draft", public_id: "setup-draft", status: :setup, rounds: 2)
+
+    get admin_league_path(live_draft.league)
+
+    assert_response :success
+    assert_select "form[action='#{start_admin_league_draft_path(live_draft.league, setup_draft)}'][data-turbo-frame='_top']"
+    assert_select "form[action='#{restart_admin_league_draft_path(live_draft.league, live_draft)}'][data-turbo-frame='_top']"
+  end
+
   test "league team order seeds the next draft without changing an existing draft" do
     sign_in_as users(:commissioner)
     follow_redirect!
