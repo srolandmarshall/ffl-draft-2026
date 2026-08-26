@@ -63,6 +63,16 @@ module ApplicationHelper
     player.headshot.variant(resize_to_fill: [ size, size ])
   end
 
+  def player_portrait?(player)
+    player.position == "DST" || player.headshot.attached?
+  end
+
+  def player_portrait_url(player, size:)
+    return nfl_team_logo_url(player.pro_team) if player.position == "DST"
+
+    url_for(player_headshot(player, size:))
+  end
+
   def position_conic_gradient(counts)
     total = counts.values.sum
     cursor = 0.0

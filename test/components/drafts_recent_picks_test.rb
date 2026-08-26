@@ -31,4 +31,15 @@ class Components::Drafts::RecentPicksTest < ActiveSupport::TestCase
     assert_equal 8, document.css("[data-recent-pick].hidden.lg\\:flex").size
     assert_equal 4, document.css("[data-recent-pick]:not(.hidden)").size
   end
+
+  test "shows the team logo as the portrait for a defense pick" do
+    draft = drafts(:one)
+    dst = Player.create!(name: "New England Defense", position: "DST", pro_team: "NE")
+    pick = draft.picks.create!(team: teams(:one), player: dst, round: 1, overall_number: 1, elapsed_seconds: 61)
+    html = ApplicationController.renderer.render(
+      Components::Drafts::RecentPicks.new(draft:, picks: [ pick ], pick_elapsed_seconds: { pick.id => 61 })
+    )
+
+    assert_includes html, "teamlogos/nfl/500/ne.png"
+  end
 end

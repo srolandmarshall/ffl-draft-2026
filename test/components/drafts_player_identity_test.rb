@@ -31,6 +31,17 @@ class Components::Drafts::PlayerIdentityTest < ActiveSupport::TestCase
     refute_includes mobile, "truncate"
   end
 
+  test "renders the team logo as the portrait for defenses instead of a duplicate badge" do
+    dst = Player.new(name: "New England Defense", position: "DST", pro_team: "NE")
+    desktop = ApplicationController.renderer.render(Components::Drafts::PlayerIdentity.new(player: dst, variant: :desktop))
+    mobile = ApplicationController.renderer.render(Components::Drafts::PlayerIdentity.new(player: dst, variant: :mobile))
+
+    [ desktop, mobile ].each do |html|
+      assert_equal 1, html.scan("teamlogos/nfl/500/ne.png").size
+      refute_match(/font-black text-slate-500[^>]*>DST</, html)
+    end
+  end
+
   private
 
   def assert_injury_badge_follows_team(html, player)
