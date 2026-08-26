@@ -38,7 +38,7 @@ class Components::Admin::Dashboard < Components::Base
     a(href: admin_league_path(league), class: "rounded-lg border border-white/10 bg-slate-900 p-5 hover:border-white/25") do
       p(class: "text-sm font-bold text-lime-400") { league.season }
       h2(class: "mt-1 text-xl font-semibold") { league.name }
-      p(class: "mt-6 text-sm text-slate-400") { "#{pluralize(league.teams.size, 'team')} · #{pluralize(league.drafts.size, 'draft')} · #{league.roster_size} roster spots" }
+      p(class: "mt-6 text-sm text-slate-400") { "#{pluralize(league.teams.active.size, 'team')} · #{pluralize(league.drafts.size, 'draft')} · #{league.roster_size} roster spots" }
     end
   end
 end

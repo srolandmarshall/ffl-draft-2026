@@ -18,6 +18,8 @@ class Team < ApplicationRecord
   validates :espn_team_id, uniqueness: { scope: :league_id }, allow_nil: true
 
   scope :in_draft_order, -> { order(:draft_order, :id) }
+  scope :active, -> { where(archived: false) }
+  scope :archived, -> { where(archived: true) }
 
   def emails
     users.includes(:user_emails).flat_map(&:emails).uniq.sort

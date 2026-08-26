@@ -7,13 +7,15 @@ module Admin
     end
 
     def show
-      @teams = @league.teams.in_draft_order
+      @teams = @league.teams.active.in_draft_order
+      @archived_teams = @league.teams.archived.order(:name)
       @drafts = @league.drafts.order(created_at: :desc)
       @espn_seasons = @league.espn_seasons.includes(:draft_picks).newest_first
       @espn_settings = DataSources::Espn::LeagueSettings.from_settings(@league.espn_settings) if @league.espn_settings.present?
       @league_page = AdminLeaguePage.new(
         league: @league,
         teams: @teams,
+        archived_teams: @archived_teams,
         drafts: @drafts,
         espn_seasons: @espn_seasons,
         espn_settings: @espn_settings,
@@ -51,7 +53,7 @@ module Admin
 
     def team_order
       team_ids = Array(params[:team_ids]).map(&:to_i)
-      unless team_ids.uniq.sort == @league.team_ids.sort
+      unless team_ids.uniq.sort == @league.teams.active.ids.sort
         redirect_to admin_league_path(@league), alert: "Draft order must include every team exactly once."
         return
       end

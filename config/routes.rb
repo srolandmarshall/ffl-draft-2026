@@ -18,7 +18,9 @@ Rails.application.routes.draw do
       patch :team_order, on: :member
       resource :espn_settings_sync, only: :create
       resource :espn_connection, only: %i[new create destroy]
-      resources :teams, except: :show
+      resources :teams, except: :show do
+        member { patch :archive; patch :unarchive }
+      end
       resources :drafts, except: :show do
         member { patch :start; patch :restart }
       end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_25_233228) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_26_014049) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -224,6 +224,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_25_233228) do
 
   create_table "teams", force: :cascade do |t|
     t.string "abbreviation", null: false
+    t.boolean "archived", default: false, null: false
     t.datetime "created_at", null: false
     t.integer "draft_order", default: 0, null: false
     t.integer "espn_team_id"

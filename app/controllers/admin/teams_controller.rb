@@ -1,7 +1,7 @@
 module Admin
   class TeamsController < BaseController
     before_action :set_league
-    before_action :set_team, only: %i[edit update destroy]
+    before_action :set_team, only: %i[edit update destroy archive unarchive]
 
     def index
       redirect_to admin_league_path(@league)
@@ -33,6 +33,16 @@ module Admin
     def destroy
       @team.destroy!
       redirect_to admin_league_path(@league), notice: "Team removed."
+    end
+
+    def archive
+      @team.update!(archived: true)
+      redirect_to admin_league_path(@league), notice: "#{@team.name} archived."
+    end
+
+    def unarchive
+      @team.update!(archived: false)
+      redirect_to admin_league_path(@league), notice: "#{@team.name} restored."
     end
 
     private

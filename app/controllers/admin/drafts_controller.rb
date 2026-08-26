@@ -8,7 +8,7 @@ module Admin
     end
 
     def new
-      count = @league.teams.size.in?(2..20) ? @league.teams.size : 10
+      count = @league.teams.active.size.in?(2..20) ? @league.teams.active.size : 10
       @draft = @league.drafts.new(name: "#{@league.season} Draft", team_count: count)
       @draft.assign_attributes(@league.draft_defaults)
     end
