@@ -52,9 +52,14 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
       player_rows.each { |row| assert_includes row["class"], "bg-amber-400/20" }
     end
     assert_select "[data-mobile-player-row]", minimum: 1 do |rows|
-      rows.each { |row| assert_includes row["class"], "py-2.5" }
+      rows.each { |row| assert_includes row["class"], "py-2" }
     end
-    assert_select "[data-mobile-player-row] dl[class~='mt-1.5'] dd.text-base", minimum: 3
+    assert_select "[data-mobile-player-row] dl[class~='mt-1.5'] dd.text-sm", minimum: 4
+    assert_select "[data-mobile-player-row] dl[class~='mt-1.5'] dt", text: "TDs", minimum: 1
+    assert_select "[data-mobile-player-row] details", minimum: 1 do |detail_elements|
+      detail_elements.each { |details_element| assert_nil details_element["open"] }
+    end
+    assert_select "[data-mobile-player-row] details summary", text: /Season stats/, minimum: 1
     assert_select "#flash"
     assert_select "##{room_id}[data-controller~='draft-pick'][data-controller~='draft-alert'][data-action~='draft:turn->draft-pick#turnChanged'][data-action~='draft:turn->draft-alert#turnChanged'][data-draft-pick-selected-team-id-value='#{teams(:one).id}'][data-draft-pick-commissioner-value='false'][data-draft-alert-selected-team-id-value='#{teams(:one).id}'][data-draft-alert-current-team-id-value='#{teams(:one).id}'][data-draft-alert-enabled-value='true'][data-draft-alert-sound-url-value='/its-your-pick.mp3']"
     assert_select "button[data-draft-alert-target='toggle'][data-action='draft-alert#toggleSound'][aria-label='Toggle your-turn sound'][aria-pressed='true']", text: "Sound on", count: 1

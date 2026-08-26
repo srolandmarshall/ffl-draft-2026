@@ -37,9 +37,9 @@ class Components::Drafts::PlayerIdentity < Components::Base
   end
 
   def headshot
-    size = @variant == :desktop ? 80 : 72
-    wrapper_size = @variant == :desktop ? "size-10" : "size-9"
-    fallback_margin = @variant == :desktop ? "mb-2" : "mb-1.5"
+    size = @variant == :desktop ? 80 : 64
+    wrapper_size = @variant == :desktop ? "size-10" : "size-8"
+    fallback_margin = @variant == :desktop ? "mb-2" : "mb-1"
     background = @player.position == "DST" ? "bg-slate-400/50" : "bg-slate-800"
     div(class: "flex #{wrapper_size} shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 #{background}") do
       if player_portrait?(@player)

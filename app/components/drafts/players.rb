@@ -85,29 +85,42 @@ class Components::Drafts::Players < Components::Base
 
   def mobile_row(player)
     stats = PlayerStats.new(@draft, player)
-    article(class: "px-3 py-2.5 #{position_surface_classes(player.position)}", data: { draft_player_id: player.id, mobile_player_row: true }) do
+    article(class: "px-3 py-2 #{position_surface_classes(player.position)}", data: { draft_player_id: player.id, mobile_player_row: true }) do
       div(class: "flex items-start justify-between gap-2") do
         render Components::Drafts::PlayerIdentity.new(player:, variant: :mobile)
         render Components::Drafts::Action.new(draft: @draft, player:, can_make_pick: @can_make_pick)
       end
       mobile_summary(player, stats)
-      render Components::Drafts::Touchdowns.new(stats: stats.touchdowns, variant: :mobile)
-      render Components::Drafts::ProductionGroups.new(groups: stats.groups, variant: :mobile)
+      season_stats_details(stats)
     end
   end
 
   def mobile_summary(player, stats)
-    dl(class: "mt-1.5 grid grid-cols-3 border-y border-white/10 py-1.5") do
+    dl(class: "mt-1.5 grid grid-cols-4 border-y border-white/10 py-1.5") do
       metric("Bye", player.bye_week || "—")
       metric("#{prior_season} FP", points(stats), separated: true, accent: true)
       metric("Games", player.draft_games || "—", separated: true)
+      metric("TDs", total_touchdowns(stats), separated: true)
+    end
+  end
+
+  def season_stats_details(stats)
+    details(class: "group mt-1.5") do
+      summary(class: "flex cursor-pointer list-none items-center justify-between gap-2 text-[.6rem] font-bold uppercase tracking-wider text-slate-400 [&::-webkit-details-marker]:hidden") do
+        span { "Season stats" }
+        span(class: "text-slate-500 transition group-open:rotate-180", aria: { hidden: true }) { "▾" }
+      end
+      div(class: "mt-1") do
+        render Components::Drafts::Touchdowns.new(stats: stats.touchdowns, variant: :mobile)
+        render Components::Drafts::ProductionGroups.new(groups: stats.groups, variant: :mobile)
+      end
     end
   end
 
   def metric(label, value, separated: false, accent: false)
-    div(class: separated ? "border-l border-white/10 pl-3" : nil) do
-      dt(class: "text-[.55rem] font-bold uppercase tracking-wider #{accent ? 'text-lime-300' : 'text-slate-500'}") { label }
-      dd(class: "text-base font-black tabular-nums leading-tight #{accent ? 'text-lime-300' : 'text-slate-100'}") { value }
+    div(class: separated ? "border-l border-white/10 pl-2" : nil) do
+      dt(class: "text-[.5rem] font-bold uppercase tracking-wide #{accent ? 'text-lime-300' : 'text-slate-500'}") { label }
+      dd(class: "text-sm font-black tabular-nums leading-tight #{accent ? 'text-lime-300' : 'text-slate-100'}") { value }
     end
   end
 
@@ -133,6 +146,10 @@ class Components::Drafts::Players < Components::Base
 
   def points(stats)
     stats.fantasy_points ? number_with_precision(stats.fantasy_points, precision: 1) : "—"
+  end
+
+  def total_touchdowns(stats)
+    stats.touchdowns.any? ? stats.touchdowns.sum { |_label, value| value } : "—"
   end
 
   class PlayerStats
