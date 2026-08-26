@@ -70,6 +70,36 @@ class LeagueHistoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "article", text: /Retired Team/, count: 0
   end
 
+  test "orders franchises by championships then years in the league" do
+    challenger_team = @league.teams.create!(name: "Challenger", owner_name: "Chally", abbreviation: "CHL")
+    challenger = @league.espn_franchises.create!(key: "challenger", name: "Challenger", aliases: [ "CHL" ], team: challenger_team, owner_ids: [ "owner-chl" ])
+    @season.update!(
+      teams: @season.teams.map { |team| team["id"] == 7 ? team.merge("final_rank" => 2) : team } +
+        [ { "id" => 9, "name" => "Challenger", "abbreviation" => "CHL", "owner_ids" => [ "owner-chl" ], "final_rank" => 1 } ]
+    )
+    @older_season.update!(
+      teams: @older_season.teams.map { |team| team["id"] == 7 ? team.merge("final_rank" => 2) : team } +
+        [ { "id" => 9, "name" => "Challenger", "abbreviation" => "CHL", "owner_ids" => [ "owner-chl" ], "final_rank" => 1 } ]
+    )
+    challenger.draft_picks << @season.draft_picks.create!(
+      overall_number: 2, round: 1, round_pick: 2,
+      espn_team_id: 9, team_name: "Challenger", team_abbreviation: "CHL",
+      espn_player_id: 45, player_name: "Challenger Player", position: "RB"
+    )
+    challenger.draft_picks << @older_season.draft_picks.create!(
+      overall_number: 3, round: 1, round_pick: 3,
+      espn_team_id: 9, team_name: "Challenger", team_abbreviation: "CHL",
+      espn_player_id: 46, player_name: "Challenger Player Two", position: "RB"
+    )
+    sign_in_as users(:member)
+
+    get league_history_path(@league)
+
+    assert_response :success
+    buttons = css_select("button[data-finish-chart-target='button']").map { |node| node["data-name"] }
+    assert_equal [ "All franchises", "Challenger", "Red Hawks" ], buttons
+  end
+
   test "current season appears after ESPN has drafted" do
     @current_season.draft_picks.create!(
       overall_number: 1, round: 1, round_pick: 1,

@@ -9,6 +9,7 @@ class LeagueHistoriesController < ApplicationController
     franchises = @league.espn_franchises.where.not(team_id: nil).includes(draft_picks: :espn_season).to_a
     franchises.sort_by! { |franchise| [ franchise.team&.draft_order || 999, franchise.name ] }
     @tendencies = Drafts::HistoricalTendencies.new(franchises:, seasons: @seasons).call
+    @tendencies.sort_by! { |tendency| [ -tendency.finishes.values.count(1), -tendency.seasons ] }
   end
 
   private
