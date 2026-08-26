@@ -1,6 +1,14 @@
 require "test_helper"
 
 class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
+  def with_env(name)
+    original = Rails.env
+    Rails.env = ActiveSupport::EnvironmentInquirer.new(name)
+    yield
+  ensure
+    Rails.env = original
+  end
+
   test "anonymous visitors are asked for an email" do
     get root_path
 
@@ -85,6 +93,61 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "form[action='#{start_admin_league_draft_path(live_draft.league, setup_draft)}'][data-turbo-frame='_top']"
     assert_select "form[action='#{restart_admin_league_draft_path(live_draft.league, live_draft)}'][data-turbo-frame='_top']"
+  end
+
+  test "auto-draft button appears for a live draft but not a completed one" do
+    sign_in_as users(:commissioner)
+    live_draft = drafts(:one)
+    completed_draft = live_draft.league.drafts.create!(name: "Done Draft", public_id: "done-draft", status: :complete, rounds: 1, completed_at: Time.current)
+
+    get admin_league_path(live_draft.league)
+
+    assert_response :success
+    assert_select "form[action='#{auto_draft_admin_league_draft_path(live_draft.league, live_draft)}'][data-controller='triple-confirm'][data-turbo-frame='_top']"
+    assert_select "form[action='#{auto_draft_admin_league_draft_path(live_draft.league, completed_draft)}']", count: 0
+  end
+
+  test "auto-draft fills every remaining pick and redirects into the completed draft" do
+    sign_in_as users(:commissioner)
+    league = leagues(:one)
+    team_a = teams(:one)
+    team_b = league.teams.create!(name: "Team B", owner_name: "Bailey", abbreviation: "TMB")
+    draft = league.drafts.create!(
+      name: "Auto Draft Integration", public_id: "auto-draft-integration", status: :setup, rounds: 1,
+      qb_slots: 1, rb_slots: 0, wr_slots: 0, te_slots: 0, flex_slots: 0, k_slots: 0, dst_slots: 0, bench_slots: 0
+    )
+    draft.draft_entries.create!(team: team_a, position: 1)
+    draft.draft_entries.create!(team: team_b, position: 2)
+    Player.create!(name: "Auto QB One", position: "QB", pro_team: "FA", active: true, ranking: 1)
+    Player.create!(name: "Auto QB Two", position: "QB", pro_team: "FA", active: true, ranking: 2)
+
+    patch auto_draft_admin_league_draft_path(league, draft)
+
+    assert_redirected_to draft_path(draft.public_id)
+    assert draft.reload.complete?
+    assert_equal 2, draft.picks.count
+  end
+
+  test "a regular member cannot trigger auto-draft" do
+    sign_in_as users(:member)
+    draft = drafts(:one)
+
+    assert_no_difference("Pick.count") do
+      patch auto_draft_admin_league_draft_path(draft.league, draft)
+    end
+
+    assert_redirected_to root_path
+  end
+
+  test "auto-draft is unavailable in production" do
+    sign_in_as users(:commissioner)
+    draft = drafts(:one)
+
+    with_env("production") do
+      patch auto_draft_admin_league_draft_path(draft.league, draft)
+    end
+
+    assert_response :not_found
   end
 
   test "league team order seeds the next draft without changing an existing draft" do

@@ -195,8 +195,36 @@ class Components::Admin::Leagues::Show < Components::Base
       else
         button_to("Restart draft", restart_admin_league_draft_path(@league, draft), method: :patch, class: "cursor-pointer rounded-lg border border-amber-400/40 px-3 py-2 text-xs font-bold text-amber-200 hover:bg-amber-400/10", form: { data: { turbo_confirm: "Restart #{draft.name}? This permanently removes all picks and starts it over.", turbo_frame: "_top" } })
       end
+      auto_draft_button(draft) unless draft.complete?
       button_to("Delete draft", admin_league_draft_path(@league, draft), method: :delete, class: "cursor-pointer rounded-lg border border-red-400/40 px-3 py-2 text-xs font-bold text-red-200 hover:bg-red-400/10", form: { data: { turbo_confirm: "Delete #{draft.name}? This permanently removes the draft and all picks." } })
     end
+  end
+
+  def auto_draft_button(draft)
+    return if Rails.env.production?
+
+    button_to(
+      "Auto-draft rest",
+      auto_draft_admin_league_draft_path(@league, draft),
+      method: :patch,
+      class: "cursor-pointer rounded-lg border border-fuchsia-400/40 px-3 py-2 text-xs font-bold text-fuchsia-200 hover:bg-fuchsia-400/10",
+      form: {
+        data: {
+          controller: "triple-confirm",
+          triple_confirm_messages_value: auto_draft_confirm_messages(draft),
+          action: "submit->triple-confirm#submit",
+          turbo_frame: "_top"
+        }
+      }
+    )
+  end
+
+  def auto_draft_confirm_messages(draft)
+    [
+      "Auto-draft the rest of #{draft.name}? This fills every remaining pick with computer-selected players.",
+      "This cannot be undone except by restarting the draft, which wipes every pick made so far — including real picks from real teams. Continue?",
+      "Final check: this is meant for testing end-of-draft states, not for finishing a real league's draft. Proceed?"
+    ]
   end
 
   def top_link(label, href, class_name: "text-sm font-semibold text-lime-400 hover:text-lime-300")

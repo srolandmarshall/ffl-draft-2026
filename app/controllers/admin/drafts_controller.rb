@@ -1,7 +1,8 @@
 module Admin
   class DraftsController < BaseController
     before_action :set_league
-    before_action :set_draft, only: %i[edit update destroy start restart]
+    before_action :set_draft, only: %i[edit update destroy start restart auto_draft]
+    before_action :block_in_production, only: :auto_draft
 
     def index
       redirect_to admin_league_path(@league)
@@ -51,6 +52,11 @@ module Admin
       redirect_to admin_league_path(@league), notice: "Draft deleted."
     end
 
+    def auto_draft
+      Drafts::AutoDraft.new(@draft).call
+      redirect_to draft_path(@draft.public_id), notice: "Auto-drafted the remaining picks for #{@draft.name}."
+    end
+
     private
 
     def set_league
@@ -59,6 +65,10 @@ module Admin
 
     def set_draft
       @draft = @league.drafts.find(params[:id])
+    end
+
+    def block_in_production
+      head :not_found if Rails.env.production?
     end
 
     def draft_params
