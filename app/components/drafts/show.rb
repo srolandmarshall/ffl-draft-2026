@@ -60,11 +60,13 @@ class Components::Drafts::Show < Components::Base
   end
 
   def facts
-    generated_facts = ::Drafts::FactGenerator.new(
-      draft: @draft,
-      picks: @room.picks,
-      pick_elapsed_seconds: @room.pick_elapsed_seconds
-    ).call
+    generated_facts = Rails.cache.fetch(::Drafts::FactGenerator.cache_key(@draft)) do
+      ::Drafts::FactGenerator.new(
+        draft: @draft,
+        picks: @room.picks,
+        pick_elapsed_seconds: @room.pick_elapsed_seconds
+      ).call
+    end
     Components::Drafts::Facts.new(draft: @draft, facts: generated_facts)
   end
 end
