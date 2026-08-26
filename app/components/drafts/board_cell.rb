@@ -55,10 +55,9 @@ class Components::Drafts::BoardCell < Components::Base
       span(class: "text-[.65rem] font-black text-slate-300") { @team.abbreviation }
       div(class: "flex items-center justify-center gap-0.5") do
         div(class: "flex items-end justify-center overflow-hidden rounded border border-white/15 #{mobile_portrait_size_classes} #{portrait_background_classes}") do
-          if @pick.player.position == "DST"
-            img(src: nfl_team_logo_url(@pick.player.pro_team), alt: "", title: @pick.player.pro_team, loading: "lazy", class: "h-full w-full object-contain p-0.5")
-          elsif @pick.player.headshot.attached?
-            img(src: url_for(player_headshot(@pick.player, size: 40)), alt: "", loading: "lazy", class: "h-full w-full object-cover object-top")
+          if player_portrait?(@pick.player)
+            fit = @pick.player.position == "DST" ? "object-contain p-0.5" : "object-cover object-top"
+            img(src: player_portrait_url(@pick.player, size: 40), alt: "", title: (@pick.player.pro_team if @pick.player.position == "DST"), loading: "lazy", class: "h-full w-full #{fit}")
           else
             span(class: "text-[.4rem] font-black text-slate-500") { @pick.player.position }
           end
@@ -82,10 +81,9 @@ class Components::Drafts::BoardCell < Components::Base
     div(class: "hidden w-full flex-col items-center min-[900px]:flex") do
       div(class: "mb-0.5 flex shrink-0 items-center justify-center gap-1") do
         div(class: "flex size-8 items-end justify-center overflow-hidden rounded-md border border-white/15 #{portrait_background_classes} lg:size-9") do
-          if @pick.player.position == "DST"
-            img(src: nfl_team_logo_url(@pick.player.pro_team), alt: "", title: @pick.player.pro_team, loading: "lazy", class: "h-full w-full object-contain p-0.5")
-          elsif @pick.player.headshot.attached?
-            img(src: url_for(player_headshot(@pick.player, size: 64)), alt: "", loading: "lazy", class: "h-full w-full object-cover object-top")
+          if player_portrait?(@pick.player)
+            fit = @pick.player.position == "DST" ? "object-contain p-0.5" : "object-cover object-top"
+            img(src: player_portrait_url(@pick.player, size: 64), alt: "", title: (@pick.player.pro_team if @pick.player.position == "DST"), loading: "lazy", class: "h-full w-full #{fit}")
           else
             span(class: "mb-1 text-[.45rem] font-black text-slate-500") { @pick.player.position }
           end

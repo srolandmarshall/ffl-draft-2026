@@ -28,9 +28,11 @@ class Components::Drafts::RecentPicks < Components::Base
     elapsed = @pick_elapsed_seconds.fetch(pick.id) { @pick_elapsed_seconds.fetch(pick.id.to_s, 0) }
     visibility_classes = desktop_only ? "hidden lg:flex" : "flex"
     li(class: "#{visibility_classes} min-w-0 items-center gap-2 border-b border-r border-white/5 px-2 py-1.5 text-[.65rem] sm:text-xs", data: { recent_pick: "" }) do
-      div(class: "flex size-8 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800") do
-        if pick.player.headshot.attached?
-          img(src: url_for(player_headshot(pick.player, size: 64)), alt: "", loading: "lazy", class: "h-full w-full object-cover object-top")
+      background = pick.player.position == "DST" ? "bg-slate-400/50" : "bg-slate-800"
+      div(class: "flex size-8 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 #{background}") do
+        if player_portrait?(pick.player)
+          fit = pick.player.position == "DST" ? "object-contain p-0.5" : "object-cover object-top"
+          img(src: player_portrait_url(pick.player, size: 64), alt: "", title: (pick.player.pro_team if pick.player.position == "DST"), loading: "lazy", class: "h-full w-full #{fit}")
         else
           span(class: "mb-1.5 text-[.5rem] font-black text-slate-500") { pick.player.position }
         end

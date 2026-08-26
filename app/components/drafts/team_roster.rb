@@ -109,10 +109,9 @@ class Components::Drafts::TeamRoster < Components::Base
   end
 
   def player_image(player)
-    if player.position == "DST"
-      img(src: nfl_team_logo_url(player.pro_team), alt: "", title: player.pro_team, loading: "lazy", class: "shrink-0 object-contain p-0.5", style: player_image_style, data: { roster_player_image: true })
-    elsif player.headshot.attached?
-      img(src: url_for(player_headshot(player, size: 80)), alt: "", loading: "lazy", class: "shrink-0 rounded-md object-cover object-top", style: player_image_style, data: { roster_player_image: true })
+    if player_portrait?(player)
+      fit = player.position == "DST" ? "object-contain p-0.5" : "rounded-md object-cover object-top"
+      img(src: player_portrait_url(player, size: 80), alt: "", title: (player.pro_team if player.position == "DST"), loading: "lazy", class: "shrink-0 #{fit}", style: player_image_style, data: { roster_player_image: true })
     else
       span(class: "flex shrink-0 items-center justify-center text-[.55rem] font-black text-slate-500", style: player_image_style) { player.position }
     end

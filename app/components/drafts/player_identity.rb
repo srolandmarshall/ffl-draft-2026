@@ -20,7 +20,7 @@ class Components::Drafts::PlayerIdentity < Components::Base
           div(class: "flex flex-wrap items-center gap-2") do
             player_name
             position_badge
-            team_logo
+            team_logo unless @player.position == "DST"
             sr_only_team
             injury_badge
             rookie_badge
@@ -40,9 +40,11 @@ class Components::Drafts::PlayerIdentity < Components::Base
     size = @variant == :desktop ? 80 : 72
     wrapper_size = @variant == :desktop ? "size-10" : "size-9"
     fallback_margin = @variant == :desktop ? "mb-2" : "mb-1.5"
-    div(class: "flex #{wrapper_size} shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800") do
-      if @player.headshot.attached?
-        img(src: url_for(player_headshot(@player, size:)), alt: "", loading: "lazy", class: "h-full w-full object-cover object-top")
+    background = @player.position == "DST" ? "bg-slate-400/50" : "bg-slate-800"
+    div(class: "flex #{wrapper_size} shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 #{background}") do
+      if player_portrait?(@player)
+        fit = @player.position == "DST" ? "object-contain p-0.5" : "object-cover object-top"
+        img(src: player_portrait_url(@player, size:), alt: "", title: (@player.pro_team if @player.position == "DST"), loading: "lazy", class: "h-full w-full #{fit}")
       else
         span(class: "#{fallback_margin} text-[.6rem] font-black text-slate-500") { @player.position }
       end
@@ -81,7 +83,7 @@ class Components::Drafts::PlayerIdentity < Components::Base
   def position_line
     div(class: "mt-1 flex items-center gap-2") do
       position_badge
-      team_logo(size: "size-7")
+      team_logo(size: "size-7") unless @player.position == "DST"
       sr_only_team
       injury_badge
     end
