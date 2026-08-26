@@ -24,15 +24,6 @@ class Components::Drafts::Show < Components::Base
   private
 
   def completed_draft
-    turbo_frame_tag("draft-#{@draft.public_id}-results") do
-      render Components::Drafts::Results.new(
-        draft: @draft,
-        picks: @room.picks,
-        pick_elapsed_seconds: @room.pick_elapsed_seconds,
-        current_user: @current_user,
-        selected_team: @room.selected_team
-      )
-    end
     render Components::Drafts::CompletedNavigation.new(draft: @draft, view: @view)
     if @view == "my_team"
       turbo_frame_tag("draft-#{@draft.public_id}-team-roster") { render team_roster }
