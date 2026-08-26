@@ -8,11 +8,11 @@ module Admin
         player_rows: client.fetch_players,
         stat_rows: client.fetch_actual_stats(year: stats_season),
         current_season:,
-        stats_season:,
-        headshot_fetcher: ->(url) { client.fetch_headshot(url:) }
+        stats_season:
       ).call
+      NflverseHeadshotSyncJob.perform_later(current_season, stats_season)
       redirect_to admin_players_path,
-        notice: "Loaded #{stats_season} actual stats for #{result.with_stats} players, marked #{result.rookies} rookies, and cached #{result.headshots_cached} headshots."
+        notice: "Loaded #{stats_season} actual stats for #{result.with_stats} players and marked #{result.rookies} rookies. Headshots will continue caching in the background."
     rescue DataSources::HttpError, ActiveRecord::RecordInvalid => error
       redirect_to admin_players_path, alert: error.message
     end

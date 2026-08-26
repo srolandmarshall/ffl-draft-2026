@@ -38,6 +38,33 @@ module DataSources
         assert_not players(:two).reload.rookie?
         assert_nil players(:two).actual_stats
       end
+
+      test "updates every player's stats before caching headshots" do
+        players(:one).update!(headshot_url: nil)
+        players(:two).update!(headshot_url: nil)
+        player_rows = [
+          { "espn_id" => "1", "gsis_id" => "00-001", "rookie_season" => "2024", "headshot" => "https://example.com/one" },
+          { "espn_id" => "2", "gsis_id" => "00-002", "rookie_season" => "2024", "headshot" => "https://example.com/two" }
+        ]
+        stat_rows = [
+          { "player_id" => "00-001", "season" => "2025", "season_type" => "REG", "games" => "17", "fantasy_points" => "100" },
+          { "player_id" => "00-002", "season" => "2025", "season_type" => "REG", "games" => "17", "fantasy_points" => "200" }
+        ]
+
+        error = assert_raises(RuntimeError) do
+          PlayerDataSync.new(
+            player_rows:,
+            stat_rows:,
+            current_season: 2026,
+            stats_season: 2025,
+            headshot_fetcher: ->(_url) { raise "download failed" }
+          ).call
+        end
+
+        assert_equal "download failed", error.message
+        assert_equal 100, players(:one).reload.actual_stats["fantasy_points"]
+        assert_equal 200, players(:two).reload.actual_stats["fantasy_points"]
+      end
     end
   end
 end
