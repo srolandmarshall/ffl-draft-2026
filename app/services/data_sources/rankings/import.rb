@@ -2,6 +2,7 @@ module DataSources
   module Rankings
     class Import
       Result = Data.define(:source, :updated, :unmatched, :meta, :attribution)
+      EmptySnapshotError = Class.new(DataSources::HttpError)
 
       def initialize(strategy:, imported_at: Time.current)
         @strategy = strategy
@@ -10,6 +11,7 @@ module DataSources
 
       def call
         snapshot = strategy.call
+        guard_against_empty_snapshot!(snapshot)
         updated = 0
         unmatched = 0
 
@@ -33,12 +35,21 @@ module DataSources
 
       attr_reader :strategy, :imported_at
 
+      def guard_against_empty_snapshot!(snapshot)
+        return if snapshot.entries.any?
+        return unless Player.where(position: snapshot.positions).where.not(ranking: nil).exists?
+
+        raise EmptySnapshotError, "#{snapshot.source} returned no ranking entries for #{snapshot.positions.join(', ')}; refusing to clear existing rankings"
+      end
+
       def clear_rankings(positions)
         Player.where(position: positions).update_all(ranking: nil, ranking_source: nil, position_rank: nil, ranking_value: nil, ranking_updated_at: nil)
       end
 
       def find_player(entry)
-        players_by_espn_id[entry.espn_id] || players_by_identity[identity(entry)] || unique_name_match(entry)
+        return players_by_espn_id[entry.espn_id] || players_by_ffc_id[entry.source_id] || players_by_dst_team[entry.pro_team] if entry.position == "DST"
+
+        players_by_espn_id[entry.espn_id] || players_by_ffc_id[entry.source_id] || players_by_identity[identity(entry)] || unique_name_match(entry)
       end
 
       def unique_name_match(entry)
@@ -62,6 +73,14 @@ module DataSources
         @players_by_espn_id ||= players.filter_map { |player| [ player.espn_id, player ] if player.espn_id }.to_h
       end
 
+      def players_by_ffc_id
+        @players_by_ffc_id ||= players.filter_map { |player| [ player.ffc_id, player ] if player.ffc_id }.to_h
+      end
+
+      def players_by_dst_team
+        @players_by_dst_team ||= players.select { |player| player.position == "DST" }.index_by(&:pro_team)
+      end
+
       def players_by_identity
         @players_by_identity ||= players.index_by { |player| [ normalize_name(player.name), player.position, player.pro_team ] }
       end
@@ -71,13 +90,15 @@ module DataSources
       end
 
       def ranking_attributes(entry, source)
-        {
+        attributes = {
           ranking: entry.ranking,
           ranking_source: source,
           position_rank: entry.position_rank,
           ranking_value: entry.value,
           ranking_updated_at: imported_at
         }
+        attributes[:ffc_id] = entry.source_id if source == DataSources::Rankings::FantasyFootballCalculator::SOURCE
+        attributes
       end
     end
   end

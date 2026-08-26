@@ -5,10 +5,6 @@ class Player < ApplicationRecord
   has_many :picks, dependent: :restrict_with_error
   has_many :league_player_scores, dependent: :destroy
 
-  def league_fantasy_points(league:, season:)
-    league_score(league:, season:)&.points
-  end
-
   def league_score(league:, season:)
     league_player_scores.find { |score| score.league_id == league.id && score.season == season }
   end

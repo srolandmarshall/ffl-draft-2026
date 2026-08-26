@@ -77,10 +77,6 @@ class Draft < ApplicationRecord
     Player.active.where.not(id: picks.select(:player_id))
   end
 
-  def prior_season_fantasy_points_for(player)
-    prior_season_score_for(player)&.points
-  end
-
   def prior_season_score_for(player)
     player.league_score(league:, season: league.season - 1)
   end
