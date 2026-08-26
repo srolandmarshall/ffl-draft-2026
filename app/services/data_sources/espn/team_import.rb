@@ -21,7 +21,7 @@ module DataSources
           else
             team = league.teams.create!(
               espn_team_id: identity.id,
-              name: unique_name(identity.name),
+              name: identity.name,
               abbreviation: unique_abbreviation(identity.abbreviation),
               owner_name: identity.owner_names.join(" & ").presence || identity.name
             )
@@ -57,12 +57,6 @@ module DataSources
         scope.update_all(espn_team_id: nil)
       end
 
-      def unique_name(name)
-        return name unless league.teams.exists?(name:)
-
-        "#{name} (ESPN)"
-      end
-
       def unique_abbreviation(abbreviation)
         base = abbreviation.to_s.upcase.gsub(/[^A-Z0-9]/, "").first(5).presence || "ESPN"
         return base unless league.teams.exists?(abbreviation: base)
@@ -71,6 +65,8 @@ module DataSources
           candidate = "#{base.first(5 - suffix.to_s.length)}#{suffix}"
           return candidate unless league.teams.exists?(abbreviation: candidate)
         end
+
+        raise DataSources::HttpError, "Could not generate a unique team abbreviation from \"#{abbreviation}\"; free up an abbreviation slot and retry."
       end
 
       def normalize(value)

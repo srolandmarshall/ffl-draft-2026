@@ -47,6 +47,60 @@ module DataSources
         assert_equal 200, defense.reload.ranking
         assert_equal "fantasy_football_calculator", defense.ranking_source
       end
+
+      test "refuses to clear existing rankings when the source returns no entries at all" do
+        ranked = Player.create!(name: "Ranked Player", position: "QB", pro_team: "ATL", ranking: 1, ranking_source: "league_logs")
+        snapshot = Strategy::Snapshot.new(
+          source: "league_logs", entries: [], positions: %w[QB RB WR TE], meta: {},
+          attribution: { "text" => "Powered by LeagueLogs API", "url" => "https://leaguelogs.com" }
+        )
+        strategy = Object.new
+        strategy.define_singleton_method(:call) { snapshot }
+
+        assert_raises(Import::EmptySnapshotError) { Import.new(strategy:).call }
+        assert_equal 1, ranked.reload.ranking
+      end
+
+      test "matches defenses by pro team even when the source names them differently" do
+        defense = Player.create!(name: "New York Jets", position: "DST", pro_team: "NYJ")
+        snapshot = Strategy::Snapshot.new(
+          source: "fantasy_football_calculator",
+          entries: [
+            Strategy::Entry.new(source_id: 9_001, espn_id: nil, name: "NY Jets Defense", position: "DST", pro_team: "NYJ", ranking: 140, position_rank: 10, value: nil)
+          ],
+          positions: Player::POSITIONS,
+          meta: {},
+          attribution: { "text" => "ADP data provided by Fantasy Football Calculator", "url" => "https://fantasyfootballcalculator.com" }
+        )
+        strategy = Object.new
+        strategy.define_singleton_method(:call) { snapshot }
+
+        result = Import.new(strategy:).call
+
+        assert_equal 1, result.updated
+        assert_equal 140, defense.reload.ranking
+        assert_equal 9_001, defense.ffc_id
+      end
+
+      test "reuses a backfilled ffc_id on later imports instead of re-matching by name" do
+        player = Player.create!(name: "Original Name", position: "RB", pro_team: "SEA", ffc_id: 4_321)
+        snapshot = Strategy::Snapshot.new(
+          source: "fantasy_football_calculator",
+          entries: [
+            Strategy::Entry.new(source_id: 4_321, espn_id: nil, name: "Completely Different Name", position: "RB", pro_team: "SEA", ranking: 5, position_rank: 3, value: nil)
+          ],
+          positions: Player::POSITIONS,
+          meta: {},
+          attribution: { "text" => "ADP data provided by Fantasy Football Calculator", "url" => "https://fantasyfootballcalculator.com" }
+        )
+        strategy = Object.new
+        strategy.define_singleton_method(:call) { snapshot }
+
+        result = Import.new(strategy:).call
+
+        assert_equal 1, result.updated
+        assert_equal 5, player.reload.ranking
+      end
     end
   end
 end
