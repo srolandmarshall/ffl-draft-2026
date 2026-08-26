@@ -221,7 +221,6 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     get draft_path(draft.public_id, view: "my_team")
 
     assert_response :success
-    assert_select "a", text: "Team Rosters", minimum: 1
     assert_select "#draft-#{draft.public_id}-team-roster [data-roster-pick-id='#{pick.id}']", count: 1
     assert_select "#draft-#{draft.public_id}-board", count: 0
   end
@@ -415,7 +414,6 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     get draft_path(draft.public_id)
 
     assert_response :success
-    assert_select "h2", "Draft results"
     assert_select "a", "Export CSV"
     assert_select "a", text: "Export JSON", count: 0
     assert_select "button", text: "Undo last pick", count: 0

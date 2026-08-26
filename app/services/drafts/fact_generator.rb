@@ -6,6 +6,10 @@ module Drafts
     FEATURED_POSITIONS = %w[QB RB WR TE].freeze
     FIRST_PICK_POSITIONS = %w[QB TE DST K].freeze
 
+    def self.cache_key(draft)
+      [ "drafts/fact_generator", draft.id, draft.completed_at&.to_i ]
+    end
+
     def initialize(draft:, picks:, pick_elapsed_seconds: {})
       @draft = draft
       @picks = picks.sort_by(&:overall_number)

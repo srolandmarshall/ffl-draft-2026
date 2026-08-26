@@ -46,6 +46,7 @@ module Drafts
       return unless draft.next_overall_number > draft.total_picks
 
       draft.update!(status: :complete, completed_at: Time.current)
+      PrecomputeDraftFactsJob.perform_later(draft)
     end
   end
 end
