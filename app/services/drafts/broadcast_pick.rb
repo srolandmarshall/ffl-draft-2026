@@ -48,11 +48,7 @@ module Drafts
       )
       draft.broadcast_action_to(draft, action: :refresh_frame, target: clock_target, render: false)
       draft.broadcast_action_to(draft, action: :refresh_frame, target: team_roster_target, render: false)
-      draft.broadcast_replace_to(
-        draft,
-        target: "flash",
-        html: Components::FlashRegion.new(messages: { notice: "#{pick.team.name} has picked #{pick.player.name} (#{pick.player.position})" }).call
-      )
+      Drafts::BroadcastAnnouncement.pick(pick).call
     end
 
     private

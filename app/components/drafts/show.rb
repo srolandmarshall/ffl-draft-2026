@@ -12,6 +12,8 @@ class Components::Drafts::Show < Components::Base
     turbo_stream_from @draft
     content_for(:title, @draft.name)
 
+    render Components::Drafts::PickTicker.new(draft: @draft) if @draft.live?
+
     turbo_frame_tag("draft-#{@draft.public_id}-header") do
       render Components::Drafts::Header.new(@draft)
     end

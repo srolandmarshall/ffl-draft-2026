@@ -1,7 +1,9 @@
 module Admin
   class DraftsController < BaseController
+    BROADCAST_COOLDOWN = 5.seconds
+
     before_action :set_league
-    before_action :set_draft, only: %i[edit update destroy start restart auto_draft]
+    before_action :set_draft, only: %i[edit update destroy start restart auto_draft broadcast_message]
     before_action :block_in_production, only: :auto_draft
 
     def index
@@ -57,6 +59,22 @@ module Admin
       redirect_to draft_path(@draft.public_id), notice: "Auto-drafted the remaining picks for #{@draft.name}."
     end
 
+    def broadcast_message
+      message = params[:message].to_s.squish
+      if !@draft.live?
+        redirect_after_broadcast alert: "Messages can only be broadcast while the draft is live."
+      elsif message.blank?
+        redirect_after_broadcast alert: "Broadcast message cannot be blank."
+      elsif message.length > 280
+        redirect_after_broadcast alert: "Broadcast messages must be 280 characters or fewer."
+      elsif !claim_broadcast_slot
+        head :too_many_requests
+      else
+        Drafts::BroadcastAnnouncement.message(draft: @draft, message:).call
+        head :no_content
+      end
+    end
+
     private
 
     def set_league
@@ -65,6 +83,19 @@ module Admin
 
     def set_draft
       @draft = @league.drafts.find(params[:id])
+    end
+
+    def redirect_after_broadcast(**flash)
+      redirect_back fallback_location: draft_path(@draft.public_id), **flash
+    end
+
+    def claim_broadcast_slot
+      Rails.cache.write(
+        "drafts/#{@draft.id}/broadcasts/#{current_user.id}",
+        true,
+        expires_in: BROADCAST_COOLDOWN,
+        unless_exist: true
+      )
     end
 
     def block_in_production

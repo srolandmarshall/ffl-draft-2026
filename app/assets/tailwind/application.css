@@ -41,3 +41,25 @@
 .air-datepicker--pointer {
   opacity: 0;
 }
+
+@keyframes draft-pick-ticker-scroll {
+  from { transform: translateX(100vw); }
+  to { transform: translateX(0); }
+}
+
+.draft-pick-ticker {
+  font-family: "Jersey 20", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.draft-pick-ticker-scroll-in {
+  animation: draft-pick-ticker-scroll 650ms ease-out both;
+}
+
+@keyframes draft-pick-ticker-scroll-out {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100vw); }
+}
+
+.draft-pick-ticker-scroll-out {
+  animation: draft-pick-ticker-scroll-out 650ms ease-in both;
+}
