@@ -24,6 +24,7 @@ module DataSources
         unmatched = 0
         headshots_cached = 0
         headshots_failed = 0
+        headshots_to_cache = []
         metadata_by_espn_id = player_rows.filter_map do |row|
           espn_id = integer(row["espn_id"])
           [ espn_id, row ] if espn_id
@@ -50,15 +51,19 @@ module DataSources
             stats_season: stats ? stats_season : nil
           )
           if headshot_fetcher && headshot_url && (!player.headshot.attached? || headshot_changed)
-            if cache_headshot(player, headshot_url)
-              headshots_cached += 1
-            else
-              headshots_failed += 1
-            end
+            headshots_to_cache << [ player, headshot_url ]
           end
           updated += 1
           with_stats += 1 if stats
           rookies += 1 if rookie
+        end
+
+        headshots_to_cache.each do |player, headshot_url|
+          if cache_headshot(player, headshot_url)
+            headshots_cached += 1
+          else
+            headshots_failed += 1
+          end
         end
 
         Result.new(updated:, with_stats:, rookies:, unmatched:, headshots_cached:, headshots_failed:)
