@@ -30,8 +30,4 @@ class EspnSeason < ApplicationRecord
   def position_counts
     draft_picks.group(:position).count.sort_by { |position, count| [ -count, position.to_s ] }.to_h
   end
-
-  def settings_object
-    DataSources::Espn::LeagueSettings.from_settings(settings)
-  end
 end
