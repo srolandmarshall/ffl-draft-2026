@@ -109,6 +109,24 @@ module Drafts
       assert_not solo_draft.picks.exists?(player: qb_worst)
     end
 
+    test "takes the best-ranked player overall while bench slack allows it, then fills the mandatory need" do
+      Player.destroy_all
+      solo_team = @league.teams.create!(name: "Solo Team", owner_name: "Sam", abbreviation: "SLO")
+      solo_draft = @league.drafts.create!(
+        name: "Solo Draft", public_id: "auto-draft-solo-bpa", status: :setup, rounds: 2,
+        qb_slots: 1, rb_slots: 0, wr_slots: 0, te_slots: 0, flex_slots: 0, k_slots: 0, dst_slots: 0, bench_slots: 1
+      )
+      solo_draft.draft_entries.create!(team: solo_team, position: 1)
+
+      rb_great = create_player("RB Great", "RB", ranking: 1)
+      qb_only = create_player("QB Only", "QB", ranking: 2)
+
+      AutoDraft.new(solo_draft, random: top_of_pool_random).call
+
+      picks = solo_draft.picks.order(:overall_number).includes(:player).map(&:player)
+      assert_equal [ rb_great, qb_only ], picks, "expected the top-ranked RB first (bench slack), then the mandatory QB"
+    end
+
     private
 
     def create_player(name, position, ranking:)

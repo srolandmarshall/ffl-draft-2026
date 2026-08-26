@@ -34,18 +34,19 @@ module Drafts
       available = draft.available_players.by_ranking.to_a
       return if available.empty?
 
-      open_starters = RosterSlots.new(draft:, picks: draft.picks.where(team:)).call.reject(&:bench).reject(&:filled?)
+      open_slots = RosterSlots.new(draft:, picks: draft.picks.where(team:)).call.reject(&:filled?)
+      open_starters = open_slots.reject(&:bench)
 
-      RosterSlots::STARTER_SLOTS.each_key do |position|
-        slot = open_starters.find { |candidate| candidate.position == position }
-        next unless slot
-
-        candidates = available.select { |candidate| slot.accepts?(candidate.position) }.first(POOL_SIZE)
-        player = weighted_pick(candidates)
-        return player if player
+      # Best player available, rank first -- unless there's no bench slack
+      # left to absorb this pick, in which case a starter need has to be
+      # filled now or it never gets filled.
+      candidates = if open_slots.none?(&:bench)
+        available.select { |player| open_starters.any? { |slot| slot.accepts?(player.position) } }
+      else
+        available
       end
 
-      weighted_pick(available.first(POOL_SIZE))
+      weighted_pick(candidates.first(POOL_SIZE))
     end
 
     def weighted_pick(candidates)
