@@ -108,6 +108,7 @@ class Components::Admin::Leagues::Show < Components::Base
           top_link("+ Add team", new_admin_league_team_path(@league))
         end
         team_order_form
+        archived_teams_section
       end
     end
   end
@@ -134,6 +135,26 @@ class Components::Admin::Leagues::Show < Components::Base
         span(class: "hidden font-normal text-slate-500 md:inline") { " · #{team.owner_name}" }
       end
       top_link("Edit", edit_admin_league_team_path(@league, team), class_name: "text-xs font-bold text-slate-400 hover:text-white")
+      button_to("Archive", archive_admin_league_team_path(@league, team), method: :patch, class: "cursor-pointer text-xs font-bold text-slate-400 hover:text-red-300", form: { data: { turbo_confirm: "Archive #{team.name}? They'll drop out of the next draft's team list until restored." } })
+    end
+  end
+
+  def archived_teams_section
+    return if @page.archived_teams.empty?
+
+    div(class: "mt-6 border-t border-white/5 pt-4") do
+      h3(class: "text-xs font-bold uppercase tracking-wider text-slate-500") { "Archived teams" }
+      div(class: "mt-2 overflow-hidden rounded-lg border border-white/10 bg-slate-900") do
+        @page.archived_teams.each { |team| archived_team_row(team) }
+      end
+    end
+  end
+
+  def archived_team_row(team)
+    div(class: "flex items-center gap-2 border-b border-white/5 px-3 py-2 text-slate-500 last:border-0") do
+      span(class: "w-12 shrink-0 text-xs font-semibold") { team.abbreviation }
+      p(class: "min-w-0 flex-1 truncate text-sm") { team.name }
+      button_to("Restore", unarchive_admin_league_team_path(@league, team), method: :patch, class: "cursor-pointer text-xs font-bold text-lime-400 hover:text-lime-300")
     end
   end
 

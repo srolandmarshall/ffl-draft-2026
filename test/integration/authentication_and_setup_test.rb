@@ -96,6 +96,17 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     assert_select "input[name='draft[team_slots][1][id]'][value='#{existing_team.id}']"
   end
 
+  test "archived teams are left out of a new draft's defaults" do
+    sign_in_as users(:commissioner)
+    league = leagues(:one)
+    archived_team = league.teams.create!(name: "Benched", owner_name: "Gone", abbreviation: "BEN", archived: true)
+
+    get new_admin_league_draft_path(league)
+
+    assert_response :success
+    assert_select "input[name='draft[team_slots][0][id]'][value='#{archived_team.id}']", count: 0
+  end
+
   test "league settings seed the next draft without changing an existing draft" do
     sign_in_as users(:commissioner)
     league = leagues(:one)

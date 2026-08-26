@@ -7,7 +7,7 @@ class Components::Admin::Drafts::Form < Components::Base
   def initialize(league:, draft:)
     @league = league
     @draft = draft
-    @ordered_teams = draft.draft_entries.any? ? draft.draft_entries.map(&:team) : league.teams.in_draft_order.to_a
+    @ordered_teams = draft.draft_entries.any? ? draft.draft_entries.map(&:team) : league.teams.active.in_draft_order.to_a
   end
 
   def view_template
