@@ -22,7 +22,7 @@ Rails.application.routes.draw do
         member { patch :archive; patch :unarchive }
       end
       resources :drafts, except: :show do
-        member { patch :start; patch :restart; patch :auto_draft }
+        member { patch :start; patch :restart; patch :auto_draft; post :broadcast_message }
       end
     end
     resources :players, except: :show

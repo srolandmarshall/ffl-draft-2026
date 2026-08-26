@@ -27,6 +27,16 @@ class Drafts::BroadcastPickTest < ActiveSupport::TestCase
     end
   end
 
+  test "broadcasts a dedicated queued pick announcement instead of replacing the flash" do
+    draft = drafts(:one)
+    pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 12)
+    clear_enqueued_jobs
+
+    assert_broadcast_on(draft.to_gid_param, %(<turbo-stream kind="pick" team-name="#{pick.team.name}" player-name="#{pick.player.name}" logo-url="https://a.espncdn.com/i/teamlogos/nfl/500/atl.png" round="1" pick="1" overall="1" action="draft_pick_announcement" target="draft-#{draft.public_id}-pick-ticker"><template></template></turbo-stream>)) do
+      Drafts::BroadcastPick.new(pick).call
+    end
+  end
+
   test "a completed draft broadcasts one top-level visit without stale frame updates" do
     draft = drafts(:one)
     pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 12)

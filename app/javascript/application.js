@@ -34,3 +34,21 @@ Turbo.StreamActions.draft_turn = function () {
     }
   }))
 }
+
+Turbo.StreamActions.draft_pick_announcement = function () {
+  const ticker = document.getElementById(this.target)
+  if (!ticker) return
+
+  ticker.dispatchEvent(new CustomEvent("draft:pick-announcement", {
+    detail: {
+      kind: this.getAttribute("kind"),
+      message: this.getAttribute("message"),
+      teamName: this.getAttribute("team-name"),
+      playerName: this.getAttribute("player-name"),
+      logoUrl: this.getAttribute("logo-url"),
+      round: this.getAttribute("round"),
+      pick: this.getAttribute("pick"),
+      overall: this.getAttribute("overall")
+    }
+  }))
+}

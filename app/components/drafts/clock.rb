@@ -17,6 +17,7 @@ class Components::Drafts::Clock < Components::Base
           clock_identity
           clock_timer if @draft.live?
         end
+        commissioner_broadcast_form if @draft.live? && @current_user&.commissioner?
       end
     end
   end
@@ -91,6 +92,22 @@ class Components::Drafts::Clock < Components::Base
       raw button_to(@draft.pick_timer_paused? ? "Resume" : "Pause", draft_pick_timer_path(@draft.public_id), method: :patch, params: { state: @draft.pick_timer_paused? ? "resume" : "pause" }, class: "cursor-pointer text-[.6rem] font-bold text-slate-400 underline hover:text-white")
       last_pick = @picks.last
       raw button_to("Undo last", draft_pick_path(@draft.public_id, last_pick), method: :delete, class: "cursor-pointer text-[.6rem] font-bold text-red-200 underline hover:text-white", form: { data: { turbo_confirm: "Undo #{last_pick.player.name} as the latest pick? The clock will pause." } }) if last_pick
+    end
+  end
+
+  def commissioner_broadcast_form
+    form_with(
+      url: broadcast_message_admin_league_draft_path(@draft.league, @draft),
+      class: "mt-3 flex gap-2 border-t border-white/10 pt-3",
+      data: {
+        controller: "broadcast-cooldown",
+        action: "submit->broadcast-cooldown#submit turbo:submit-end->broadcast-cooldown#complete",
+        broadcast_cooldown_seconds_value: 5,
+        turbo_frame: "_top"
+      }
+    ) do
+      input(name: "message", required: true, maxlength: 280, placeholder: "Broadcast a message…", aria: { label: "Broadcast message" }, class: "min-w-0 flex-1 rounded border border-fuchsia-400/40 bg-slate-950 px-2 py-1.5 text-xs text-white placeholder:text-slate-500")
+      input(type: "submit", value: "Broadcast", class: "cursor-pointer rounded border border-fuchsia-400/40 px-2 py-1.5 text-xs font-bold text-fuchsia-200 hover:bg-fuchsia-400/10 disabled:cursor-not-allowed disabled:opacity-40", data: { broadcast_cooldown_target: "submit" })
     end
   end
 end
