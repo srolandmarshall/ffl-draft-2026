@@ -15,7 +15,16 @@ class PickTimersController < ApplicationController
     end
 
     draft.broadcast_action_to(draft, action: :refresh_frame, target: "draft-#{draft.public_id}-clock", render: false)
-    redirect_to draft_path(draft.public_id)
+    respond_to do |format|
+      format.turbo_stream do
+        # The broadcast above already refreshes the clock frame for every
+        # viewer, including this one. Re-navigating the enclosing frame here
+        # duplicates that work and races it, which is what produces the
+        # "Content missing" error.
+        head :no_content
+      end
+      format.html { redirect_to draft_path(draft.public_id) }
+    end
   rescue ActiveRecord::RecordInvalid
     redirect_to draft_path(params[:draft_public_id]), alert: "Only a live draft timer can be paused."
   end

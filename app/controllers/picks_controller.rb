@@ -43,7 +43,15 @@ class PicksController < ApplicationController
 
     pick = draft.picks.find(params[:id])
     Drafts::UndoPick.new(draft:, pick:).call
-    redirect_to draft_path(draft.public_id), notice: "Undid #{pick.team.name}'s pick of #{pick.player.name}. The clock is paused."
+    respond_to do |format|
+      format.turbo_stream do
+        # The undone pick broadcasts targeted updates to every draft viewer.
+        # Re-navigating the enclosing clock frame here duplicates that work and
+        # races it, which is what produces the "Content missing" error.
+        head :no_content
+      end
+      format.html { redirect_to draft_path(draft.public_id), notice: "Undid #{pick.team.name}'s pick of #{pick.player.name}. The clock is paused." }
+    end
   rescue Drafts::UndoPick::InvalidUndo => error
     redirect_to draft_path(params[:draft_public_id]), alert: error.message
   end

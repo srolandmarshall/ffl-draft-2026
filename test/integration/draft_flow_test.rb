@@ -334,6 +334,16 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_equal 120, draft.pick_timer_paused_seconds
   end
 
+  test "pausing the timer as a turbo frame request returns no content instead of re-rendering the frame" do
+    draft = drafts(:one)
+    draft.update!(started_at: Time.current)
+    sign_in_as users(:commissioner)
+
+    patch draft_pick_timer_path(draft.public_id), params: { state: "pause" }, as: :turbo_stream
+
+    assert_response :no_content
+  end
+
   test "regular users cannot pause the timer" do
     draft = drafts(:one)
     sign_in_as users(:member)
@@ -384,6 +394,16 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to draft_path(draft.public_id)
     assert_predicate draft.reload, :pick_timer_paused?
+  end
+
+  test "undoing a pick as a turbo frame request returns no content instead of re-rendering the frame" do
+    draft = drafts(:one)
+    pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1)
+    sign_in_as users(:commissioner)
+
+    delete draft_pick_path(draft.public_id, pick), as: :turbo_stream
+
+    assert_response :no_content
   end
 
   test "regular users cannot undo a pick" do
