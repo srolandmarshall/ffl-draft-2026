@@ -8,7 +8,7 @@ class DraftsController < ApplicationController
 
   def show
     @selected_team = selected_team
-    @picks = @draft.picks.includes(:team, player: { headshot_attachment: :blob }).to_a
+    @picks = @draft.picks.includes(:team, player: Player::PORTRAIT_INCLUDES).to_a
     @pick_elapsed_seconds = pick_elapsed_seconds(@picks)
     @current_pick_elapsed_seconds = @draft.current_pick_elapsed_seconds
     @roster_team = roster_team if params[:view] == "my_team"
@@ -63,7 +63,7 @@ class DraftsController < ApplicationController
     scope = scope.where(position: @player_filters[:positions]) if @player_filters[:positions].any?
     scope = scope.where(pro_team: @player_filters[:teams]) if @player_filters[:teams].any?
 
-    @available_players = scope.includes(:league_player_scores, headshot_attachment: :blob).by_ranking.limit(PLAYER_LIST_LIMIT).to_a
+    @available_players = scope.includes(:league_player_scores, **Player::PORTRAIT_INCLUDES).by_ranking.limit(PLAYER_LIST_LIMIT).to_a
   end
 
   def pick_elapsed_seconds(picks)
