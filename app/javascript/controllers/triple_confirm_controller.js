@@ -13,6 +13,6 @@ export default class extends Controller {
     }
 
     this.confirmed = true
-    this.element.requestSubmit()
+    this.element.submit()
   }
 }
