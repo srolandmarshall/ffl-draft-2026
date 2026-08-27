@@ -45,7 +45,6 @@ module FflDraft
     config.x.cdn_host = ENV["CDN_HOST"].presence
     # config.eager_load_paths << Rails.root.join("extras")
 
-    # Don't generate system test files.
-    config.generators.system_tests = nil
+    config.generators.system_tests = :test_unit
   end
 end

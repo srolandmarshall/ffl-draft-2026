@@ -67,6 +67,12 @@ group :development do
   gem "web-console"
 end
 
+group :test do
+  # Exercise Turbo and Stimulus behavior in a real headless browser.
+  gem "capybara"
+  gem "cuprite"
+end
+
 gem "phlex-rails", "~> 2.4"
 
 gem "resend", "~> 1.13"

@@ -93,9 +93,19 @@ jobs:
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test
 
+  system_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Run browser system tests in Docker
+        run: make system-test
+
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [ scan_ruby, scan_js, lint, test ]
+    needs: [ scan_ruby, scan_js, lint, test, system_test ]
     runs-on: ubuntu-latest
     concurrency:
       group: fly-production

@@ -3,7 +3,13 @@ CONTAINER ?= ffl-draft-production-test
 VOLUME ?= ffl_draft_storage_test
 PORT ?= 8080
 
-.PHONY: production-build production-run production-health production-logs production-stop production-check
+SYSTEM_TEST_IMAGE ?= ffl-draft:system-test
+
+.PHONY: production-build production-run production-health production-logs production-stop production-check system-test
+
+system-test:
+	docker build --file Dockerfile.system-test --tag $(SYSTEM_TEST_IMAGE) .
+	docker run --rm $(SYSTEM_TEST_IMAGE)
 
 production-build:
 	docker build -t $(IMAGE) .
