@@ -15,6 +15,49 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_session_path
   end
 
+  test "an unassigned email cannot request a sign-in code" do
+    assert_no_difference("User.count") do
+      post session_path, params: { email: "unassigned@example.com" }
+    end
+
+    assert_redirected_to new_session_path
+    assert_equal "That email is not assigned to a team.", flash[:alert]
+  end
+
+  test "an assigned email receives a code and can sign in with it" do
+    assert_enqueued_emails 1 do
+      post session_path, params: { email: users(:member).email }
+    end
+
+    assert_redirected_to verify_session_path
+    code = users(:member).issue_login_code!(code: "123456")
+    post verify_session_path, params: { code: }
+
+    assert_redirected_to root_path
+  end
+
+  test "a user can resend a sign-in code after the one-minute wait" do
+    user = users(:member)
+    post session_path, params: { email: user.email }
+
+    get verify_session_path
+    assert_select "input[data-login-code-resend-target='submit'][disabled]", count: 1
+    assert_select "input[data-login-code-resend-target='submit'][value='Resend code (1:00)']", count: 1
+
+    assert_no_enqueued_emails do
+      post resend_login_code_session_path
+    end
+    assert_equal "Please wait a minute before requesting another code.", flash[:alert]
+
+    user.update!(login_code_sent_at: 1.minute.ago)
+    assert_enqueued_emails 1 do
+      post resend_login_code_session_path
+    end
+
+    assert_redirected_to verify_session_path
+    assert_equal "We sent you a new sign-in code.", flash[:notice]
+  end
+
   test "a regular member cannot open commissioner tools" do
     sign_in_as users(:member)
 
@@ -248,6 +291,8 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     user.user_emails.create!(email: "riley.secondary@example.com")
 
     post session_path, params: { email: "riley.secondary@example.com" }
+    code = user.issue_login_code!(code: "123456")
+    post verify_session_path, params: { code: }
     get draft_path(drafts(:one).public_id)
 
     assert_response :success

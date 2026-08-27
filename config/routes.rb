@@ -1,7 +1,11 @@
 Rails.application.routes.draw do
   root "home#index"
 
-  resource :session, only: %i[new create destroy]
+  resource :session, only: %i[new create destroy] do
+    get :verify
+    post :verify, action: :confirm
+    post :resend_login_code
+  end
 
   resources :drafts, only: :show, param: :public_id do
     get :players, on: :member

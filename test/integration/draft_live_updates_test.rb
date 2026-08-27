@@ -101,6 +101,8 @@ class DraftLiveUpdatesTest < ActionDispatch::IntegrationTest
 
   def sign_in(session, user)
     session.post session_path, params: { email: user.email }
+    code = user.issue_login_code!(code: "123456")
+    session.post verify_session_path, params: { code: }
     assert_equal 302, session.response.status
   end
 

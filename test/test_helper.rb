@@ -19,5 +19,7 @@ end
 class ActionDispatch::IntegrationTest
   def sign_in_as(user)
     post session_path, params: { email: user.email }
+    code = user.issue_login_code!(code: "123456")
+    post verify_session_path, params: { code: }
   end
 end
