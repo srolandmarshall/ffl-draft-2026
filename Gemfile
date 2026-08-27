@@ -63,3 +63,5 @@ group :development do
 end
 
 gem "phlex-rails", "~> 2.4"
+
+gem "resend", "~> 1.13"

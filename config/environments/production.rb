@@ -62,6 +62,7 @@ Rails.application.configure do
     host: ENV.fetch("APP_HOST", "ffl-draft.fly.dev"),
     protocol: "https"
   }
+  config.action_mailer.delivery_method = :resend
 
   # Specify outgoing SMTP server. Remember to add smtp/* credentials via bin/rails credentials:edit.
   # config.action_mailer.smtp_settings = {
