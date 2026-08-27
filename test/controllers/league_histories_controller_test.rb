@@ -113,8 +113,9 @@ class LeagueHistoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "button[data-year='2026']"
   end
 
-  test "unassigned member cannot see league history" do
+  test "member of another league cannot see league history" do
     outsider = User.create!(email: "outsider@example.com")
+    teams(:two).team_memberships.create!(user: outsider)
     sign_in_as outsider
 
     get league_history_path(@league)

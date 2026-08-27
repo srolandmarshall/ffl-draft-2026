@@ -6,7 +6,7 @@ class Components::Sessions::New < Components::Base
     div(class: "mx-auto max-w-2xl rounded-xl border border-white/10 bg-slate-900 p-7") do
       p(class: "text-sm font-bold text-lime-400") { "Fantasy Draft" }
       h1(class: "mt-2 text-2xl font-bold") { "Enter your email" }
-      p(class: "mt-2 text-sm text-slate-400") { "Use the email your commissioner assigned to your team. No password is required." }
+      p(class: "mt-2 text-sm text-slate-400") { "Use the email your commissioner assigned to your team. We'll email you a one-time sign-in code." }
       sign_in_form
     end
   end

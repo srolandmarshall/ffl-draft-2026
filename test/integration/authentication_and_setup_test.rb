@@ -15,6 +15,27 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_session_path
   end
 
+  test "an unassigned email cannot request a sign-in code" do
+    assert_no_difference("User.count") do
+      post session_path, params: { email: "unassigned@example.com" }
+    end
+
+    assert_redirected_to new_session_path
+    assert_equal "That email is not assigned to a team.", flash[:alert]
+  end
+
+  test "an assigned email receives a code and can sign in with it" do
+    assert_enqueued_emails 1 do
+      post session_path, params: { email: users(:member).email }
+    end
+
+    assert_redirected_to verify_session_path
+    code = users(:member).issue_login_code!(code: "123456")
+    post verify_session_path, params: { code: }
+
+    assert_redirected_to root_path
+  end
+
   test "a regular member cannot open commissioner tools" do
     sign_in_as users(:member)
 
@@ -248,6 +269,8 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     user.user_emails.create!(email: "riley.secondary@example.com")
 
     post session_path, params: { email: "riley.secondary@example.com" }
+    code = user.issue_login_code!(code: "123456")
+    post verify_session_path, params: { code: }
     get draft_path(drafts(:one).public_id)
 
     assert_response :success
