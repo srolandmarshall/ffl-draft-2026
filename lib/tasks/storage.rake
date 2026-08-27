@@ -29,6 +29,8 @@ namespace :storage do
 
     deleted = orphans.delete_all
     puts "Deleted #{deleted} orphaned file#{'s' unless deleted == 1}."
+    puts "The bucket is versioned, so these are now delete markers over retained versions."
+    puts "Space is reclaimed once a lifecycle rule expires noncurrent versions."
   end
 
   desc "Purge portrait variants superseded by the current size and format (CONFIRM=yes required)"
