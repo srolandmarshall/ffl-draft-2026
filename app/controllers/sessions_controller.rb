@@ -17,14 +17,29 @@ class SessionsController < ApplicationController
       return
     end
 
-    code = @user.issue_login_code!
-    LoginCodeMailer.with(user: @user, code:).login_code.deliver_later
     session[:pending_user_id] = @user.id
+    send_login_code_to(@user)
     redirect_to verify_session_path, notice: "We sent a sign-in code to #{email}."
   end
 
   def verify
-    redirect_to new_session_path unless pending_user
+    @pending_user = pending_user
+    return redirect_to(new_session_path) unless @pending_user
+
+    @login_code_sent_at = @pending_user.login_code_sent_at
+  end
+
+  def resend_login_code
+    user = pending_user
+    return redirect_to(new_session_path, alert: "Request a new sign-in code.") unless user&.allowed_to_sign_in?
+
+    unless user.login_code_request_allowed?
+      redirect_to verify_session_path, alert: "Please wait a minute before requesting another code."
+      return
+    end
+
+    send_login_code_to(user)
+    redirect_to verify_session_path, notice: "We sent you a new sign-in code."
   end
 
   def confirm
@@ -53,5 +68,10 @@ class SessionsController < ApplicationController
 
   def pending_user
     @pending_user ||= User.find_by(id: session[:pending_user_id])
+  end
+
+  def send_login_code_to(user)
+    code = user.issue_login_code!
+    LoginCodeMailer.with(user:, code:).login_code.deliver_later
   end
 end

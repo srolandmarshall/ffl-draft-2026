@@ -36,6 +36,28 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
   end
 
+  test "a user can resend a sign-in code after the one-minute wait" do
+    user = users(:member)
+    post session_path, params: { email: user.email }
+
+    get verify_session_path
+    assert_select "input[data-login-code-resend-target='submit'][disabled]", count: 1
+    assert_select "p[data-login-code-resend-target='status']", text: /1:00/
+
+    assert_no_enqueued_emails do
+      post resend_login_code_session_path
+    end
+    assert_equal "Please wait a minute before requesting another code.", flash[:alert]
+
+    user.update!(login_code_sent_at: 1.minute.ago)
+    assert_enqueued_emails 1 do
+      post resend_login_code_session_path
+    end
+
+    assert_redirected_to verify_session_path
+    assert_equal "We sent you a new sign-in code.", flash[:notice]
+  end
+
   test "a regular member cannot open commissioner tools" do
     sign_in_as users(:member)
 
