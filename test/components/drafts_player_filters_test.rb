@@ -41,4 +41,17 @@ class Components::Drafts::PlayerFiltersTest < ActiveSupport::TestCase
     assert_match(/title="ATL"[^>]+size-7[^>]+bg-slate-400\/50/, html)
     assert_match(/title="BUF"[^>]+size-7[^>]+bg-slate-400\/50/, html)
   end
+
+  test "only renders clear filters when a filter is active" do
+    html = ApplicationController.renderer.render(
+      Components::Drafts::PlayerFilters.new(
+        draft: drafts(:one),
+        players: [ players(:one) ],
+        available_teams: [ "ATL" ],
+        filters: { query: "", positions: [], teams: [] }
+      )
+    )
+
+    refute_includes html, "draft-filter#clearFilters"
+  end
 end
