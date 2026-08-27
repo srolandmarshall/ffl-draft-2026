@@ -91,6 +91,30 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_equal 2, portraits.uniq.size, "each player should resolve to a single portrait URL"
   end
 
+  test "no image on the draft room is served by the app once a CDN is configured" do
+    draft = drafts(:one)
+    draft.picks.create!(team: teams(:one), player: players(:two), round: 1, overall_number: 1, elapsed_seconds: 12)
+    [ players(:one), players(:two) ].each do |player|
+      player.headshot.attach(io: file_fixture("headshot.png").open, filename: "headshot.png", content_type: "image/png")
+      player.headshot.variant(:portrait).processed
+    end
+    sign_in_as users(:member)
+
+    previous = Rails.configuration.x.cdn_host
+    Rails.configuration.x.cdn_host = "cdn.example.com"
+    begin
+      get draft_path(draft.public_id)
+    ensure
+      Rails.configuration.x.cdn_host = previous
+    end
+
+    assert_response :success
+    sources = css_select("img").map { |image| image["src"] }.compact
+    assert_predicate sources, :any?
+    assert_empty sources.grep(%r{/rails/active_storage/}), "portraits must never be served by the app"
+    assert_operator sources.grep(%r{\Ahttps://cdn\.example\.com/}).size, :>=, 2
+  end
+
   test "linking portraits at the CDN does not cost a query per player" do
     8.times do |index|
       player = Player.create!(name: format("Portrait Player %02d", index + 1), position: "WR", pro_team: "ATL", ranking: index + 1)

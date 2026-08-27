@@ -64,12 +64,21 @@ class ApplicationHelperTest < ActionView::TestCase
     end
   end
 
-  test "falls back to the proxy for a portrait the CDN cannot have yet" do
+  test "hides a portrait the CDN cannot have yet rather than serving it from the app" do
     player = players(:one)
-    player.headshot.attach(io: StringIO.new("headshot"), filename: "headshot.png", content_type: "image/png")
+    attach_real_headshot(player)
 
     with_cdn_host("cdn.example.com") do
-      assert_match %r{/rails/active_storage/representations/proxy/}, player_portrait_url(player)
+      refute player_portrait?(player), "an ungenerated variant must not fall back to the app"
+    end
+  end
+
+  test "still renders portraits through the app when no CDN is configured" do
+    player = players(:one)
+    attach_real_headshot(player)
+
+    with_cdn_host(nil) do
+      assert player_portrait?(player)
     end
   end
 

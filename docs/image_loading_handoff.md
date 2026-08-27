@@ -42,10 +42,12 @@ Note that `public: true` is deliberately *not* set on the service: `S3Service#in
 full Block Public Access, so that would fail every upload and break headshot syncing. The URL
 is built from the variant's storage key instead.
 
-- `CDN_HOST` unset falls back to the proxy route, so the app still works with no CDN in front
-  of it. Deploying this change is safe before the distribution exists.
-- A portrait whose variant has not been generated yet has no key to link to and falls back to
-  the proxy, so that request builds it rather than blocking the page render.
+- With `CDN_HOST` set, **no image read reaches Rails**. A portrait whose variant has not been
+  generated yet has no key to link to, and `player_portrait?` returns false so it renders the
+  position letter instead of falling back to the proxy. Preprocessing keeps that gap to the
+  length of one transform job; the backfill task closes it for older headshots.
+- `CDN_HOST` unset keeps the proxy, which is development and test. Deploying is safe before
+  the distribution exists.
 - `Player::PORTRAIT_INCLUDES` preloads variant records. Without it, reading the key to build a
   CDN URL costs a query per portrait (16 on the draft room, versus 2 preloaded).
 - Uploads set `cache-control: public, max-age=31536000, immutable`. Variants are immutable

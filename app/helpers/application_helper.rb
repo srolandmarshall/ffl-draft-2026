@@ -72,16 +72,23 @@ module ApplicationHelper
     player.headshot.variant(:portrait)
   end
 
+  # With a CDN configured, a portrait comes from it or it is not rendered at all. A variant
+  # that has not been generated yet has no key to link to, so fall through to the position
+  # letter rather than sending the read back through the app. Preprocessing means that gap
+  # lasts only until the transform job finishes; the backfill task closes it for headshots
+  # attached before preprocessing existed.
   def player_portrait?(player)
-    player.position == "DST" || player.headshot.attached?
+    return true if player.position == "DST"
+    return false unless player.headshot.attached?
+
+    Rails.configuration.x.cdn_host.blank? || player_headshot(player).key.present?
   end
 
   # Serving portraits through the Active Storage proxy costs a Puma thread per image while
   # the app streams the bytes back out of S3, so a cold draft room queues its own page and
-  # Turbo requests behind them. The generated variant is public and immutable, so point the
-  # browser at the CDN instead. A portrait whose variant has not been generated yet has no
-  # key to link to, and falls back to the proxy so that request builds it rather than
-  # blocking this render.
+  # Turbo requests behind them. The generated variant is immutable, so point the browser at
+  # the CDN instead. The proxy is only reachable here with no CDN configured, which is
+  # development and test; `player_portrait?` gates the rest.
   def player_portrait_url(player)
     return nfl_team_logo_url(player.pro_team) if player.position == "DST"
 
