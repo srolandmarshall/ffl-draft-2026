@@ -8,7 +8,9 @@ behind image requests.
 
 ## Root cause
 
-Portraits were served **by the Rails app, not by a CDN**.
+CloudFront fronts the Fly app (`draft.sammarshall.us`), with a `/rails/active_storage/*`
+behavior on Managed-CachingOptimized. That part is right. But it fronts the **app**, not the
+bucket, so a cache miss still lands on Puma.
 
 `config.active_storage.resolve_model_to_route = :rails_storage_proxy` makes every portrait
 URL a route into the app. `ActiveStorage::Representations::ProxyController` downloads the file
@@ -16,8 +18,12 @@ from S3 into the machine and streams it back through Puma, per image, per reques
 
 Puma runs 3 threads by default (`config/puma.rb`), on one Fly machine with one shared CPU,
 with Solid Queue sharing the same process (`SOLID_QUEUE_IN_PUMA`). So a cold draft room's
-~36 portraits queued three at a time through the same threads serving the page and its Turbo
-frames. The images were not slow; they were occupying the whole web tier.
+~36 portrait misses queued three at a time through the same threads serving the page and its
+Turbo frames. The images were not slow; they were occupying the whole web tier.
+
+Edge caching does not rescue the first visit, which is the reported symptom, and CloudFront
+caches per edge location, so a small audience keeps missing. Changing the variant size or
+format also changes every URL and invalidates the whole cache at once.
 
 A second, smaller problem sat on top of it: portrait size was chosen per call site, so one
 player resolved to a different URL in each placement — 80px in a desktop player row, 64px in a
@@ -28,12 +34,13 @@ variants.
 
 ## What changed
 
-**Serving (the actual fix).** Portraits now link straight at the CDN, so they never touch a
-Puma thread. The bucket stays private — CloudFront reads it through an origin access control.
+**Serving (the actual fix).** Portraits now link at a CDN distribution over the bucket, so
+even a cache miss goes CloudFront -> S3 and never touches Fly. The bucket stays private —
+CloudFront reads it through an origin access control.
 Note that `public: true` is deliberately *not* set on the service: `S3Service#initialize` adds
-`acl: "public-read"` to every upload when it is, which fails against a bucket with ACLs
-disabled and would break headshot syncing. The URL is built from the variant's storage key
-instead.
+`acl: "public-read"` to every upload when it is. This bucket is `BucketOwnerEnforced` with
+full Block Public Access, so that would fail every upload and break headshot syncing. The URL
+is built from the variant's storage key instead.
 
 - `CDN_HOST` unset falls back to the proxy route, so the app still works with no CDN in front
   of it. Deploying this change is safe before the distribution exists.
@@ -63,7 +70,10 @@ mitigation for whatever still falls back to the proxy, not the fix.
 ## Deploying the CDN
 
 1. Create a CloudFront distribution with the S3 bucket as origin, using an **origin access
-   control**; leave Block Public Access on. Add the generated bucket policy.
+   control**; leave Block Public Access on. Add the generated bucket policy. This is separate
+   from the existing app distribution: tracked variants get random keys at the bucket root,
+   indistinguishable from the multi-megabyte originals, so there is no path pattern that could
+   route them from the app distribution instead.
 2. Set `CDN_HOST` on the app (`fly secrets set CDN_HOST=…`) — bare host or full origin, both
    are accepted.
 3. Run `bin/rails headshots:backfill_portraits` so existing headshots have a variant to link
