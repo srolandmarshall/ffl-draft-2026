@@ -12,6 +12,9 @@ console_command = '/rails/bin/rails console'
   APP_HOST = 'draft.sammarshall.us'
   HTTP_PORT = '8080'
   SOLID_QUEUE_IN_PUMA = 'true'
+  # Solid Queue shares this process, and image requests that still fall back to the Active
+  # Storage proxy hold a thread while they stream from S3.
+  RAILS_MAX_THREADS = '5'
 
 [[mounts]]
   source = 'data'

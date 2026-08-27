@@ -76,10 +76,24 @@ module ApplicationHelper
     player.position == "DST" || player.headshot.attached?
   end
 
+  # Serving portraits through the Active Storage proxy costs a Puma thread per image while
+  # the app streams the bytes back out of S3, so a cold draft room queues its own page and
+  # Turbo requests behind them. The generated variant is public and immutable, so point the
+  # browser at the CDN instead. A portrait whose variant has not been generated yet has no
+  # key to link to, and falls back to the proxy so that request builds it rather than
+  # blocking this render.
   def player_portrait_url(player)
     return nfl_team_logo_url(player.pro_team) if player.position == "DST"
 
-    url_for(player_headshot(player))
+    variant = player_headshot(player)
+    cdn_asset_url(variant.key) || url_for(variant)
+  end
+
+  def cdn_asset_url(key)
+    host = Rails.configuration.x.cdn_host
+    return if key.blank? || host.blank?
+
+    "#{host.start_with?('http') ? host : "https://#{host}"}/#{key}"
   end
 
   # Centralizing the image attributes keeps every placement on one URL per player, which

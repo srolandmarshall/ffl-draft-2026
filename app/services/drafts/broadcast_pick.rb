@@ -59,7 +59,7 @@ module Drafts
     delegate :draft, to: :pick
 
     def recent_pick_window
-      @recent_pick_window ||= draft.picks.includes(:team, player: { headshot_attachment: :blob }).last(13)
+      @recent_pick_window ||= draft.picks.includes(:team, player: Player::PORTRAIT_INCLUDES).last(13)
     end
 
     def pick_elapsed_seconds
@@ -107,7 +107,7 @@ module Drafts
     end
 
     def broadcast_pick
-      @broadcast_pick ||= draft.picks.includes(:team, player: { headshot_attachment: :blob }).find(pick.id)
+      @broadcast_pick ||= draft.picks.includes(:team, player: Player::PORTRAIT_INCLUDES).find(pick.id)
     end
 
     def broadcast_next_cell

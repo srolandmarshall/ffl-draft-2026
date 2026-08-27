@@ -3,57 +3,89 @@
 ## Reported behavior
 
 On a first visit, the player list and draft board can feel unresponsive while batches of
-player portraits and NFL team logos are fetched.
+player portraits and NFL team logos are fetched. Page and Turbo requests appear to get stuck
+behind image requests.
 
-## What was actually happening
+## Root cause
 
-Portrait size was chosen per call site, so the same player resolved to a different URL in
-each placement: 80px in the desktop player row, 64px in the mobile row and in recent picks,
-40px in a mobile board cell, 80px again in the team roster. Because the draft room renders
-both the mobile and desktop markup for every player and pick, a single drafted player could
-cost three separate downloads and three separate Active Storage variants.
+Portraits were served **by the Rails app, not by a CDN**.
 
-Two other costs compounded it:
+`config.active_storage.resolve_model_to_route = :rails_storage_proxy` makes every portrait
+URL a route into the app. `ActiveStorage::Representations::ProxyController` downloads the file
+from S3 into the machine and streams it back through Puma, per image, per request.
 
-- Variants were generated on demand. Source headshots are ~3MB PNGs at 3400x2450, so the
-  first request for each portrait pulled the original from storage and resized it inside the
-  web request.
-- NFL logos were fetched from ESPN at 500px (30-130KB each) and rendered at 36px or smaller.
+Puma runs 3 threads by default (`config/puma.rb`), on one Fly machine with one shared CPU,
+with Solid Queue sharing the same process (`SOLID_QUEUE_IN_PUMA`). So a cold draft room's
+~36 portraits queued three at a time through the same threads serving the page and its Turbo
+frames. The images were not slow; they were occupying the whole web tier.
+
+A second, smaller problem sat on top of it: portrait size was chosen per call site, so one
+player resolved to a different URL in each placement — 80px in a desktop player row, 64px in a
+mobile row and in recent picks, 40px in a mobile board cell, 80px again in the team roster.
+Because the draft room renders both mobile and desktop markup for every player and pick, a
+single drafted player could cost three of those proxy requests and three Active Storage
+variants.
 
 ## What changed
 
-- `Player::PORTRAIT_SIZE` fixes one 80px portrait for every placement, so the duplicated
-  responsive markup resolves to one URL and the browser downloads it once. Largest render is
-  40 CSS pixels, so 80px still covers 2x.
-- The portrait is a named `:portrait` variant with `preprocessed: true`, generated in the
-  background on attach instead of during the first request, and encoded as WebP (2KB versus
-  9KB for the same PNG crop, with the alpha channel these headshots need).
-- `nfl_team_logo_url` requests logos through ESPN's combiner endpoint at 80px, which brings
-  each one from ~32KB to ~3KB.
-- `player_portrait_attributes` / `nfl_team_logo_attributes` centralize the image markup, so
-  size and loading hints can no longer drift apart between call sites. All of these images are
-  decorative and below the fold, so they carry `loading="lazy"`, `decoding="async"` and
-  `fetchpriority="low"`.
-- The layout preconnects to `a.espncdn.com`.
-- `rake headshots:backfill_portraits` generates the variant for headshots that were attached
-  before preprocessing existed.
+**Serving (the actual fix).** Portraits now link straight at the CDN, so they never touch a
+Puma thread. The bucket stays private — CloudFront reads it through an origin access control.
+Note that `public: true` is deliberately *not* set on the service: `S3Service#initialize` adds
+`acl: "public-read"` to every upload when it is, which fails against a bucket with ACLs
+disabled and would break headshot syncing. The URL is built from the variant's storage key
+instead.
+
+- `CDN_HOST` unset falls back to the proxy route, so the app still works with no CDN in front
+  of it. Deploying this change is safe before the distribution exists.
+- A portrait whose variant has not been generated yet has no key to link to and falls back to
+  the proxy, so that request builds it rather than blocking the page render.
+- `Player::PORTRAIT_INCLUDES` preloads variant records. Without it, reading the key to build a
+  CDN URL costs a query per portrait (16 on the draft room, versus 2 preloaded).
+- Uploads set `cache-control: public, max-age=31536000, immutable`. Variants are immutable
+  once generated. This applies to newly written objects only.
+
+**Sizing.** `Player::PORTRAIT_SIZE` fixes one 80px portrait for every placement, so the
+duplicated responsive markup resolves to a single URL. Largest render is 40 CSS pixels, so
+80px still covers 2x.
+
+**Generation.** `:portrait` is a named variant with `preprocessed: true`, built in the
+background on attach rather than inside the first request — source headshots are ~3MB PNGs at
+3400x2450 — and encoded as WebP (2KB against 9KB for the same PNG crop, keeping the alpha
+channel these headshots need). `rake headshots:backfill_portraits` covers headshots attached
+before preprocessing existed.
+
+**Logos.** Requested through ESPN's combiner endpoint at 80px, ~32KB down to ~3KB each, with a
+`preconnect` to the CDN.
+
+**Threads.** `RAILS_MAX_THREADS = '5'` in `fly.toml`, up from the default 3. This is a
+mitigation for whatever still falls back to the proxy, not the fix.
+
+## Deploying the CDN
+
+1. Create a CloudFront distribution with the S3 bucket as origin, using an **origin access
+   control**; leave Block Public Access on. Add the generated bucket policy.
+2. Set `CDN_HOST` on the app (`fly secrets set CDN_HOST=…`) — bare host or full origin, both
+   are accepted.
+3. Run `bin/rails headshots:backfill_portraits` so existing headshots have a variant to link
+   to. Until a given portrait is backfilled it serves through the proxy, which is correct but
+   slow.
 
 ## Deliberately not done
 
 - **A loading placeholder.** The stored headshots are RGBA with transparent backgrounds, so
   any silhouette or shimmer painted behind the image would stay visible around the player
   after it loaded rather than being covered. The wrapper already provides a correctly sized,
-  filled circle behind every portrait, so there is no layout shift and no empty gap while one
-  loads.
+  filled circle behind every portrait, so there is no layout shift and no empty gap.
 - **Collapsing the duplicate mobile/desktop markup.** Now that both variants share a URL, the
-  duplication costs DOM nodes rather than downloads. Worth revisiting as a layout change if
-  DOM size shows up in profiling, but it is no longer a network problem.
+  duplication costs DOM nodes rather than downloads.
 
 ## Acceptance checks
 
 - Initial document and controls become interactive before non-visible portraits load.
 - Switching between mobile and desktop layouts does not duplicate portrait downloads. Covered
-  by `test/integration/draft_flow_test.rb` ("duplicated mobile and desktop markup shares one
-  portrait download per player").
+  by `draft_flow_test.rb`, "duplicated mobile and desktop markup shares one portrait download
+  per player".
+- Portraits do not cost a query per player. Covered by `draft_flow_test.rb`, "linking portraits
+  at the CDN does not cost a query per player".
 - Player filters, board updates, and Turbo frame refreshes retain stable image URLs and do not
   regress image display.

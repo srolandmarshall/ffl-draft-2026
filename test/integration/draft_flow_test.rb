@@ -91,6 +91,29 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_equal 2, portraits.uniq.size, "each player should resolve to a single portrait URL"
   end
 
+  test "linking portraits at the CDN does not cost a query per player" do
+    8.times do |index|
+      player = Player.create!(name: format("Portrait Player %02d", index + 1), position: "WR", pro_team: "ATL", ranking: index + 1)
+      player.headshot.attach(io: file_fixture("headshot.png").open, filename: "headshot.png", content_type: "image/png")
+      player.headshot.variant(:portrait).processed
+    end
+    sign_in_as users(:member)
+
+    variant_queries = 0
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+      variant_queries += 1 if payload[:sql].include?("active_storage_variant_records")
+    end
+
+    begin
+      get draft_path(drafts(:one).public_id)
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
+
+    assert_response :success
+    assert_operator variant_queries, :<=, 2, "expected variant records to be preloaded, saw #{variant_queries} queries"
+  end
+
   test "player list is limited to 36 and deep players remain searchable" do
     40.times do |index|
       Player.create!(
