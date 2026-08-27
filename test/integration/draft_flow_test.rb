@@ -24,9 +24,9 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
       assert_select "[data-draft-room-sidebar]", count: 1
     end
     assert_select "##{room_id} > [data-draft-room-layout] > div.lg\\:col-start-2.lg\\:row-start-1", count: 1 do
-      assert_select "nav[aria-label='Draft room view']", count: 1
-      assert_select "turbo-frame#draft-sunday-draft-up-next", count: 1
-      assert_select "[data-draft-room-content]", count: 1
+      assert_select "turbo-frame#draft-sunday-draft-up-next.order-1.lg\\:order-2", count: 1
+      assert_select "nav[aria-label='Draft room view'].order-2.lg\\:order-1", count: 1
+      assert_select "[data-draft-room-content].order-3", count: 1
     end
     assert_select "##{room_id} [data-draft-room-content]", count: 1 do
       assert_select "section.min-w-0", count: 1
@@ -54,7 +54,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "img[src='#{team_logo_url}'][title='#{players(:one).pro_team}']", minimum: 2
     assert_select "[data-controller='draft-filter']"
     assert_select "[data-draft-filter-target='all'][aria-pressed='true']", text: "All"
-    assert_select "[data-draft-filter-target='position']", count: Player::POSITIONS.size
+    assert_select "[data-draft-filter-target='position']", count: Player::POSITIONS.size * 2
     assert_select "[data-draft-player-id='#{players(:one).id}']", minimum: 1 do |player_rows|
       player_rows.each { |row| assert_includes row["class"], "bg-amber-400/20" }
     end

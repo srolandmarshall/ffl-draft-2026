@@ -47,9 +47,10 @@ class Components::Drafts::Room < Components::Base
   end
 
   # Bundles nav + up next + content (unless it needs the full board-view width)
-  # for the same reason as sidebar_column.
+  # for the same reason as sidebar_column. On small screens, show the imminent
+  # picks before the view switcher; restore the desktop order at lg.
   def main_column
-    div(class: "min-w-0 space-y-4 lg:col-start-2 lg:row-start-1") do
+    div(class: "flex min-w-0 flex-col gap-4 lg:col-start-2 lg:row-start-1") do
       navigation
       up_next
       room_content unless board_view?
@@ -61,7 +62,7 @@ class Components::Drafts::Room < Components::Base
   end
 
   def room_content
-    classes = board_view? ? "min-w-0 lg:col-span-2 lg:col-start-1 lg:row-start-2" : "min-w-0"
+    classes = board_view? ? "min-w-0 lg:col-span-2 lg:col-start-1 lg:row-start-2" : "order-3 min-w-0"
     main(class: classes, data: { draft_room_content: true }) do
       section(class: "min-w-0") { render_active_view }
     end
@@ -81,13 +82,13 @@ class Components::Drafts::Room < Components::Base
   end
 
   def up_next
-    turbo_frame_tag("draft-#{@draft.public_id}-up-next", class: "block min-w-0") do
+    turbo_frame_tag("draft-#{@draft.public_id}-up-next", class: "order-1 block min-w-0 lg:order-2") do
       render Components::Drafts::UpNext.new(draft: @draft)
     end
   end
 
   def navigation
-    nav(class: "grid min-w-0 grid-cols-3 overflow-hidden rounded-xl border border-white/15 bg-slate-900 shadow-xl shadow-black/20", aria: { label: "Draft room view" }) do
+    nav(class: "order-2 grid min-w-0 grid-cols-3 overflow-hidden rounded-xl border border-white/15 bg-slate-900 shadow-xl shadow-black/20 lg:order-1", aria: { label: "Draft room view" }) do
       navigation_link("Player list", "Search, compare, and make your pick", draft_path(@draft.public_id), active: @view.blank?)
       navigation_link("Team Rosters", @current_user.commissioner? ? "Choose and review a roster" : "Review your drafted roster", roster_path, active: @view == "my_team", roster: true)
       navigation_link("Draft board", "See every team and round at once", draft_path(@draft.public_id, view: "board"), active: @view == "board", board: true)

@@ -46,12 +46,15 @@ teams = team_data.map do |team_attributes|
     name: team_attributes.fetch("name"),
     abbreviation: team_attributes.fetch("abbreviation"),
     draft_order: team_attributes.fetch("position"),
-    owner_name: owners.map { |owner| owner.fetch("name") }.join(" & ")
+    owner_name: owners.map { |owner| owner.fetch("name") }.join(" & "),
+    archived: false
   )
   team.save!
   team.users = owners.filter_map { |owner| user_for_emails!(owner.fetch("emails")) }
   team
 end
+
+league.teams.where.not(id: teams.map(&:id)).update_all(archived: true)
 
 commissioner = user_for_emails!(seed_data.fetch("commissioner_emails"))
 commissioner.update!(role: :commissioner)
