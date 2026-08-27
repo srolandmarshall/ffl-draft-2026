@@ -33,7 +33,7 @@ class Components::Drafts::RecentPicks < Components::Base
         if player_portrait?(pick.player)
           img(**player_portrait_attributes(pick.player, classes: "h-full w-full"))
         else
-          span(class: "mb-1.5 text-[.5rem] font-black text-slate-500") { pick.player.position }
+          render Components::PlayerPortraitFallback.new(classes: "w-full")
         end
       end
       div(class: "min-w-0 flex-1") do

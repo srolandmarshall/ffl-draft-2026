@@ -117,7 +117,9 @@ class Components::Drafts::TeamRoster < Components::Base
         data: { roster_player_image: true }
       )
     else
-      span(class: "flex shrink-0 items-center justify-center text-[.55rem] font-black text-slate-500", style: player_image_style) { player.position }
+      div(class: "flex shrink-0 items-end justify-center", style: player_image_style) do
+        render Components::PlayerPortraitFallback.new(classes: "w-full")
+      end
     end
   end
 
