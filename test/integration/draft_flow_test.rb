@@ -207,7 +207,9 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "##{room_id} > [data-draft-room-layout]", count: 1 do
       assert_select "> div.lg\\:col-start-1.lg\\:row-start-1", count: 1 do
         assert_select "turbo-frame#draft-sunday-draft-clock", count: 1
-        assert_select "[data-draft-room-sidebar]", count: 0
+        assert_select "[data-draft-room-sidebar].lg\\:hidden", count: 1 do
+          assert_select "#draft-sunday-draft-recent-picks", count: 1
+        end
       end
       assert_select "> div.lg\\:col-start-2.lg\\:row-start-1", count: 1 do
         assert_select "nav[aria-label='Draft room view']", count: 1
@@ -215,7 +217,6 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
         assert_select "[data-draft-room-content]", count: 0
       end
       assert_select "> [data-draft-room-content].lg\\:col-span-2.lg\\:row-start-2", count: 1
-      assert_select "#draft-sunday-draft-recent-picks", count: 0
     end
     assert_select "h2", "Draft board"
     assert_select "p", text: "Rounds run top to bottom. Snake rounds reverse pick order.", count: 0
