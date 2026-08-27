@@ -3,7 +3,7 @@
 require "test_helper"
 
 class Components::Drafts::UpNextTest < ActiveSupport::TestCase
-  test "lists the upcoming teams in order" do
+  test "lists the upcoming teams left-to-right with round and pick numbers" do
     draft = drafts(:one)
     second_team = draft.league.teams.create!(name: "Green Giants", owner_name: "Greer", abbreviation: "GRN")
     draft.draft_entries.create!(team: second_team, position: 2)
@@ -11,7 +11,11 @@ class Components::Drafts::UpNextTest < ActiveSupport::TestCase
     html = ApplicationController.renderer.render(Components::Drafts::UpNext.new(draft:), layout: false)
 
     assert_includes html, "Up next"
+    assert_includes html, "grid-cols-3"
     assert_includes html, second_team.name
+    assert_includes html, "Round 1, Pick 2 (2)"
+    assert_includes html, "Round 2, Pick 1 (3)"
+    assert_includes html, "Round 2, Pick 2 (4)"
     assert_operator html.index(second_team.name), :<, html.rindex(teams(:one).name)
   end
 
