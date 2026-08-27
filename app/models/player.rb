@@ -28,6 +28,13 @@ class Player < ApplicationRecord
   validates :ffc_id, uniqueness: true, allow_nil: true
   validates :name, uniqueness: { scope: [ :pro_team, :position ] }
 
+  # Linking straight to a generated portrait means reading its variant record. Preload it
+  # alongside the headshot so rendering a player list stays one query instead of one per
+  # portrait.
+  PORTRAIT_INCLUDES = { headshot_attachment: { blob: { variant_records: { image_attachment: :blob } } } }.freeze
+
+  scope :with_portraits, -> { includes(PORTRAIT_INCLUDES) }
+
   scope :active, -> { where(active: true) }
   scope :alphabetical, -> { order(:name) }
   scope :by_ranking, -> { order(Arel.sql("ranking IS NULL, ranking ASC"), :name) }

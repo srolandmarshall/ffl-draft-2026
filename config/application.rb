@@ -34,9 +34,15 @@ module FflDraft
     # in config/environments, which are processed later.
     #
     config.time_zone = "Eastern Time (US & Canada)"
-    # Keep image URLs stable across Turbo frame replacements instead of redirecting
-    # browsers to short-lived signed URLs from the local disk service.
+    # Fallback for portraits whose variant has not been generated yet, and for the local
+    # disk service. Keeps image URLs stable across Turbo frame replacements instead of
+    # redirecting browsers to short-lived signed URLs.
     config.active_storage.resolve_model_to_route = :rails_storage_proxy
+
+    # Portraits are served straight from the CDN when this is set, which keeps a cold draft
+    # room from spending a Puma thread per image proxying bytes out of S3. Unset falls back
+    # to the proxy route above, so the app works with no CDN in front of it.
+    config.x.cdn_host = ENV["CDN_HOST"].presence
     # config.eager_load_paths << Rails.root.join("extras")
 
     # Don't generate system test files.

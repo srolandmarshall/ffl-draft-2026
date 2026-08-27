@@ -54,6 +54,44 @@ class ApplicationHelperTest < ActionView::TestCase
     assert_equal "size-7", logo[:class]
   end
 
+  test "links a generated portrait straight at the CDN" do
+    player = players(:one)
+    attach_real_headshot(player)
+    key = player.headshot.variant(:portrait).processed.key
+
+    with_cdn_host("cdn.example.com") do
+      assert_equal "https://cdn.example.com/#{key}", player_portrait_url(player)
+    end
+  end
+
+  test "hides a portrait the CDN cannot have yet rather than serving it from the app" do
+    player = players(:one)
+    attach_real_headshot(player)
+
+    with_cdn_host("cdn.example.com") do
+      refute player_portrait?(player), "an ungenerated variant must not fall back to the app"
+    end
+  end
+
+  test "still renders portraits through the app when no CDN is configured" do
+    player = players(:one)
+    attach_real_headshot(player)
+
+    with_cdn_host(nil) do
+      assert player_portrait?(player)
+    end
+  end
+
+  test "serves portraits through the proxy when no CDN is configured" do
+    player = players(:one)
+    attach_real_headshot(player)
+    player.headshot.variant(:portrait).processed
+
+    with_cdn_host(nil) do
+      assert_match %r{/rails/active_storage/representations/proxy/}, player_portrait_url(player)
+    end
+  end
+
   test "keeps a defense portrait pointed at its team logo" do
     defense = players(:two)
     defense.update!(position: "DST", pro_team: "BUF")
@@ -63,5 +101,21 @@ class ApplicationHelperTest < ActionView::TestCase
     assert_equal nfl_team_logo_url("BUF"), attributes[:src]
     assert_equal "BUF", attributes[:title]
     assert_includes attributes[:class], "object-contain"
+  end
+
+  private
+
+  def attach_real_headshot(player)
+    player.headshot.attach(
+      io: file_fixture("headshot.png").open, filename: "headshot.png", content_type: "image/png"
+    )
+  end
+
+  def with_cdn_host(host)
+    previous = Rails.configuration.x.cdn_host
+    Rails.configuration.x.cdn_host = host
+    yield
+  ensure
+    Rails.configuration.x.cdn_host = previous
   end
 end
