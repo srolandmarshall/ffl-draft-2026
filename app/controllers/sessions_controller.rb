@@ -18,7 +18,8 @@ class SessionsController < ApplicationController
     end
 
     session[:pending_user_id] = @user.id
-    send_login_code_to(@user)
+    session[:pending_email] = email
+    send_login_code_to(@user, email:)
     redirect_to verify_session_path, notice: "We sent a sign-in code to #{email}."
   end
 
@@ -38,7 +39,7 @@ class SessionsController < ApplicationController
       return
     end
 
-    send_login_code_to(user)
+    send_login_code_to(user, email: pending_email || user.email)
     redirect_to verify_session_path, notice: "We sent you a new sign-in code."
   end
 
@@ -52,8 +53,9 @@ class SessionsController < ApplicationController
 
     if user.verify_login_code!(params.expect(:code).to_s)
       session.delete(:pending_user_id)
+      session.delete(:pending_email)
       session[:user_id] = user.id
-      redirect_to session.delete(:return_to) || root_path, notice: "Signed in as #{user.email}."
+      redirect_to session.delete(:return_to) || root_path, notice: "Logged in as \"#{team_name_for(user)}\"."
     else
       redirect_to verify_session_path, alert: "That code is invalid or has expired."
     end
@@ -70,8 +72,16 @@ class SessionsController < ApplicationController
     @pending_user ||= User.find_by(id: session[:pending_user_id])
   end
 
-  def send_login_code_to(user)
+  def pending_email
+    session[:pending_email]
+  end
+
+  def send_login_code_to(user, email:)
     code = user.issue_login_code!
-    LoginCodeMailer.with(user:, code:).login_code.deliver_later
+    LoginCodeMailer.with(code:, email:).login_code.deliver_later
+  end
+
+  def team_name_for(user)
+    user.teams.joins(:league).order(leagues: { season: :desc, id: :desc }, draft_order: :asc, id: :asc).pick(:name) || "Commissioner"
   end
 end
