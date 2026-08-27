@@ -22,6 +22,18 @@ class DraftTest < ActiveSupport::TestCase
     assert_equal @second_team, @draft.current_team, "round two reverses direction"
   end
 
+  test "upcoming_picks lists the teams and round/pick numbers after the current team" do
+    picks = @draft.upcoming_picks(3)
+
+    assert_equal [ @second_team, @second_team, teams(:one) ], picks.map(&:team)
+    assert_equal [ 1, 2, 2 ], picks.map(&:round)
+    assert_equal [ 2, 1, 2 ], picks.map(&:pick_in_round)
+    assert_equal [ 2, 3, 4 ], picks.map(&:overall_number)
+
+    make_pick(teams(:one), players(:one))
+    assert_equal [ @second_team, teams(:one) ], @draft.upcoming_picks(3).map(&:team), "stops once the draft runs out of picks"
+  end
+
   test "enqueues an automatic start when a future time is scheduled" do
     draft = drafts(:two)
     scheduled_at = 2.hours.from_now

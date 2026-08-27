@@ -47,6 +47,7 @@ module Drafts
         render: false
       )
       draft.broadcast_action_to(draft, action: :refresh_frame, target: clock_target, render: false)
+      draft.broadcast_action_to(draft, action: :refresh_frame, target: up_next_target, render: false)
       draft.broadcast_action_to(draft, action: :refresh_frame, target: team_roster_target, render: false)
       Drafts::BroadcastAnnouncement.pick(pick).call
     end
@@ -72,6 +73,7 @@ module Drafts
     def recent_picks_target = "draft-#{draft.public_id}-recent-picks"
     def board_cell_target(overall_number) = "draft-#{draft.public_id}-board-cell-#{overall_number}"
     def clock_target = "draft-#{draft.public_id}-clock"
+    def up_next_target = "draft-#{draft.public_id}-up-next"
     def content_target = "draft-#{draft.public_id}-content"
     def players_target = "draft-#{draft.public_id}-players"
     def team_roster_target = "draft-#{draft.public_id}-team-roster"

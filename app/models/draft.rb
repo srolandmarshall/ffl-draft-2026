@@ -1,4 +1,6 @@
 class Draft < ApplicationRecord
+  UpcomingPick = Data.define(:team, :round, :pick_in_round, :overall_number)
+
   belongs_to :league
 
   has_many :draft_entries, -> { order(:position) }, dependent: :destroy
@@ -31,9 +33,13 @@ class Draft < ApplicationRecord
   end
 
   def current_round
+    round_for_overall_number(next_overall_number)
+  end
+
+  def round_for_overall_number(overall_number)
     return 1 if draft_entries.empty?
 
-    ((next_overall_number - 1) / draft_entries.size) + 1
+    ((overall_number - 1) / draft_entries.size) + 1
   end
 
   def current_team
@@ -50,6 +56,20 @@ class Draft < ApplicationRecord
     offset = (overall_number - 1) % entries.size
     entry_index = snake? && round.even? ? entries.size - offset - 1 : offset
     entries[entry_index].team
+  end
+
+  def upcoming_picks(count = 3)
+    ((next_overall_number + 1)..(next_overall_number + count)).filter_map do |overall_number|
+      team = team_for_overall_number(overall_number)
+      next unless team
+
+      UpcomingPick.new(
+        team:,
+        round: round_for_overall_number(overall_number),
+        pick_in_round: ((overall_number - 1) % draft_entries.size) + 1,
+        overall_number:
+      )
+    end
   end
 
   def picks_until_team(team)
