@@ -81,7 +81,8 @@ module DataSources
           content_type: download.content_type
         )
         true
-      rescue HttpError
+      rescue StandardError => error
+        Rails.logger.warn("Unable to cache headshot for player #{player.id}: #{error.class}: #{error.message}")
         false
       end
 
