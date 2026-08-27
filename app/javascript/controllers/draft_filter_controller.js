@@ -1,16 +1,27 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["query", "position", "team", "teamCount"]
-  static values = { delay: { type: Number, default: 500 } }
+  static targets = ["query", "position", "team", "teamCount", "teamMenu"]
+  static values = {
+    searchDelay: { type: Number, default: 500 },
+    selectionDelay: { type: Number, default: 250 }
+  }
 
   disconnect() {
     clearTimeout(this.submitTimer)
   }
 
-  scheduleSubmit() {
+  scheduleSearch() {
+    this.scheduleSubmit(this.searchDelayValue)
+  }
+
+  scheduleSelection() {
+    this.scheduleSubmit(this.selectionDelayValue)
+  }
+
+  scheduleSubmit(delay) {
     clearTimeout(this.submitTimer)
-    this.submitTimer = setTimeout(() => this.submit(), this.delayValue)
+    this.submitTimer = setTimeout(() => this.submit(), delay)
   }
 
   submit() {
@@ -19,7 +30,7 @@ export default class extends Controller {
 
   clearPositions() {
     this.positionTargets.forEach((input) => { input.checked = false })
-    this.scheduleSubmit()
+    this.scheduleSelection()
   }
 
   updateTeamSelection() {
@@ -30,7 +41,11 @@ export default class extends Controller {
   clearTeams() {
     this.teamTargets.forEach((input) => { input.checked = false })
     this.updateTeamSelection()
-    this.scheduleSubmit()
+    this.scheduleSelection()
+  }
+
+  closeTeamMenu() {
+    this.teamMenuTarget.removeAttribute("open")
   }
 
   clearFilters() {
@@ -38,6 +53,6 @@ export default class extends Controller {
     this.positionTargets.forEach((input) => { input.checked = false })
     this.teamTargets.forEach((input) => { input.checked = false })
     this.updateTeamSelection()
-    this.scheduleSubmit()
+    this.scheduleSelection()
   }
 }
