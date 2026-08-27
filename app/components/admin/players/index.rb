@@ -54,15 +54,31 @@ class Components::Admin::Players::Index < Components::Base
 
   def player_row(player)
     tr do
-      td(class: "px-4 py-3 font-bold") do
-        plain player.name
-        span(class: "ml-2 text-xs text-slate-500") { "inactive" } unless player.active?
+      td(class: "px-4 py-3") do
+        div(class: "flex items-center gap-3") do
+          portrait(player)
+          div(class: "min-w-0 font-bold") do
+            plain player.name
+            span(class: "ml-2 text-xs text-slate-500") { "inactive" } unless player.active?
+          end
+        end
       end
       td(class: "px-3 py-3") { player.position }
       td(class: "px-3 py-3 text-slate-400") { player.pro_team }
       td(class: "px-3 py-3 text-slate-300", title: player.ranking_source&.humanize) { player.ranking&.to_i || "—" }
       td(class: "hidden px-3 py-3 text-slate-500 sm:table-cell") { player.espn_id || "—" }
       td(class: "px-4 py-3 text-right") { a(href: edit_admin_player_path(player), class: "font-bold text-lime-400") { "Edit" } }
+    end
+  end
+
+  def portrait(player)
+    div(class: "flex size-9 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800") do
+      if player_portrait?(player)
+        fit = player.position == "DST" ? "object-contain p-0.5" : "object-cover object-top"
+        img(src: player_portrait_url(player, size: 80), alt: "", loading: "lazy", class: "h-full w-full #{fit}")
+      else
+        span(class: "mb-1 text-[.6rem] font-black text-slate-500") { player.position }
+      end
     end
   end
 

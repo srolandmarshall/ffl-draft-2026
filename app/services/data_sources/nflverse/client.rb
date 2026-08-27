@@ -9,6 +9,8 @@ module DataSources
       PLAYERS_URL = "https://github.com/nflverse/nflverse-data/releases/download/players/players.csv".freeze
       STATS_URL = "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_%<year>d.csv".freeze
       MAX_REDIRECTS = 5
+      OPEN_TIMEOUT = 5
+      READ_TIMEOUT = 10
 
       def initialize(fetcher: nil)
         @fetcher = fetcher || method(:get)
@@ -44,7 +46,15 @@ module DataSources
       end
 
       def get(uri, redirects: MAX_REDIRECTS)
-        response = Net::HTTP.get_response(uri)
+        response = Net::HTTP.start(
+          uri.host,
+          uri.port,
+          use_ssl: uri.scheme == "https",
+          open_timeout: OPEN_TIMEOUT,
+          read_timeout: READ_TIMEOUT
+        ) do |http|
+          http.request(Net::HTTP::Get.new(uri))
+        end
         return response unless response.is_a?(Net::HTTPRedirection)
         raise HttpError, "nflverse redirected too many times" if redirects.zero?
 
