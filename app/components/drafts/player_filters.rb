@@ -14,7 +14,7 @@ class Components::Drafts::PlayerFilters < Components::Base
     form(action: players_draft_path(@draft.public_id), method: "get", class: "border-b border-white/10 p-3 sm:p-4", data: { controller: "draft-filter", turbo_frame: frame_id }) do
       div(class: "flex flex-col gap-3") do
         div(class: "flex items-center gap-3") do
-          input(id: "#{frame_id}-query", type: "search", name: "query", value: @query, placeholder: "Search players…", autocomplete: "off", aria: { label: "Search players" }, class: "min-w-0 flex-1 rounded-lg border border-white/15 bg-slate-950 px-3 py-2", data: { turbo_permanent: true, draft_filter_target: "query" })
+          input(id: "#{frame_id}-query", type: "search", name: "query", value: @query, placeholder: "Search players…", autocomplete: "off", aria: { label: "Search players" }, class: "min-w-0 flex-1 rounded-lg border border-white/15 bg-slate-950 px-3 py-2", data: { turbo_permanent: true, draft_filter_target: "query", action: "input->draft-filter#scheduleSubmit" })
           span(class: "whitespace-nowrap text-xs text-slate-500", aria: { live: "polite" }) do
             span { @players.size }
             plain " players"
@@ -24,9 +24,8 @@ class Components::Drafts::PlayerFilters < Components::Base
           position_filters
           team_filter
         end
-        div(class: "flex items-center justify-end gap-2") do
+        div(class: "flex items-center justify-end") do
           button(type: "button", class: "cursor-pointer rounded px-3 py-1.5 text-xs font-bold text-slate-400 transition hover:bg-white/10 hover:text-white", data: { action: "draft-filter#clearFilters" }) { "Clear filters" }
-          button(type: "button", class: "cursor-pointer rounded bg-lime-400 px-3 py-1.5 text-xs font-black text-slate-950 transition hover:bg-lime-300", data: { action: "draft-filter#applyFilters" }) { "Apply filters" }
         end
       end
     end
@@ -41,7 +40,7 @@ class Components::Drafts::PlayerFilters < Components::Base
       button(type: "button", aria: { pressed: @positions.empty?.to_s }, class: "cursor-pointer rounded-full border border-white/15 px-2.5 py-1 text-xs font-bold text-slate-300 transition hover:border-white/40 aria-pressed:border-lime-300 aria-pressed:bg-lime-400 aria-pressed:text-slate-950 sm:px-3", data: { draft_filter_target: "all", action: "draft-filter#clearPositions" }) { "All" }
       Player::POSITIONS.each do |position|
         label(class: "cursor-pointer") do
-          input(type: "checkbox", name: "positions[]", value: position, checked: @positions.include?(position), class: "peer sr-only", data: { draft_filter_target: "position" })
+          input(type: "checkbox", name: "positions[]", value: position, checked: @positions.include?(position), class: "peer sr-only", data: { draft_filter_target: "position", action: "change->draft-filter#scheduleSubmit" })
           span(class: "inline-flex rounded-full border border-white/15 px-2.5 py-1 text-xs font-bold text-slate-300 transition sm:px-3 #{position_filter_classes(position)}") { position }
         end
       end
@@ -68,7 +67,7 @@ class Components::Drafts::PlayerFilters < Components::Base
 
   def team_option(team)
     label(class: "flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-xs font-semibold text-slate-300 hover:bg-white/10") do
-      input(type: "checkbox", name: "teams[]", value: team, checked: @teams.include?(team), class: "size-3.5 accent-lime-400", data: { draft_filter_target: "team", action: "change->draft-filter#updateTeamSelection" })
+      input(type: "checkbox", name: "teams[]", value: team, checked: @teams.include?(team), class: "size-3.5 accent-lime-400", data: { draft_filter_target: "team", action: "change->draft-filter#updateTeamSelection change->draft-filter#scheduleSubmit" })
       img(src: nfl_team_logo_url(team), alt: team, title: team, loading: "lazy", class: "size-7 rounded bg-slate-400/50 p-0.5 object-contain")
       span { team }
     end
