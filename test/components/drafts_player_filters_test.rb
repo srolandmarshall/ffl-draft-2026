@@ -22,6 +22,12 @@ class Components::Drafts::PlayerFiltersTest < ActiveSupport::TestCase
     assert_includes html, "data-draft-filter-target=\"position\""
     assert_includes html, "name=\"positions[]\" value=\"QB\" checked"
     assert_includes html, "name=\"teams[]\" value=\"ATL\" checked"
+    assert_includes html, "change->draft-filter#updateTeamSelection"
+    assert_includes html, "draft-filter#clearTeams"
+    assert_includes html, "draft-filter#clearFilters"
+    assert_includes html, "draft-filter#applyFilters"
+    assert_includes html, "data-draft-filter-target=\"teamCount\""
+    refute_includes html, "change->draft-filter#submit"
     assert_includes html, "value=\"Alex\""
     assert_includes html, "1 selected"
     assert_match(/<details class="[^"]*w-full[^"]*sm:w-auto/, html)
