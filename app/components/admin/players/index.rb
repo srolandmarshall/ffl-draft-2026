@@ -76,7 +76,7 @@ class Components::Admin::Players::Index < Components::Base
       if player_portrait?(player)
         img(**player_portrait_attributes(player, classes: "h-full w-full", title: nil))
       else
-        span(class: "mb-1 text-[.6rem] font-black text-slate-500") { player.position }
+        render Components::PlayerPortraitFallback.new(classes: "w-full")
       end
     end
   end

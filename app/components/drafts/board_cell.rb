@@ -58,7 +58,7 @@ class Components::Drafts::BoardCell < Components::Base
           if player_portrait?(@pick.player)
             img(**player_portrait_attributes(@pick.player, classes: "h-full w-full"))
           else
-            span(class: "text-[.4rem] font-black text-slate-500") { @pick.player.position }
+            render Components::PlayerPortraitFallback.new(classes: "w-full")
           end
         end
         unless @pick.player.position == "DST"
@@ -83,7 +83,7 @@ class Components::Drafts::BoardCell < Components::Base
           if player_portrait?(@pick.player)
             img(**player_portrait_attributes(@pick.player, classes: "h-full w-full"))
           else
-            span(class: "mb-1 text-[.45rem] font-black text-slate-500") { @pick.player.position }
+            render Components::PlayerPortraitFallback.new(classes: "w-full")
           end
         end
         unless @pick.player.position == "DST"
