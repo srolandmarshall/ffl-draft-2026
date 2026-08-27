@@ -27,6 +27,8 @@ class DraftPlayerFilteringsTest < ApplicationSystemTestCase
     find("#{team_filter} input[name='teams[]'][value='SEA']").check
     assert_selector "[data-draft-player-id='#{sleeper.id}']"
 
+    find("#{team_filter} > summary").click
+    assert_no_selector "#{team_filter}[open]"
     click_button "Clear filters"
     assert_no_selector "[data-draft-player-id='#{sleeper.id}']"
   end
