@@ -74,8 +74,7 @@ class Components::Admin::Players::Index < Components::Base
   def portrait(player)
     div(class: "flex size-9 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800") do
       if player_portrait?(player)
-        fit = player.position == "DST" ? "object-contain p-0.5" : "object-cover object-top"
-        img(src: player_portrait_url(player, size: 80), alt: "", loading: "lazy", class: "h-full w-full #{fit}")
+        img(**player_portrait_attributes(player, classes: "h-full w-full", title: nil))
       else
         span(class: "mb-1 text-[.6rem] font-black text-slate-500") { player.position }
       end

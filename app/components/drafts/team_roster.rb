@@ -110,8 +110,12 @@ class Components::Drafts::TeamRoster < Components::Base
 
   def player_image(player)
     if player_portrait?(player)
-      fit = player.position == "DST" ? "object-contain p-0.5" : "rounded-md object-cover object-top"
-      img(src: player_portrait_url(player, size: 80), alt: "", title: (player.pro_team if player.position == "DST"), loading: "lazy", class: "shrink-0 #{fit}", style: player_image_style, data: { roster_player_image: true })
+      rounding = "rounded-md" unless player.position == "DST"
+      img(
+        **player_portrait_attributes(player, classes: [ "shrink-0", rounding ].compact.join(" ")),
+        style: player_image_style,
+        data: { roster_player_image: true }
+      )
     else
       span(class: "flex shrink-0 items-center justify-center text-[.55rem] font-black text-slate-500", style: player_image_style) { player.position }
     end

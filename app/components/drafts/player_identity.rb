@@ -37,14 +37,12 @@ class Components::Drafts::PlayerIdentity < Components::Base
   end
 
   def headshot
-    size = @variant == :desktop ? 80 : 64
     wrapper_size = @variant == :desktop ? "size-10" : "size-8"
     fallback_margin = @variant == :desktop ? "mb-2" : "mb-1"
     background = @player.position == "DST" ? "bg-slate-400/50" : "bg-slate-800"
     div(class: "flex #{wrapper_size} shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 #{background}") do
       if player_portrait?(@player)
-        fit = @player.position == "DST" ? "object-contain p-0.5" : "object-cover object-top"
-        img(src: player_portrait_url(@player, size:), alt: "", title: (@player.pro_team if @player.position == "DST"), loading: "lazy", class: "h-full w-full #{fit}")
+        img(**player_portrait_attributes(@player, classes: "h-full w-full"))
       else
         span(class: "#{fallback_margin} text-[.6rem] font-black text-slate-500") { @player.position }
       end
@@ -95,7 +93,7 @@ class Components::Drafts::PlayerIdentity < Components::Base
   end
 
   def team_logo(size: @variant == :desktop ? "size-7" : "size-6")
-    img(src: nfl_team_logo_url(@player.pro_team), alt: "", title: @player.pro_team, loading: "lazy", class: "#{size} rounded bg-slate-400/50 p-0.5 object-contain")
+    img(**nfl_team_logo_attributes(@player.pro_team, classes: "#{size} rounded bg-slate-400/50 p-0.5 object-contain"))
   end
 
   def sr_only_team
