@@ -30,11 +30,7 @@ class Components::Drafts::RecentPicks < Components::Base
     li(class: "#{visibility_classes} min-w-0 items-center gap-2 border-b border-r border-white/5 px-2 py-1.5 text-[.65rem] sm:text-xs", data: { recent_pick: "" }) do
       background = pick.player.position == "DST" ? "bg-slate-400/50" : "bg-slate-800"
       div(class: "flex size-8 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 #{background}") do
-        if player_portrait?(pick.player)
-          img(**player_portrait_attributes(pick.player, classes: "h-full w-full"))
-        else
-          render Components::PlayerPortraitFallback.new(classes: "w-full")
-        end
+        render Components::PlayerPortrait.new(player: pick.player)
       end
       div(class: "min-w-0 flex-1") do
         div(class: "flex items-center gap-1.5") do
