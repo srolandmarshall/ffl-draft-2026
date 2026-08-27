@@ -38,14 +38,10 @@ class Components::Drafts::PlayerIdentity < Components::Base
 
   def headshot
     wrapper_size = @variant == :desktop ? "size-10" : "size-8"
-    background = @player.position == "DST" ? "bg-slate-400/50" : "bg-slate-800"
-    div(class: "flex #{wrapper_size} shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 #{background}") do
-      if player_portrait?(@player)
-        img(**player_portrait_attributes(@player, classes: "h-full w-full"))
-      else
-        render Components::PlayerPortraitFallback.new(classes: "w-full")
-      end
-    end
+    render Components::Players::Portrait.new(
+      player: @player,
+      classes: "#{wrapper_size} shrink-0 rounded-full border border-white/10"
+    )
   end
 
   def player_name
