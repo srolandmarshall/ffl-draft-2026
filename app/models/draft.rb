@@ -52,6 +52,12 @@ class Draft < ApplicationRecord
     entries[entry_index].team
   end
 
+  def upcoming_teams(count = 3)
+    ((next_overall_number + 1)..(next_overall_number + count)).filter_map do |overall_number|
+      team_for_overall_number(overall_number)
+    end
+  end
+
   def picks_until_team(team)
     return unless team
 

@@ -17,14 +17,26 @@ class Drafts::BroadcastPickTest < ActiveSupport::TestCase
     assert broadcasts.any? { |payload| payload.include?(%(<turbo-stream action="refresh_frame" target="draft-#{draft.public_id}-players">)) }
   end
 
-  test "broadcasts all eight targeted updates without a job worker" do
+  test "broadcasts all nine targeted updates without a job worker" do
     draft = drafts(:one)
     pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 12)
     clear_enqueued_jobs
 
-    assert_broadcasts(draft.to_gid_param, 8) do
+    assert_broadcasts(draft.to_gid_param, 9) do
       assert_no_enqueued_jobs { Drafts::BroadcastPick.new(pick).call }
     end
+  end
+
+  test "refreshes the up-next frame" do
+    draft = drafts(:one)
+    pick = draft.picks.create!(team: teams(:one), player: players(:one), round: 1, overall_number: 1, elapsed_seconds: 12)
+    clear_enqueued_jobs
+
+    broadcasts = capture_broadcasts(draft.to_gid_param) do
+      assert_no_enqueued_jobs { Drafts::BroadcastPick.new(pick).call }
+    end
+
+    assert broadcasts.any? { |payload| payload.include?(%(<turbo-stream action="refresh_frame" target="draft-#{draft.public_id}-up-next">)) }
   end
 
   test "broadcasts a dedicated queued pick announcement instead of replacing the flash" do

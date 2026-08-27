@@ -31,10 +31,17 @@ class Components::Drafts::Room < Components::Base
 
   def room_layout
     div(class: "grid gap-4 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] lg:items-start xl:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]", data: { draft_room_layout: true }) do
-      clock
+      clock_column
       navigation
       recent_picks_panel unless board_view?
       room_content
+    end
+  end
+
+  def clock_column
+    div(class: "min-w-0 space-y-4 lg:col-start-1 lg:row-start-1") do
+      clock
+      up_next
     end
   end
 
@@ -50,7 +57,7 @@ class Components::Drafts::Room < Components::Base
   end
 
   def clock
-    turbo_frame_tag("draft-#{@draft.public_id}-clock", class: "sticky top-0 z-30 block min-w-0 lg:col-start-1 lg:row-start-1") do
+    turbo_frame_tag("draft-#{@draft.public_id}-clock", class: "sticky top-0 z-30 block min-w-0") do
       render Components::Drafts::Clock.new(
         draft: @draft,
         selected_team: @room.selected_team,
@@ -59,6 +66,12 @@ class Components::Drafts::Room < Components::Base
         current_pick_elapsed_seconds: @room.current_pick_elapsed_seconds,
         current_user: @current_user
       )
+    end
+  end
+
+  def up_next
+    turbo_frame_tag("draft-#{@draft.public_id}-up-next", class: "block min-w-0") do
+      render Components::Drafts::UpNext.new(draft: @draft)
     end
   end
 
