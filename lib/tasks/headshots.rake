@@ -1,3 +1,12 @@
+def damaged_headshots
+  Player.with_attached_headshot.filter_map do |player|
+    next unless player.headshot.attached?
+
+    problem = StoredBlob.for(player.headshot.blob).problem
+    [ player, problem ] if problem
+  end
+end
+
 namespace :headshots do
   desc "Queue portrait generation for headshots that have no variant yet"
   task enqueue_portraits: :environment do
@@ -46,6 +55,57 @@ namespace :headshots do
 
     puts "#{present}/#{total} portraits generated, #{total - present} remaining."
     puts "#{pending} transform job(s) unfinished." if pending
+  end
+
+  desc "Report headshots whose stored file is missing or truncated"
+  task verify: :environment do
+    $stdout.sync = true
+    broken = damaged_headshots
+
+    if broken.empty?
+      puts "All headshots match their recorded size."
+    else
+      broken.each { |player, problem| puts "#{player.id}\t#{player.name}\t#{problem}" }
+      puts "#{broken.size} damaged headshot#{'s' unless broken.size == 1}. Repair with: bin/rails headshots:repair"
+    end
+  end
+
+  desc "Re-download headshots whose stored file is missing or truncated"
+  task repair: :environment do
+    # The sync only re-fetches when the attachment is absent or its URL changed, so a corrupt but
+    # attached headshot is never retried. Purging first is what lets it be replaced.
+    $stdout.sync = true
+    client = DataSources::Nflverse::Client.new
+    repaired = 0
+    failed = 0
+
+    damaged_headshots.each do |player, problem|
+      puts "#{player.name}: #{problem}"
+
+      if player.headshot_url.blank?
+        warn "  no headshot_url to re-download from, purging only"
+        player.headshot.purge
+        failed += 1
+        next
+      end
+
+      begin
+        download = client.fetch_headshot(url: player.headshot_url)
+        player.headshot.purge
+        player.headshot.attach(
+          io: download.io,
+          filename: "player-#{player.id}.#{download.extension}",
+          content_type: download.content_type
+        )
+        repaired += 1
+        puts "  re-downloaded"
+      rescue StandardError => error
+        failed += 1
+        warn "  failed: #{error.class}: #{error.message}"
+      end
+    end
+
+    puts "Repaired #{repaired}, failed #{failed}."
   end
 
   desc "Generate portrait variants inline (prefer enqueue_portraits; this dies with the session)"

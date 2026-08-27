@@ -28,9 +28,19 @@ module DataSources
         response = fetcher.call(URI(url))
         raise HttpError, "NFL headshot returned HTTP #{response.code}" unless response.code.to_i.between?(200, 299)
 
+        # Net::HTTP does not check the body it received against Content-Length, so a connection
+        # cut mid-transfer returns a short body with no error. Attaching that stores a blob whose
+        # recorded byte_size never matches its contents, and every later read of it fails the
+        # checksum instead of the download failing here.
+        body = response.body.to_s
+        expected = response["content-length"]&.to_i
+        if expected&.positive? && body.bytesize != expected
+          raise HttpError, "NFL headshot download was truncated: got #{body.bytesize} of #{expected} bytes"
+        end
+
         content_type = response["content-type"].to_s.split(";").first.presence || "image/jpeg"
         extension = { "image/png" => "png", "image/webp" => "webp" }.fetch(content_type, "jpg")
-        DownloadedImage.new(io: StringIO.new(response.body), content_type:, extension:)
+        DownloadedImage.new(io: StringIO.new(body), content_type:, extension:)
       end
 
       private
