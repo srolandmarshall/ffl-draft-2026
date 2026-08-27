@@ -31,27 +31,38 @@ class Components::Drafts::Room < Components::Base
 
   def room_layout
     div(class: "grid gap-4 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] lg:items-start xl:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]", data: { draft_room_layout: true }) do
-      clock_column
-      navigation
-      recent_picks_panel unless board_view?
-      room_content
+      sidebar_column
+      main_column
+      room_content if board_view?
     end
   end
 
-  def clock_column
+  # Bundles clock + recent picks into a single grid cell so this column's height
+  # never stretches the other column's row track and pushes its contents apart.
+  def sidebar_column
     div(class: "min-w-0 space-y-4 lg:col-start-1 lg:row-start-1") do
       clock
+      recent_picks_panel unless board_view?
+    end
+  end
+
+  # Bundles nav + up next + content (unless it needs the full board-view width)
+  # for the same reason as sidebar_column.
+  def main_column
+    div(class: "min-w-0 space-y-4 lg:col-start-2 lg:row-start-1") do
+      navigation
       up_next
+      room_content unless board_view?
     end
   end
 
   def recent_picks_panel
-    aside(class: "min-w-0 lg:col-start-1 lg:row-start-2", data: { draft_room_sidebar: true }) { render recent_picks }
+    aside(class: "min-w-0", data: { draft_room_sidebar: true }) { render recent_picks }
   end
 
   def room_content
-    desktop_position = board_view? ? "lg:col-span-2 lg:col-start-1" : "lg:col-start-2"
-    main(class: "min-w-0 lg:row-start-2 #{desktop_position}", data: { draft_room_content: true }) do
+    classes = board_view? ? "min-w-0 lg:col-span-2 lg:col-start-1 lg:row-start-2" : "min-w-0"
+    main(class: classes, data: { draft_room_content: true }) do
       section(class: "min-w-0") { render_active_view }
     end
   end
@@ -76,7 +87,7 @@ class Components::Drafts::Room < Components::Base
   end
 
   def navigation
-    nav(class: "grid min-w-0 grid-cols-3 overflow-hidden rounded-xl border border-white/15 bg-slate-900 shadow-xl shadow-black/20 lg:col-start-2 lg:row-start-1", aria: { label: "Draft room view" }) do
+    nav(class: "grid min-w-0 grid-cols-3 overflow-hidden rounded-xl border border-white/15 bg-slate-900 shadow-xl shadow-black/20", aria: { label: "Draft room view" }) do
       navigation_link("Player list", "Search, compare, and make your pick", draft_path(@draft.public_id), active: @view.blank?)
       navigation_link("Team Rosters", @current_user.commissioner? ? "Choose and review a roster" : "Review your drafted roster", roster_path, active: @view == "my_team", roster: true)
       navigation_link("Draft board", "See every team and round at once", draft_path(@draft.public_id, view: "board"), active: @view == "board", board: true)
