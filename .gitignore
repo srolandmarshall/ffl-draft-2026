@@ -3,6 +3,7 @@
 /tmp/*
 /storage/*
 /app/assets/builds/*
+/public/assets/*
 !/log/.keep
 !/tmp/.keep
 !/storage/.keep
