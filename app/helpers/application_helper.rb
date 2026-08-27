@@ -42,6 +42,13 @@ module ApplicationHelper
 
   ESPN_NFL_TEAM_CODES = { "WAS" => "wsh" }.freeze
 
+  # Logos never render above 36 CSS pixels, so 80px covers them at 2x.
+  NFL_TEAM_LOGO_SIZE = 80
+
+  # Portraits and logos are decorative and sit below the fold, so they share loading
+  # hints that let the document and controls become interactive first.
+  LAZY_IMAGE_ATTRIBUTES = { alt: "", loading: "lazy", decoding: "async", fetchpriority: "low" }.freeze
+
   def position_badge_classes(position)
     POSITION_BADGE_CLASSES.fetch(position, "border-white/20 bg-white/10 text-slate-200")
   end
@@ -54,23 +61,41 @@ module ApplicationHelper
     POSITION_SURFACE_CLASSES.fetch(position, "border-white/20 bg-white/10")
   end
 
-  def nfl_team_logo_url(team)
+  # ESPN only publishes these at 500px, where a single logo runs 30-130KB. Its combiner
+  # endpoint resizes on the CDN, bringing each one down to roughly 3KB.
+  def nfl_team_logo_url(team, size: NFL_TEAM_LOGO_SIZE)
     code = ESPN_NFL_TEAM_CODES.fetch(team, team).downcase
-    "https://a.espncdn.com/i/teamlogos/nfl/500/#{code}.png"
+    "https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/#{code}.png&w=#{size}&h=#{size}"
   end
 
-  def player_headshot(player, size:)
-    player.headshot.variant(resize_to_fill: [ size, size ])
+  def player_headshot(player)
+    player.headshot.variant(:portrait)
   end
 
   def player_portrait?(player)
     player.position == "DST" || player.headshot.attached?
   end
 
-  def player_portrait_url(player, size:)
+  def player_portrait_url(player)
     return nfl_team_logo_url(player.pro_team) if player.position == "DST"
 
-    url_for(player_headshot(player, size:))
+    url_for(player_headshot(player))
+  end
+
+  # Centralizing the image attributes keeps every placement on one URL per player, which
+  # is what lets the browser reuse a single download for the mobile and desktop markup.
+  def player_portrait_attributes(player, classes:, **overrides)
+    fit = player.position == "DST" ? "object-contain p-0.5" : "object-cover object-top"
+    LAZY_IMAGE_ATTRIBUTES.merge(
+      src: player_portrait_url(player),
+      title: (player.pro_team if player.position == "DST"),
+      class: [ classes, fit ].compact.join(" "),
+      **overrides
+    )
+  end
+
+  def nfl_team_logo_attributes(team, classes:, **overrides)
+    LAZY_IMAGE_ATTRIBUTES.merge(src: nfl_team_logo_url(team), title: team, class: classes, **overrides)
   end
 
   def position_conic_gradient(counts)

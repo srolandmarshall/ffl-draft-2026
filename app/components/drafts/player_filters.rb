@@ -102,7 +102,7 @@ class Components::Drafts::PlayerFilters < Components::Base
   def team_option(team)
     label(class: "flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-xs font-semibold text-slate-300 hover:bg-white/10") do
       input(type: "checkbox", name: "teams[]", value: team, checked: @teams.include?(team), class: "size-3.5 accent-lime-400", data: { draft_filter_target: "team", action: "change->draft-filter#updateTeamSelection change->draft-filter#scheduleSelection" })
-      img(src: nfl_team_logo_url(team), alt: team, title: team, loading: "lazy", class: "size-7 rounded bg-slate-400/50 p-0.5 object-contain")
+      img(**nfl_team_logo_attributes(team, classes: "size-7 rounded bg-slate-400/50 p-0.5 object-contain", alt: team))
       span { team }
     end
   end

@@ -77,6 +77,20 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "duplicated mobile and desktop markup shares one portrait download per player" do
+    draft = drafts(:one)
+    draft.picks.create!(team: teams(:one), player: players(:two), round: 1, overall_number: 1, elapsed_seconds: 12)
+    [ players(:one), players(:two) ].each { |player| attach_headshot(player) }
+    sign_in_as users(:member)
+
+    get draft_path(draft.public_id)
+
+    assert_response :success
+    portraits = css_select("img[src*='/rails/active_storage/representations/proxy/']").map { |image| image["src"] }
+    assert_operator portraits.size, :>, portraits.uniq.size, "expected the responsive markup to repeat portraits"
+    assert_equal 2, portraits.uniq.size, "each player should resolve to a single portrait URL"
+  end
+
   test "player list is limited to 36 and deep players remain searchable" do
     40.times do |index|
       Player.create!(

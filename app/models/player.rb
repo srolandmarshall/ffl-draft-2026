@@ -1,7 +1,18 @@
 class Player < ApplicationRecord
   POSITIONS = %w[QB RB WR TE K DST].freeze
 
-  has_one_attached :headshot
+  # Every placement renders a portrait at 40 CSS pixels or smaller, so one 80px source
+  # covers all of them at 2x. Sharing a single size means the duplicated mobile/desktop
+  # markup resolves to one URL, so the browser downloads each portrait once.
+  PORTRAIT_SIZE = 80
+
+  # Preprocessing generates the variant in the background when the headshot is attached, so
+  # the draft room serves a stored image instead of resizing a multi-megabyte source on the
+  # first request. WebP keeps the transparency these headshots rely on at a fifth of the PNG
+  # size.
+  has_one_attached :headshot do |attachable|
+    attachable.variant :portrait, resize_to_fill: [ PORTRAIT_SIZE, PORTRAIT_SIZE ], format: :webp, preprocessed: true
+  end
   has_many :picks, dependent: :restrict_with_error
   has_many :league_player_scores, dependent: :destroy
 

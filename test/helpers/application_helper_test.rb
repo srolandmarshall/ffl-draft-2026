@@ -27,4 +27,41 @@ class ApplicationHelperTest < ActionView::TestCase
     end
     assert_includes position_surface_classes("UNKNOWN"), "bg-white/10"
   end
+
+  test "requests NFL logos at display size through the ESPN CDN" do
+    assert_equal "https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/atl.png&w=80&h=80", nfl_team_logo_url("ATL")
+    assert_equal "https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/wsh.png&w=80&h=80", nfl_team_logo_url("WAS")
+  end
+
+  test "gives every placement of a portrait the same URL" do
+    player = players(:one)
+    player.headshot.attach(io: StringIO.new("headshot"), filename: "headshot.png", content_type: "image/png")
+
+    desktop = player_portrait_attributes(player, classes: "h-full w-full")
+    board = player_portrait_attributes(player, classes: "size-8")
+
+    assert_equal desktop[:src], board[:src]
+    assert_match %r{/rails/active_storage/representations/proxy/}, desktop[:src]
+  end
+
+  test "marks portraits and logos as deferrable decorative images" do
+    logo = nfl_team_logo_attributes("ATL", classes: "size-7")
+
+    assert_equal "", logo[:alt]
+    assert_equal "lazy", logo[:loading]
+    assert_equal "async", logo[:decoding]
+    assert_equal "low", logo[:fetchpriority]
+    assert_equal "size-7", logo[:class]
+  end
+
+  test "keeps a defense portrait pointed at its team logo" do
+    defense = players(:two)
+    defense.update!(position: "DST", pro_team: "BUF")
+
+    attributes = player_portrait_attributes(defense, classes: "h-full w-full")
+
+    assert_equal nfl_team_logo_url("BUF"), attributes[:src]
+    assert_equal "BUF", attributes[:title]
+    assert_includes attributes[:class], "object-contain"
+  end
 end

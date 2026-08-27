@@ -56,14 +56,13 @@ class Components::Drafts::BoardCell < Components::Base
       div(class: "flex items-center justify-center gap-0.5") do
         div(class: "flex items-end justify-center overflow-hidden rounded border border-white/15 #{mobile_portrait_size_classes} #{portrait_background_classes}") do
           if player_portrait?(@pick.player)
-            fit = @pick.player.position == "DST" ? "object-contain p-0.5" : "object-cover object-top"
-            img(src: player_portrait_url(@pick.player, size: 40), alt: "", title: (@pick.player.pro_team if @pick.player.position == "DST"), loading: "lazy", class: "h-full w-full #{fit}")
+            img(**player_portrait_attributes(@pick.player, classes: "h-full w-full"))
           else
             span(class: "text-[.4rem] font-black text-slate-500") { @pick.player.position }
           end
         end
         unless @pick.player.position == "DST"
-          img(src: nfl_team_logo_url(@pick.player.pro_team), alt: "", title: @pick.player.pro_team, loading: "lazy", class: "h-9 w-7 rounded border border-white/15 bg-slate-400/50 p-0.5 object-contain")
+          img(**nfl_team_logo_attributes(@pick.player.pro_team, classes: "h-9 w-7 rounded border border-white/15 bg-slate-400/50 p-0.5 object-contain"))
         end
       end
       div(class: "min-w-0") do
@@ -82,14 +81,13 @@ class Components::Drafts::BoardCell < Components::Base
       div(class: "mb-0.5 flex shrink-0 items-center justify-center gap-1") do
         div(class: "flex size-8 items-end justify-center overflow-hidden rounded-md border border-white/15 #{portrait_background_classes} lg:size-9") do
           if player_portrait?(@pick.player)
-            fit = @pick.player.position == "DST" ? "object-contain p-0.5" : "object-cover object-top"
-            img(src: player_portrait_url(@pick.player, size: 64), alt: "", title: (@pick.player.pro_team if @pick.player.position == "DST"), loading: "lazy", class: "h-full w-full #{fit}")
+            img(**player_portrait_attributes(@pick.player, classes: "h-full w-full"))
           else
             span(class: "mb-1 text-[.45rem] font-black text-slate-500") { @pick.player.position }
           end
         end
         unless @pick.player.position == "DST"
-          img(src: nfl_team_logo_url(@pick.player.pro_team), alt: "", title: @pick.player.pro_team, loading: "lazy", class: "size-7 rounded-md border border-white/15 bg-slate-400/50 p-0.5 object-contain lg:size-8")
+          img(**nfl_team_logo_attributes(@pick.player.pro_team, classes: "size-7 rounded-md border border-white/15 bg-slate-400/50 p-0.5 object-contain lg:size-8"))
         end
       end
       span(class: "mt-1 w-full text-balance break-words text-xs font-semibold leading-tight lg:text-sm") { player_name }

@@ -31,8 +31,7 @@ class Components::Drafts::RecentPicks < Components::Base
       background = pick.player.position == "DST" ? "bg-slate-400/50" : "bg-slate-800"
       div(class: "flex size-8 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 #{background}") do
         if player_portrait?(pick.player)
-          fit = pick.player.position == "DST" ? "object-contain p-0.5" : "object-cover object-top"
-          img(src: player_portrait_url(pick.player, size: 64), alt: "", title: (pick.player.pro_team if pick.player.position == "DST"), loading: "lazy", class: "h-full w-full #{fit}")
+          img(**player_portrait_attributes(pick.player, classes: "h-full w-full"))
         else
           span(class: "mb-1.5 text-[.5rem] font-black text-slate-500") { pick.player.position }
         end
