@@ -34,7 +34,7 @@ export default class extends Controller {
   }
 
   updateTeamSelection() {
-    return unless this.hasTeamCountTarget
+    if (!this.hasTeamCountTarget) return
 
     const selectedTeams = this.teamTargets.filter((input) => input.checked).length
     this.teamCountTarget.textContent = selectedTeams === 0 ? "All teams" : `${selectedTeams} selected`
