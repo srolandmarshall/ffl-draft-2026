@@ -71,16 +71,27 @@ mitigation for whatever still falls back to the proxy, not the fix.
 
 ## Deploying the CDN
 
-1. Create a CloudFront distribution with the S3 bucket as origin, using an **origin access
-   control**; leave Block Public Access on. Add the generated bucket policy. This is separate
-   from the existing app distribution: tracked variants get random keys at the bucket root,
-   indistinguishable from the multi-megabyte originals, so there is no path pattern that could
-   route them from the app distribution instead.
-2. Set `CDN_HOST` on the app (`fly secrets set CDN_HOST=…`) — bare host or full origin, both
-   are accepted.
-3. Run `bin/rails headshots:backfill_portraits` so existing headshots have a variant to link
-   to. Until a given portrait is backfilled it serves through the proxy, which is correct but
-   slow.
+Order matters. With `CDN_HOST` set, a portrait with no generated variant renders the position
+letter instead, so the variants have to exist before the switch is flipped.
+
+1. Deploy the app. `CDN_HOST` is still unset, so portraits keep serving through the proxy and
+   nothing changes for viewers.
+2. `fly ssh console -C "bin/rails headshots:backfill_portraits"`. Existing headshots were
+   attached before preprocessing, and the 80px WebP variant also postdates them, so every
+   portrait needs generating once.
+3. `fly secrets set CDN_HOST=d14dco8b6tmrib.cloudfront.net`. Portraits move to the CDN and
+   stop touching Rails.
+
+Already provisioned: origin access control `EFED4T1DJIYB9`, distribution `EWQC3VD4CNRBI`
+(`d14dco8b6tmrib.cloudfront.net`, Managed-CachingOptimized, PriceClass_100, default
+certificate), and a bucket policy statement scoped to that distribution's ARN, merged
+alongside the existing `DenyInsecureTransport` statement. Block Public Access stays fully on;
+direct S3 requests return 403.
+
+The existing app distribution stays. It owns `draft.sammarshall.us` and its certificate,
+terminates TLS at the edge for every dynamic request, and its `/rails/active_storage/*`
+behavior still covers the admin player table. It could never keep image misses off Puma,
+because its origin is the app.
 
 ## Deliberately not done
 
