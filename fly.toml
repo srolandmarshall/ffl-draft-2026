@@ -13,8 +13,9 @@ console_command = '/rails/bin/rails console'
   HTTP_PORT = '8080'
   SOLID_QUEUE_IN_PUMA = 'true'
   # Solid Queue shares this process, and image requests that still fall back to the Active
-  # Storage proxy hold a thread while they stream from S3.
-  RAILS_MAX_THREADS = '5'
+  # Storage proxy hold a thread while they stream from S3. Those waits release the GVL, so
+  # threads buy real concurrency here even on a single shared CPU.
+  RAILS_MAX_THREADS = '8'
 
 [[mounts]]
   source = 'data'
