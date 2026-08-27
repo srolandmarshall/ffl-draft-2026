@@ -34,6 +34,30 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     post verify_session_path, params: { code: }
 
     assert_redirected_to root_path
+    assert_equal "Logged in as \"#{teams(:one).name}\".", flash[:notice]
+  end
+
+  test "a sign-in code is sent to the associated email that was submitted" do
+    user = users(:member)
+    submitted_email = "riley.secondary@example.com"
+    user.user_emails.create!(email: submitted_email)
+
+    assert_emails 1 do
+      perform_enqueued_jobs do
+        post session_path, params: { email: submitted_email }
+      end
+    end
+
+    assert_equal [ submitted_email ], ActionMailer::Base.deliveries.last.to
+
+    user.update!(login_code_sent_at: 1.minute.ago)
+    assert_emails 1 do
+      perform_enqueued_jobs do
+        post resend_login_code_session_path
+      end
+    end
+
+    assert_equal [ submitted_email ], ActionMailer::Base.deliveries.last.to
   end
 
   test "a user can resend a sign-in code after the one-minute wait" do
