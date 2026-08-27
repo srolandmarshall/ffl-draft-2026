@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["submit", "status"]
+  static targets = ["submit"]
   static values = { availableAt: String }
 
   connect() {
@@ -17,9 +17,9 @@ export default class extends Controller {
     const remainingSeconds = Math.max(0, Math.ceil((Date.parse(this.availableAtValue) - Date.now()) / 1000))
 
     this.submitTarget.disabled = remainingSeconds > 0
-    this.statusTarget.textContent = remainingSeconds > 0
-      ? `You can request another code in ${this.formatDuration(remainingSeconds)}.`
-      : "Didn't receive it? You can request another code."
+    this.submitTarget.value = remainingSeconds > 0
+      ? `Resend code (${this.formatDuration(remainingSeconds)})`
+      : "Resend code"
 
     if (remainingSeconds === 0) window.clearInterval(this.interval)
   }

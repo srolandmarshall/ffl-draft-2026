@@ -42,7 +42,7 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
 
     get verify_session_path
     assert_select "input[data-login-code-resend-target='submit'][disabled]", count: 1
-    assert_select "p[data-login-code-resend-target='status']", text: /1:00/
+    assert_select "input[data-login-code-resend-target='submit'][value='Resend code (1:00)']", count: 1
 
     assert_no_enqueued_emails do
       post resend_login_code_session_path
