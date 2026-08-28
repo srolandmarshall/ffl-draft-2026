@@ -13,12 +13,11 @@ class Components::Drafts::PlayerIdentity < Components::Base
         if @variant == :desktop
           div(class: "flex items-center gap-2") do
             player_name
-            rookie_badge
           end
           position_line
         else
-          div(class: "flex flex-wrap items-center gap-2") do
-            player_name
+          player_name
+          div(class: "mt-1 flex items-center gap-2") do
             position_badge
             team_logo unless @player.position == "DST"
             sr_only_team
@@ -45,7 +44,10 @@ class Components::Drafts::PlayerIdentity < Components::Base
   end
 
   def player_name
-    span(class: "break-words text-sm font-bold leading-tight text-white") { @player.name }
+    # Player rows are intentionally compact, but a wrapped name makes adjacent rows
+    # appear uneven. Keep the complete name on one line and let the table reserve
+    # the space it needs for the identity column.
+    span(class: "whitespace-nowrap text-sm font-bold leading-tight text-white") { @player.name }
   end
 
   def rookie_badge
@@ -79,6 +81,7 @@ class Components::Drafts::PlayerIdentity < Components::Base
       team_logo(size: "size-7") unless @player.position == "DST"
       sr_only_team
       injury_badge
+      rookie_badge
     end
   end
 
