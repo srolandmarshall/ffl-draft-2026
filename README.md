@@ -19,6 +19,7 @@ The player pool, rankings, stats, headshots, and past-season draft history are p
 ## Quick start
 
 ```sh
+cp .env.example .env   # then fill in the Resend and ESPN values
 bundle install
 bin/rails db:prepare
 bin/rails db:seed
@@ -125,7 +126,7 @@ bin/rails storage:purge_superseded_variants CONFIRM=yes
 
 ## Configuration
 
-Development values go in `.env` (loaded by dotenv, git-ignored). Production values belong in the host's secret manager.
+Copy `.env.example` to `.env` and fill it in; dotenv loads it in development and test only. Production values belong in the host's secret manager.
 
 | Variable | Purpose |
 |---|---|

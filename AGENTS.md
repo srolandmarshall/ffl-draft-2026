@@ -84,4 +84,4 @@ Because tests run in parallel, don't write ones that depend on global mutable st
 - **Development sends real email.** `delivery_method = :resend` is set in development, with `raise_delivery_errors = true`. Without `RESEND_API_KEY`, sign-in raises. Mint a code from the console instead of chasing the error.
 - **Round count is derived.** While a draft is in `setup`, `rounds` is recomputed from the roster slot totals on every validation. Setting it directly won't stick.
 - **`storage/` holds thousands of cached headshots.** It's git-ignored. Don't glob it into searches or tooling.
-- **There's no `.env.example`** even though `.gitignore` anticipates one. If you add environment variables, that file is worth creating — the table in `README.md` is currently the only list.
+- **New environment variables go in `.env.example`** as well as the table in `README.md`.
