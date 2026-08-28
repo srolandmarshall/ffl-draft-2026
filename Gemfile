@@ -60,6 +60,11 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # Browser-driven draft rehearsals are deliberately run via `bin/rails test:system`,
+  # outside the normal test suite and CI.
+  gem "capybara"
+  gem "selenium-webdriver"
 end
 
 group :development do
