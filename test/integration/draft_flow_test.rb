@@ -42,7 +42,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_select "th", "2025 FP"
     assert_equal [ "Player", "Bye", "2025 FP", "Games", "TDs", "2025 production", "Action" ], css_select("thead th").map { |header| header.text.strip }
     assert_select "th", text: "ADP", count: 0
-    assert_select "span", "Rookie"
+    assert_select "span", "Rook"
     assert_select "dt", text: "YDS", minimum: 2
     assert_select "dt", text: "YPG", minimum: 2
     assert_select "dd", text: "4,200", minimum: 2
