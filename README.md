@@ -28,7 +28,9 @@ bin/dev
 
 Open <http://localhost:52477>.
 
-`db:seed` reads `db/seeds/fantasy_year_ix.json` and creates the league, its teams, the commissioner, and a live + test draft. Then populate the player pool from the admin area:
+`db:seed` creates a league, its teams, a commissioner, and a live + test draft. Real league rosters are never committed, so a fresh clone gets ten placeholder teams with `example.com` addresses. To seed real data instead, drop a private JSON file at `db/seeds/*.json` (git-ignored) or point `SEED_DATA` at one; see the shape built by `placeholder_seed_data` in `db/seeds.rb`.
+
+Then populate the player pool from the admin area:
 
 1. **Admin → Players → Sync ESPN player pool** — imports the current player universe.
 2. **Refresh rankings** — orders the pool from the rankings provider.

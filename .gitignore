@@ -21,3 +21,7 @@
 
 # Imported personal roster data
 /team_assignments.csv
+
+# Real league seed data: member names and email addresses. db/seeds.rb falls
+# back to generated placeholder teams when no file is present.
+/db/seeds/*.json
