@@ -72,9 +72,11 @@ class Components::Admin::Players::Index < Components::Base
   end
 
   def portrait(player)
-    div(class: "flex size-9 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800") do
-      render Components::PlayerPortrait.new(player:, title: nil)
-    end
+    render Components::PlayerPortrait.new(
+      player:,
+      frame: "size-9 shrink-0 rounded-full border border-white/10",
+      title: nil
+    )
   end
 
   def ranking_attribution

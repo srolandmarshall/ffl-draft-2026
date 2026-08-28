@@ -54,9 +54,10 @@ class Components::Drafts::BoardCell < Components::Base
       span(class: "font-mono text-[.65rem] font-bold tabular-nums text-slate-500") { pick_label }
       span(class: "text-[.65rem] font-black text-slate-300") { @team.abbreviation }
       div(class: "flex items-center justify-center gap-0.5") do
-        div(class: "flex items-end justify-center overflow-hidden rounded border border-white/15 #{mobile_portrait_size_classes} #{portrait_background_classes}") do
-          render Components::PlayerPortrait.new(player: @pick.player)
-        end
+        render Components::PlayerPortrait.new(
+          player: @pick.player,
+          frame: "#{mobile_portrait_size_classes} rounded border border-white/15"
+        )
         unless @pick.player.position == "DST"
           img(**nfl_team_logo_attributes(@pick.player.pro_team, classes: "h-9 w-7 rounded border border-white/15 bg-slate-400/50 p-0.5 object-contain"))
         end
@@ -75,9 +76,10 @@ class Components::Drafts::BoardCell < Components::Base
   def desktop_drafted_cell
     div(class: "hidden w-full flex-col items-center min-[900px]:flex") do
       div(class: "mb-0.5 flex shrink-0 items-center justify-center gap-1") do
-        div(class: "flex size-8 items-end justify-center overflow-hidden rounded-md border border-white/15 #{portrait_background_classes} lg:size-9") do
-          render Components::PlayerPortrait.new(player: @pick.player)
-        end
+        render Components::PlayerPortrait.new(
+          player: @pick.player,
+          frame: "size-8 rounded-md border border-white/15 lg:size-9"
+        )
         unless @pick.player.position == "DST"
           img(**nfl_team_logo_attributes(@pick.player.pro_team, classes: "size-7 rounded-md border border-white/15 bg-slate-400/50 p-0.5 object-contain lg:size-8"))
         end
@@ -85,10 +87,6 @@ class Components::Drafts::BoardCell < Components::Base
       span(class: "mt-1 w-full text-balance break-words text-xs font-semibold leading-tight lg:text-sm") { player_name }
       span(class: "mt-1 text-[.6rem] font-black leading-none lg:text-xs") { position_label }
     end
-  end
-
-  def portrait_background_classes
-    @pick.player.position == "DST" ? "bg-slate-400/50" : "bg-slate-800"
   end
 
   def mobile_portrait_size_classes
