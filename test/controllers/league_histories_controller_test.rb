@@ -100,6 +100,17 @@ class LeagueHistoriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ "All franchises", "Challenger", "Red Hawks" ], buttons
   end
 
+  test "does not show an archived team in franchise history" do
+    teams(:one).update!(archived: true)
+    sign_in_as users(:member)
+
+    get league_history_path(@league)
+
+    assert_response :success
+    assert_select "button[data-finish-chart-target='button'][data-name='Red Hawks']", count: 0
+    assert_select "article", text: /Red Hawks/, count: 0
+  end
+
   test "current season appears after ESPN has drafted" do
     @current_season.draft_picks.create!(
       overall_number: 1, round: 1, round_pick: 1,

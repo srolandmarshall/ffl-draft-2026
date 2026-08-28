@@ -23,10 +23,10 @@ class Components::Drafts::PlayerFilters < Components::Base
         div(class: "flex flex-wrap items-start gap-3 sm:justify-between") do
           mobile_position_filter
           position_filters
-          team_filter
-        end
-        div(class: "flex items-center justify-end") do
-          button(type: "button", class: "cursor-pointer rounded px-3 py-1.5 text-xs font-bold text-slate-400 transition hover:bg-white/10 hover:text-white", data: { action: "draft-filter#clearFilters" }) { "Clear filters" }
+          div(class: "flex items-center gap-2") do
+            team_filter
+            clear_filters if filters_active?
+          end
         end
       end
     end
@@ -35,6 +35,12 @@ class Components::Drafts::PlayerFilters < Components::Base
   private
 
   def frame_id = "draft-#{@draft.public_id}-players"
+
+  def filters_active? = @query.present? || @positions.any? || @teams.any?
+
+  def clear_filters
+    button(type: "button", class: "cursor-pointer rounded px-3 py-1.5 text-xs font-bold text-slate-400 transition hover:bg-white/10 hover:text-white", data: { action: "draft-filter#clearFilters" }) { "Clear filters" }
+  end
 
   def position_filters
     div(class: "hidden flex-wrap items-center gap-2 sm:flex", aria: { label: "Filter by position" }) do
