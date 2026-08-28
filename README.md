@@ -109,13 +109,6 @@ bin/importmap audit     # vulnerable JS
 
 CI runs all five on every pull request and push to `main`.
 
-Production image checks:
-
-```sh
-make production-check   # build the image, boot it, poll /up, dump logs, clean up
-make production-run     # leave a container running on :8080
-```
-
 Operational rake tasks:
 
 ```sh
@@ -146,7 +139,14 @@ Development values go in `.env` (loaded by dotenv, git-ignored). Production valu
 
 ## Deployment
 
-Pushes to `main` deploy automatically: once the scan, lint, and test jobs pass, CI runs `flyctl deploy`. `fly.toml` describes a single Fly machine in `ewr` with a persistent volume mounted at `/rails/storage`, health checks on `/up`, and Solid Queue running in the Puma process. `Dockerfile` and the Kamal config make the same image deployable elsewhere.
+`Dockerfile` builds the production image, and pushes to `main` deploy automatically once the scan, lint, and test jobs pass. The runtime expects three things from whatever hosts it: a persistent volume mounted at `/rails/storage` for the SQLite databases and Active Storage files, a health check against `/up`, and `SOLID_QUEUE_IN_PUMA=true` if no separate worker process is running. A Kamal config is checked in as an alternative path.
+
+Verify the image locally before shipping a risky change:
+
+```sh
+make production-check   # build the image, boot it, poll /up, dump logs, clean up
+make production-run     # leave a container running on :8080
+```
 
 `docs/launch_checklist.md` is the pre-draft-day checklist: S3 migration, secrets, email deliverability, backups, and the multi-device rehearsal.
 
