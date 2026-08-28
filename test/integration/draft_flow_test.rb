@@ -1,4 +1,5 @@
 require "test_helper"
+require "timecop"
 
 class DraftFlowTest < ActionDispatch::IntegrationTest
   test "shared draft room renders before team selection" do
@@ -339,17 +340,18 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     draft.update!(started_at: Time.zone.parse("2026-08-14 12:00:00"))
     sign_in_as users(:commissioner)
 
-    travel_to Time.zone.parse("2026-08-14 12:00:30") do
+    Timecop.freeze(Time.zone.parse("2026-08-14 12:00:30")) do
       patch draft_pick_timer_path(draft.public_id), params: { state: "pause" }
+      assert_redirected_to draft_path(draft.public_id)
+
+      get draft_path(draft.public_id)
+
+      assert_select "[data-pick-timer-paused-value='true'][data-pick-timer-elapsed-value='30']"
+      assert_select "button", "Resume"
     end
-    assert_redirected_to draft_path(draft.public_id)
     assert_equal Time.zone.parse("2026-08-14 12:00:30"), draft.reload.pick_timer_paused_at
 
-    get draft_path(draft.public_id)
-    assert_select "[data-pick-timer-paused-value='true'][data-pick-timer-elapsed-value='30']"
-    assert_select "button", "Resume"
-
-    travel_to Time.zone.parse("2026-08-14 12:02:30") do
+    Timecop.freeze(Time.zone.parse("2026-08-14 12:02:30")) do
       patch draft_pick_timer_path(draft.public_id), params: { state: "resume" }
     end
     assert_nil draft.reload.pick_timer_paused_at
