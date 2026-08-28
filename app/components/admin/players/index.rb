@@ -73,11 +73,7 @@ class Components::Admin::Players::Index < Components::Base
 
   def portrait(player)
     div(class: "flex size-9 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 bg-slate-800") do
-      if player_portrait?(player)
-        img(**player_portrait_attributes(player, classes: "h-full w-full", title: nil))
-      else
-        render Components::PlayerPortraitFallback.new(classes: "w-full")
-      end
+      render Components::PlayerPortrait.new(player:, title: nil)
     end
   end
 
