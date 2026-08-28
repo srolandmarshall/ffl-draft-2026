@@ -59,4 +59,12 @@ bin/rubocop
 bin/brakeman --no-pager
 ```
 
+Run the opt-in browser rehearsal in Docker (the same command used by the manual GitHub Actions workflow):
+
+```sh
+bin/system-test
+```
+
+It runs Rails in one container and Chrome/Selenium in another, so it does not require a browser on the host. By default it simulates a 12-team, 16-round snake draft (192 picks); set `DRAFT_SIMULATION_TEAM_COUNT` and `DRAFT_SIMULATION_ROUNDS` to rehearse a different format.
+
 Authentication, pick clocks, traded picks, keepers, roster-position validation, and a supported direct ESPN adapter are intentionally left as later increments.

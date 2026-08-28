@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+compose_file=compose.system-test.yml
+
+cleanup() {
+  docker compose -f "$compose_file" down --volumes --remove-orphans
+}
+
+trap cleanup EXIT
+docker compose -f "$compose_file" up --build --abort-on-container-exit --exit-code-from test
