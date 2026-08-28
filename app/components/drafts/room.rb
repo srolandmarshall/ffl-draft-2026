@@ -42,7 +42,7 @@ class Components::Drafts::Room < Components::Base
   def sidebar_column
     div(class: "min-w-0 space-y-4 lg:col-start-1 lg:row-start-1") do
       clock
-      recent_picks_panel unless board_view?
+      recent_picks_panel(panel_classes: ("lg:hidden" if board_view?))
     end
   end
 
@@ -57,8 +57,8 @@ class Components::Drafts::Room < Components::Base
     end
   end
 
-  def recent_picks_panel
-    aside(class: "min-w-0", data: { draft_room_sidebar: true }) { render recent_picks }
+  def recent_picks_panel(panel_classes: nil)
+    aside(class: "min-w-0 #{panel_classes}", data: { draft_room_sidebar: true }) { render recent_picks }
   end
 
   def room_content

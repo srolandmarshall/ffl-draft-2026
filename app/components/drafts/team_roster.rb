@@ -109,18 +109,13 @@ class Components::Drafts::TeamRoster < Components::Base
   end
 
   def player_image(player)
-    if player_portrait?(player)
-      rounding = "rounded-md" unless player.position == "DST"
-      img(
-        **player_portrait_attributes(player, classes: [ "shrink-0", rounding ].compact.join(" ")),
-        style: player_image_style,
-        data: { roster_player_image: true }
-      )
-    else
-      div(class: "flex shrink-0 items-end justify-center", style: player_image_style) do
-        render Components::PlayerPortraitFallback.new(classes: "w-full")
-      end
-    end
+    rounding = "rounded-md" unless player.position == "DST"
+    render Components::PlayerPortrait.new(
+      player:,
+      frame: [ "shrink-0", rounding ].compact.join(" "),
+      frame_style: player_image_style,
+      data: { roster_player_image: true }
+    )
   end
 
   def player_image_style = "height: 2.75rem; width: 2.25rem"

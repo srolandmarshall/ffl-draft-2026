@@ -13,17 +13,15 @@ class Components::Drafts::PlayerIdentity < Components::Base
         if @variant == :desktop
           div(class: "flex items-center gap-2") do
             player_name
-            rookie_badge
           end
           position_line
         else
-          div(class: "flex flex-wrap items-center gap-2") do
-            player_name
+          player_name
+          div(class: "mt-1 flex items-center gap-2") do
             position_badge
             team_logo unless @player.position == "DST"
             sr_only_team
-            injury_badge
-            rookie_badge
+            status_badges
           end
         end
       end
@@ -38,25 +36,23 @@ class Components::Drafts::PlayerIdentity < Components::Base
 
   def headshot
     wrapper_size = @variant == :desktop ? "size-10" : "size-8"
-    background = @player.position == "DST" ? "bg-slate-400/50" : "bg-slate-800"
-    div(class: "flex #{wrapper_size} shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 #{background}") do
-      if player_portrait?(@player)
-        img(**player_portrait_attributes(@player, classes: "h-full w-full"))
-      else
-        render Components::PlayerPortraitFallback.new(classes: "w-full")
-      end
-    end
+    render Components::PlayerPortrait.new(
+      player: @player,
+      frame: "#{wrapper_size} shrink-0 rounded-full border border-white/10"
+    )
   end
 
   def player_name
-    span(class: "break-words text-sm font-bold leading-tight text-white") { @player.name }
+    # Player rows are intentionally compact, but a wrapped name makes adjacent rows
+    # appear uneven. Keep the complete name on one line and let the table reserve
+    # the space it needs for the identity column.
+    span(class: "whitespace-nowrap text-sm font-bold leading-tight text-white") { @player.name }
   end
 
   def rookie_badge
     return unless @player.rookie?
 
-    classes = @variant == :desktop ? "inline-flex shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[.6rem] font-bold uppercase tracking-wide text-white" : "rounded-full bg-white/10 px-2 py-0.5 text-[.6rem] font-bold uppercase"
-    span(class: classes) { "Rookie" }
+    span(class: "inline-flex shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[.6rem] font-bold uppercase tracking-wide text-white") { "Rook" }
   end
 
   def injury_badge
@@ -82,7 +78,16 @@ class Components::Drafts::PlayerIdentity < Components::Base
       position_badge
       team_logo(size: "size-7") unless @player.position == "DST"
       sr_only_team
+      status_badges
+    end
+  end
+
+  def status_badges
+    return unless @player.injured? || @player.rookie?
+
+    div(class: "flex flex-col items-start gap-1", data: { player_status_badges: true }) do
       injury_badge
+      rookie_badge
     end
   end
 

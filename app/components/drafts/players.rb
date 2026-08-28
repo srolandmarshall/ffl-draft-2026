@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 
+# The draftable player list: filters, both breakpoint layouts, and the source note.
+#
+# Desktop and mobile are deliberately separate markup rather than one responsive layout - a
+# table and a card list do not reflow into each other - so this renders every player twice and
+# leans on `PlayerDraftStats` to keep the two in step.
 class Components::Drafts::Players < Components::Base
+  EMPTY_MESSAGE = "No players match those filters."
+
   def initialize(room:, can_make_pick:)
     @room = room
     @draft = room.draft
@@ -24,10 +31,14 @@ class Components::Drafts::Players < Components::Base
   private
 
   def frame_id = "draft-#{@draft.public_id}-players"
+  def prior_season = @draft.league.season - 1
 
   def refresh_url
     players_draft_path(@draft.public_id, @room.player_filters.compact_blank)
   end
+
+  # Resolved once per player and shared by both breakpoints.
+  def stats_for(player) = PlayerDraftStats.new(@draft, player)
 
   def filters
     Components::Drafts::PlayerFilters.new(
@@ -45,7 +56,7 @@ class Components::Drafts::Players < Components::Base
       end
       thead(class: "sticky top-0 z-10 bg-slate-800 uppercase tracking-wider text-slate-400") { table_header }
       tbody(class: "divide-y divide-white/5") do
-        @players.each { |player| desktop_row(player) }
+        @players.each { |player| render row_for(player) }
         empty_table_row if @players.empty?
       end
     end
@@ -63,69 +74,34 @@ class Components::Drafts::Players < Components::Base
     end
   end
 
-  def desktop_row(player)
-    stats = PlayerStats.new(@draft, player)
-    tr(class: "#{position_surface_classes(player.position)} transition hover:brightness-110", data: { draft_player_id: player.id }) do
-      td(class: "px-3 py-2.5") { render Components::Drafts::PlayerIdentity.new(player:, variant: :desktop) }
-      td(class: "px-2 py-2.5 text-center") { span(class: "font-bold tabular-nums text-slate-300") { player.bye_week || "—" } }
-      td(class: "px-2 py-2.5 text-right") { span(class: "text-base font-black tabular-nums text-lime-400") { points(stats) } }
-      td(class: "px-2 py-2.5 text-center") { span(class: "font-bold tabular-nums text-slate-200") { player.draft_games || "—" } }
-      td(class: "px-2 py-2.5 text-center") { render Components::Drafts::Touchdowns.new(stats: stats.touchdowns) }
-      td(class: "px-3 py-2.5") { render Components::Drafts::ProductionGroups.new(groups: stats.groups) }
-      td(class: "px-3 py-2.5 text-right") { render Components::Drafts::Action.new(draft: @draft, player:, can_make_pick: @can_make_pick) }
-    end
+  def row_for(player)
+    Components::Drafts::PlayerRow.new(
+      draft: @draft,
+      player:,
+      stats: stats_for(player),
+      can_make_pick: @can_make_pick
+    )
   end
 
   def mobile_list
     div(class: "divide-y divide-white/15 md:hidden") do
-      @players.each { |player| mobile_row(player) }
-      div(class: "px-5 py-10 text-center text-sm text-slate-500") { "No players match those filters." } if @players.empty?
+      @players.each { |player| render card_for(player) }
+      div(class: "px-5 py-10 text-center text-sm text-slate-500") { EMPTY_MESSAGE } if @players.empty?
     end
   end
 
-  def mobile_row(player)
-    stats = PlayerStats.new(@draft, player)
-    article(class: "px-3 py-2 #{position_surface_classes(player.position)}", data: { draft_player_id: player.id, mobile_player_row: true }) do
-      div(class: "flex items-start justify-between gap-2") do
-        render Components::Drafts::PlayerIdentity.new(player:, variant: :mobile)
-        render Components::Drafts::Action.new(draft: @draft, player:, can_make_pick: @can_make_pick)
-      end
-      mobile_summary(player, stats)
-      season_stats_details(stats)
-    end
-  end
-
-  def mobile_summary(player, stats)
-    dl(class: "mt-1.5 grid grid-cols-4 border-y border-white/10 py-1.5") do
-      metric("Bye", player.bye_week || "—")
-      metric("#{prior_season} FP", points(stats), separated: true, accent: true)
-      metric("Games", player.draft_games || "—", separated: true)
-      metric("TDs", total_touchdowns(stats), separated: true)
-    end
-  end
-
-  def season_stats_details(stats)
-    details(class: "group mt-1.5") do
-      summary(class: "flex cursor-pointer list-none items-center justify-between gap-2 text-[.6rem] font-bold uppercase tracking-wider text-slate-400 [&::-webkit-details-marker]:hidden") do
-        span { "Season stats" }
-        span(class: "text-slate-500 transition group-open:rotate-180", aria: { hidden: true }) { "▾" }
-      end
-      div(class: "mt-1") do
-        render Components::Drafts::Touchdowns.new(stats: stats.touchdowns, variant: :mobile)
-        render Components::Drafts::ProductionGroups.new(groups: stats.groups, variant: :mobile)
-      end
-    end
-  end
-
-  def metric(label, value, separated: false, accent: false)
-    div(class: separated ? "border-l border-white/10 pl-2" : nil) do
-      dt(class: "text-[.5rem] font-bold uppercase tracking-wide #{accent ? 'text-lime-300' : 'text-slate-500'}") { label }
-      dd(class: "text-sm font-black tabular-nums leading-tight #{accent ? 'text-lime-300' : 'text-slate-100'}") { value }
-    end
+  def card_for(player)
+    Components::Drafts::PlayerCard.new(
+      draft: @draft,
+      player:,
+      stats: stats_for(player),
+      can_make_pick: @can_make_pick,
+      prior_season:
+    )
   end
 
   def empty_table_row
-    tr { td(colspan: 7, class: "px-5 py-10 text-center text-sm text-slate-500") { "No players match those filters." } }
+    tr { td(colspan: 7, class: "px-5 py-10 text-center text-sm text-slate-500") { EMPTY_MESSAGE } }
   end
 
   def source_note
@@ -139,27 +115,6 @@ class Components::Drafts::Players < Components::Base
         render Components::RankingAttribution.new(sources:)
         plain "."
       end
-    end
-  end
-
-  def prior_season = @draft.league.season - 1
-
-  def points(stats)
-    stats.fantasy_points ? number_with_precision(stats.fantasy_points, precision: 1) : "—"
-  end
-
-  def total_touchdowns(stats)
-    stats.touchdowns.any? ? stats.touchdowns.sum { |_label, value| value } : "—"
-  end
-
-  class PlayerStats
-    attr_reader :fantasy_points, :groups, :touchdowns
-
-    def initialize(draft, player)
-      league_score = draft.prior_season_score_for(player)
-      @fantasy_points = league_score&.points
-      @groups = player.position == "DST" ? (league_score&.dst_stat_groups || []) : player.draft_stat_groups
-      @touchdowns = player.position == "DST" ? (league_score&.dst_touchdown_stats || []) : player.draft_touchdown_stats
     end
   end
 end
