@@ -124,43 +124,12 @@ bin/rails storage:purge_orphans CONFIRM=yes
 bin/rails storage:purge_superseded_variants CONFIRM=yes
 ```
 
-`script/profile_draft_board.rb` and `script/profile_player_list.rb` profile the two hottest screens; findings live in `docs/`.
-
-## Configuration
-
-Copy `.env.example` to `.env` and fill it in; dotenv loads it in development and test only. Production values belong in the host's secret manager.
-
-| Variable | Purpose |
-|---|---|
-| `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | login-code delivery |
-| `ESPN_S2`, `ESPN_SWID` | ESPN cookies for private-league reads |
-| `PLAYER_RANKINGS_SOURCE` | `league_logs` (default) or `fantasy_football_calculator` |
-| `APP_HOST` | canonical host for generated URLs |
-| `S3_BUCKET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `CDN_HOST` | Active Storage in production |
-| `SOLID_QUEUE_IN_PUMA` | run background jobs inside the web process |
-| `PORT`, `WEB_CONCURRENCY`, `RAILS_MAX_THREADS`, `JOB_CONCURRENCY` | server sizing |
-
-## Deployment
-
-`Dockerfile` builds the production image, and pushes to `main` deploy automatically once the scan, lint, and test jobs pass. The runtime expects three things from whatever hosts it: a persistent volume mounted at `/rails/storage` for the SQLite databases and Active Storage files, a health check against `/up`, and `SOLID_QUEUE_IN_PUMA=true` if no separate worker process is running. A Kamal config is checked in as an alternative path.
-
-Verify the image locally before shipping a risky change:
+Run the opt-in browser rehearsal in Docker (the same command used by the manual GitHub Actions workflow):
 
 ```sh
-make production-check   # build the image, boot it, poll /up, dump logs, clean up
-make production-run     # leave a container running on :8080
+bin/system-test
 ```
 
-`docs/launch_checklist.md` is the pre-draft-day checklist: S3 migration, secrets, email deliverability, backups, and the multi-device rehearsal.
+It runs Rails in one container and Chrome/Selenium in another, so it does not require a browser on the host. By default it simulates a 12-team, 16-round snake draft (192 picks); set `DRAFT_SIMULATION_TEAM_COUNT` and `DRAFT_SIMULATION_ROUNDS` to rehearse a different format.
 
-## Exporting to ESPN
-
-ESPN documents offline-draft roster entry for League Manager leagues but publishes no supported bulk results-import API. So the CSV export is a roster worksheet — team, owner, roster slot, player identity, ESPN ID, round, overall pick — and the JSON export exposes the same data behind a stable boundary for a future API or browser-assisted importer.
-
-In ESPN, configure the league as an offline draft, then use **League Manager Tools → Input Offline Draft Results** and enter each exported team roster before making rosters available.
-
-## Contributing
-
-`AGENTS.md` carries the one hard rule: create Rails-owned artifacts (migrations, models, controllers, jobs, mailers, channels, tests) with `bin/rails generate` before editing them, rather than hand-writing them.
-
-Traded picks, keepers, and roster-position validation at pick time are deliberately left for later.
+Authentication, pick clocks, traded picks, keepers, roster-position validation, and a supported direct ESPN adapter are intentionally left as later increments.

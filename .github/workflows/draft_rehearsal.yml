@@ -1,0 +1,27 @@
+name: Draft rehearsal
+
+on:
+  workflow_dispatch:
+    inputs:
+      team_count:
+        description: Teams in the rehearsal
+        required: false
+        default: "12"
+      rounds:
+        description: Rounds in the rehearsal
+        required: false
+        default: "16"
+
+jobs:
+  rehearsal:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Run browser draft rehearsal
+        env:
+          DRAFT_SIMULATION_ROUNDS: ${{ inputs.rounds }}
+          DRAFT_SIMULATION_TEAM_COUNT: ${{ inputs.team_count }}
+        run: bin/system-test
