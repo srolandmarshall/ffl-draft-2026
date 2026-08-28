@@ -38,10 +38,10 @@ class Components::Drafts::PlayerIdentity < Components::Base
 
   def headshot
     wrapper_size = @variant == :desktop ? "size-10" : "size-8"
-    background = @player.position == "DST" ? "bg-slate-400/50" : "bg-slate-800"
-    div(class: "flex #{wrapper_size} shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 #{background}") do
-      render Components::PlayerPortrait.new(player: @player)
-    end
+    render Components::PlayerPortrait.new(
+      player: @player,
+      frame: "#{wrapper_size} shrink-0 rounded-full border border-white/10"
+    )
   end
 
   def player_name

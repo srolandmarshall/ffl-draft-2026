@@ -28,10 +28,10 @@ class Components::Drafts::RecentPicks < Components::Base
     elapsed = @pick_elapsed_seconds.fetch(pick.id) { @pick_elapsed_seconds.fetch(pick.id.to_s, 0) }
     visibility_classes = desktop_only ? "hidden lg:flex" : "flex"
     li(class: "#{visibility_classes} min-w-0 items-center gap-2 border-b border-r border-white/5 px-2 py-1.5 text-[.65rem] sm:text-xs", data: { recent_pick: "" }) do
-      background = pick.player.position == "DST" ? "bg-slate-400/50" : "bg-slate-800"
-      div(class: "flex size-8 shrink-0 items-end justify-center overflow-hidden rounded-full border border-white/10 #{background}") do
-        render Components::PlayerPortrait.new(player: pick.player)
-      end
+      render Components::PlayerPortrait.new(
+        player: pick.player,
+        frame: "size-8 shrink-0 rounded-full border border-white/10"
+      )
       div(class: "min-w-0 flex-1") do
         div(class: "flex items-center gap-1.5") do
           span(class: "min-w-0 flex-1 truncate font-bold") { pick.player.name }
