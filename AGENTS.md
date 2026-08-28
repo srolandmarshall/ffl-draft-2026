@@ -16,7 +16,7 @@ CI runs those plus `bin/bundler-audit` and `bin/importmap audit`, and `main` dep
 
 **Use Rails generators for Rails-owned artifacts.** Migrations, models, controllers, jobs, mailers, channels, and their generated tests must come from `bin/rails generate ...` before you edit them. Customize the generated file with normal patches afterward. Never hand-write one as a substitute. If the generator can't run, or there's no obvious generator for what you need, stop and ask rather than improvising.
 
-**Never commit secrets.** `.env` and `config/master.key` are git-ignored and must stay that way. `db/seeds/fantasy_year_ix.json` contains real league members' email addresses — it's already tracked, so don't copy those addresses into new files, tests, fixtures, or commit messages.
+**Never commit secrets or real member data.** `.env`, `config/master.key`, `team_assignments.csv`, and `db/seeds/*.json` are git-ignored and must stay that way. The private seed file holds real league members' names and email addresses; `db/seeds.rb` falls back to generated placeholder teams when it's absent. Never commit that file, un-ignore its path, or copy real names or addresses into code, tests, fixtures, or commit messages. Placeholder data uses `example.com`.
 
 **Don't commit unless asked.** Leave changes in the working tree by default.
 

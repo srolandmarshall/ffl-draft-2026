@@ -1,7 +1,57 @@
 require "json"
 
-seed_path = Rails.root.join("db/seeds/fantasy_year_ix.json")
-seed_data = JSON.parse(seed_path.read)
+# Real league data (member names and email addresses) is never committed. Drop
+# a private JSON file into db/seeds/ under any name — .gitignore excludes
+# db/seeds/*.json — or point SEED_DATA at a copy elsewhere, and this script uses
+# it. With no such file, it seeds an equivalent league of placeholder teams so a
+# fresh clone still has something to draft with.
+PLACEHOLDER_TEAM_COUNT = 10
+
+def private_seed_path
+  if (configured = ENV["SEED_DATA"].presence)
+    path = Pathname.new(configured).then { |candidate| candidate.absolute? ? candidate : Rails.root.join(candidate) }
+    abort "SEED_DATA is set to #{configured}, but no file exists there." unless path.exist?
+    return path
+  end
+
+  candidates = Rails.root.glob("db/seeds/*.json").sort
+  if candidates.size > 1
+    names = candidates.map { |candidate| candidate.relative_path_from(Rails.root) }.join(", ")
+    abort "Found more than one seed file (#{names}). Set SEED_DATA to choose one."
+  end
+
+  candidates.first
+end
+
+def placeholder_seed_data(team_count)
+  {
+    "league" => {
+      "name" => "Example League",
+      "draft_name" => "Live Draft",
+      "test_draft_name" => "TEST DRAFT",
+      "scheduled_start_at" => 1.week.from_now.iso8601,
+      "settings" => {
+        "ppr" => 0.5, "draft_type" => "snake",
+        "qb_slots" => 1, "rb_slots" => 2, "wr_slots" => 2, "te_slots" => 1,
+        "flex_slots" => 2, "k_slots" => 1, "dst_slots" => 1, "bench_slots" => 6
+      }
+    },
+    "commissioner_emails" => [ "commissioner@example.com" ],
+    "teams" => (1..team_count).map do |position|
+      {
+        "position" => position,
+        "abbreviation" => format("T%02d", position),
+        "name" => "Team #{position}",
+        "owners" => [ { "name" => "Manager #{position}", "emails" => [ "manager#{position}@example.com" ] } ]
+      }
+    end
+  }
+end
+
+seed_path = private_seed_path
+using_placeholders = seed_path.nil?
+seed_data = using_placeholders ? placeholder_seed_data(PLACEHOLDER_TEAM_COUNT) : JSON.parse(seed_path.read)
+
 league_data = seed_data.fetch("league")
 team_data = seed_data.fetch("teams").sort_by { |team| team.fetch("position") }
 season = ENV.fetch("LEAGUE_SEASON", Date.current.year).to_i
@@ -84,4 +134,6 @@ test_draft.save!
 seed_draft_entries!(test_draft, teams)
 
 email_count = team_data.sum { |team| team.fetch("owners").sum { |owner| owner.fetch("emails").size } }
-puts "Seeded #{league.name} (#{league.season}) with #{teams.size} teams, #{email_count} email addresses, and #{league.drafts.count} drafts."
+source = using_placeholders ? "placeholder data" : seed_path.to_s.delete_prefix("#{Rails.root}/")
+puts "Seeded #{league.name} (#{league.season}) from #{source}: #{teams.size} teams, #{email_count} email addresses, #{league.drafts.count} drafts."
+puts "No private seed file found — using placeholders. Drop one in db/seeds/ or set SEED_DATA to seed real data." if using_placeholders
