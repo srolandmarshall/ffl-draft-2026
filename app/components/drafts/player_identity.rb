@@ -21,8 +21,7 @@ class Components::Drafts::PlayerIdentity < Components::Base
             position_badge
             team_logo unless @player.position == "DST"
             sr_only_team
-            injury_badge
-            rookie_badge
+            status_badges
           end
         end
       end
@@ -53,8 +52,7 @@ class Components::Drafts::PlayerIdentity < Components::Base
   def rookie_badge
     return unless @player.rookie?
 
-    classes = @variant == :desktop ? "inline-flex shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[.6rem] font-bold uppercase tracking-wide text-white" : "rounded-full bg-white/10 px-2 py-0.5 text-[.6rem] font-bold uppercase"
-    span(class: classes) { "Rookie" }
+    span(class: "inline-flex shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[.6rem] font-bold uppercase tracking-wide text-white") { "Rook" }
   end
 
   def injury_badge
@@ -80,6 +78,14 @@ class Components::Drafts::PlayerIdentity < Components::Base
       position_badge
       team_logo(size: "size-7") unless @player.position == "DST"
       sr_only_team
+      status_badges
+    end
+  end
+
+  def status_badges
+    return unless @player.injured? || @player.rookie?
+
+    div(class: "flex flex-col items-start gap-1", data: { player_status_badges: true }) do
       injury_badge
       rookie_badge
     end

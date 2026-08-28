@@ -15,6 +15,7 @@ class Components::Drafts::PlayerIdentityTest < ActiveSupport::TestCase
       assert_includes html, "sr-only"
       assert_includes html, "Questionable"
       assert_includes html, "ESPN injury status"
+      assert_includes html, "Rook"
       assert_match(/aria-hidden(?:="true")?[^>]*>\+<\//, html)
       assert_match(/>Q<\//, html)
     end
@@ -47,9 +48,12 @@ class Components::Drafts::PlayerIdentityTest < ActiveSupport::TestCase
   def assert_injury_badge_follows_team(html, player)
     fragment = Nokogiri::HTML.fragment(html)
     team_name = fragment.css(".sr-only").find { |node| node.text == player.pro_team }
-    injury_badge = fragment.at_css("[title^='ESPN injury status:']")
+    status_badges = fragment.at_css("[data-player-status-badges]")
+    injury_badge = status_badges.at_css("[title^='ESPN injury status:']")
 
-    assert_equal team_name.parent, injury_badge.parent
-    assert_equal team_name.next_element, injury_badge
+    assert_equal team_name.parent, status_badges.parent
+    assert_equal team_name.next_element, status_badges
+    assert_equal [ "+Q", "Rook" ], status_badges.element_children.map { |node| node.text.strip.gsub(/\s+/, " ") }
+    assert_equal status_badges, injury_badge.parent
   end
 end
