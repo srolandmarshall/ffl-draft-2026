@@ -5,6 +5,10 @@ on:
   push:
     branches: [ main ]
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   scan_ruby:
     runs-on: ubuntu-latest
@@ -93,13 +97,22 @@ jobs:
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test
 
-  deploy:
+  full_draft_rehearsal:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [ scan_ruby, scan_js, lint, test ]
     runs-on: ubuntu-latest
-    concurrency:
-      group: fly-production
-      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Run full browser draft rehearsal
+        run: bin/system-test
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [ full_draft_rehearsal ]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
