@@ -4,8 +4,6 @@ A live snake-draft room for a fantasy football league, built with Rails 8 and Ho
 
 The player pool, rankings, stats, headshots, and past-season draft history are pulled from ESPN, nflverse, and a rankings provider so the room has real data on draft night. Results export as a commissioner-friendly CSV for ESPN's offline-draft entry.
 
-Production runs on Fly.io at `draft.sammarshall.us`.
-
 ## Stack
 
 | | |
