@@ -23,4 +23,22 @@ class ApplicationController < ActionController::Base
     session[:return_to] = request.fullpath if request.get? || request.head?
     redirect_to new_session_path, alert: "Enter your email to continue."
   end
+
+  def authenticate_user_or_bearer_token!
+    return if signed_in?
+    return authenticate_user! if request.format.html?
+    return if (api_token = ApiToken.find_by_raw_token(bearer_token)) && set_api_token_user(api_token)
+
+    head :unauthorized
+  end
+
+  def bearer_token
+    request.headers["Authorization"].to_s.match(/\ABearer\s+(\S+)\z/i)&.captures&.first
+  end
+
+  def set_api_token_user(api_token)
+    @current_user = api_token.user
+    api_token.touch(:last_used_at)
+    true
+  end
 end
