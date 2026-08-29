@@ -6,6 +6,7 @@ class User < ApplicationRecord
   has_many :team_memberships, dependent: :destroy
   has_many :teams, through: :team_memberships
   has_many :user_emails, dependent: :destroy
+  has_many :api_tokens, dependent: :destroy
 
   enum :role, { member: 0, commissioner: 1 }
 

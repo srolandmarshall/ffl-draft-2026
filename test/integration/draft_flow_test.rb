@@ -450,6 +450,58 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_equal "text/csv", response.media_type
   end
 
+  test "player list is available as structured JSON" do
+    sign_in_as users(:member)
+    get players_draft_path(drafts(:one).public_id, format: :json)
+
+    assert_response :success
+    payload = JSON.parse(response.body)
+    assert_equal "Sunday League", payload.dig("league", "name")
+    assert_equal "live", payload.dig("draft", "status")
+    assert_equal "Alex Archer", payload.dig("players", 0, "name")
+    assert_nil payload.dig("players", 0, "roster_owner")
+    assert_match(/\n  "league"/, response.body)
+  end
+
+  test "player list includes roster ownership for drafted players" do
+    draft = drafts(:one)
+    Pick.create!(draft:, team: teams(:one), player: players(:one), round: 1, overall_number: 1)
+    sign_in_as users(:member)
+
+    get players_draft_path(draft.public_id, format: :json)
+
+    player = JSON.parse(response.body).fetch("players").find { |row| row.fetch("name") == "Alex Archer" }
+    assert_equal true, player.fetch("drafted")
+    assert_equal "Riley", player.fetch("roster_owner")
+  end
+
+  test "player list accepts a bearer token for non-HTML formats" do
+    raw_token = ApiToken.issue!(user: users(:member), label: "Draft helper")
+
+    get players_draft_path(drafts(:one).public_id, format: :json), headers: { "Authorization" => "Bearer #{raw_token}" }
+
+    assert_response :success
+    assert_not_nil ApiToken.find_by_raw_token(raw_token).last_used_at
+  end
+
+  test "player list rejects an invalid bearer token" do
+    get players_draft_path(drafts(:one).public_id, format: :json), headers: { "Authorization" => "Bearer invalid" }
+
+    assert_response :unauthorized
+  end
+
+  test "player list is available as XLSX and PDF" do
+    sign_in_as users(:member)
+
+    get players_draft_path(drafts(:one).public_id, format: :xlsx)
+    assert_response :success
+    assert_equal "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", response.media_type
+
+    get players_draft_path(drafts(:one).public_id, format: :pdf)
+    assert_response :success
+    assert_equal "application/pdf", response.media_type
+  end
+
   test "completed draft shows exports on its results page" do
     draft = drafts(:one)
     draft.update!(status: :complete, completed_at: Time.current)

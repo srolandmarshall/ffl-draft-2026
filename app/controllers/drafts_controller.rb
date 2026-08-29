@@ -1,7 +1,7 @@
 class DraftsController < ApplicationController
   PLAYER_LIST_LIMIT = 36
 
-  before_action :authenticate_user!
+  before_action :authenticate_user_or_bearer_token!
   before_action :set_draft
   before_action :authorize_draft!
   before_action :disable_turbo_cache
@@ -17,9 +17,16 @@ class DraftsController < ApplicationController
   end
 
   def players
-    @selected_team = selected_team
-    load_available_players
-    render Components::Drafts::Players.new(room: draft_room, can_make_pick: draft_room.can_make_pick?(current_user))
+    respond_to do |format|
+      format.html do
+        @selected_team = selected_team
+        load_available_players
+        render Components::Drafts::Players.new(room: draft_room, can_make_pick: draft_room.can_make_pick?(current_user))
+      end
+      format.json { send_data Drafts::PlayerListExport.new(@draft).to_json, filename: player_list_filename("json"), type: :json }
+      format.xlsx { send_data Drafts::PlayerListExport.new(@draft).to_xlsx, filename: player_list_filename("xlsx"), type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+      format.pdf { send_data Drafts::PlayerListExport.new(@draft).to_pdf, filename: player_list_filename("pdf"), type: "application/pdf" }
+    end
   end
 
   private
@@ -92,5 +99,9 @@ class DraftsController < ApplicationController
 
   def disable_turbo_cache
     response.set_header("Turbo-Cache-Control", "no-cache")
+  end
+
+  def player_list_filename(extension)
+    "#{@draft.league.name.parameterize}-#{@draft.league.season}-players.#{extension}"
   end
 end
