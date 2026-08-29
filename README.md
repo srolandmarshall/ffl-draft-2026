@@ -46,6 +46,25 @@ bin/rails runner 'puts User.find_by_any_email("you@example.com").issue_login_cod
 
 Only addresses assigned to a team — or a commissioner's address — may sign in. A user can hold several addresses (`user_emails`), so managers can sign in with whichever one they remember.
 
+## Agent data endpoints
+
+Authenticated JSON clients can use the `/mcp` namespace as a read-only outlet for league and draft data. Browser sessions work as usual; agents can use a short-lived bearer token minted from the Rails console:
+
+```ruby
+user = User.find_by_any_email("you@example.com")
+token = ApiToken.issue!(user:, label: "draft assistant")
+puts token
+```
+
+Send it as `Authorization: Bearer <token>`. The available endpoints are:
+
+- `GET /mcp/leagues` — leagues visible to the user
+- `GET /mcp/leagues/:id` — league teams, drafts, scoring, and sync metadata
+- `GET /mcp/leagues/:id/history` — imported ESPN draft history; add `?season=2025` to filter it
+- `GET /mcp/drafts/:public_id` — current draft status and teams
+- `GET /mcp/drafts/:public_id/results` — draft status plus picks made
+- `GET /mcp/drafts/:public_id/players` — the existing structured player list
+
 ## How a draft works
 
 **Roles.** Users are `member` or `commissioner`. Members reach only the drafts and league history for teams they belong to. Commissioners get the admin area, can pick on behalf of the team on the clock, undo picks, and control the timer.

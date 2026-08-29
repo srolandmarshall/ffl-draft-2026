@@ -16,6 +16,16 @@ Rails.application.routes.draw do
 
   get "league/:id/history", to: "league_histories#show", as: :league_history
 
+  namespace :mcp do
+    resources :leagues, only: %i[index show] do
+      get :history, on: :member
+    end
+    resources :drafts, only: :show, param: :public_id do
+      get :results, on: :member
+      get :players, on: :member
+    end
+  end
+
   namespace :admin do
     root "dashboard#show"
     resources :leagues do
