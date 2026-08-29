@@ -23,7 +23,11 @@ module DataSources
       end
 
       test "creates a new season with its settings, team roster, and resolved draft picks" do
-        snapshot = FakeSnapshot.new(2026, "2026 Season", [ { "id" => 1 } ], FakeSettings.new({ "scoringPeriod" => 1 }), [ build_pick(overall_number: 1) ])
+        identity = LeagueSnapshot::TeamIdentity.new(
+          id: 1, name: "Red Hawks", abbreviation: "RED", owner_ids: [ 501 ],
+          owner_names: [ "Riley" ], final_rank: 7
+        )
+        snapshot = FakeSnapshot.new(2026, "2026 Season", [ identity ], FakeSettings.new({ "scoringPeriod" => 1 }), [ build_pick(overall_number: 1) ])
 
         season = SeasonImport.new(league: @league, snapshot:, player_catalog: nil).call
 
@@ -34,6 +38,12 @@ module DataSources
         pick = season.draft_picks.sole
         assert_equal "Some Player", pick.player_name
         assert_equal @league.espn_franchises.sole, pick.espn_franchise
+        team_season = season.team_seasons.sole
+        assert_equal pick.espn_franchise, team_season.espn_franchise
+        assert_equal [ 501 ], team_season.owner_ids
+        assert_equal 7, team_season.espn_final_rank
+        assert_nil team_season.regular_season_rank
+        assert_nil team_season.playoff_finish
       end
 
       test "replaces all draft picks on re-import instead of appending to them" do
@@ -67,6 +77,7 @@ module DataSources
         SeasonImport.new(league: @league, snapshot:, player_catalog: nil).call
 
         assert_equal 1, @league.espn_franchises.count
+        assert_equal 1, @league.espn_team_seasons.count
       end
     end
   end

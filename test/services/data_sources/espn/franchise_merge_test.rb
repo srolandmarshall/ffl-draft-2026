@@ -12,6 +12,10 @@ module DataSources
           espn_franchise: @source, overall_number: 1, round: 1, round_pick: 1, espn_team_id: 9,
           team_name: "Source Team", team_abbreviation: "SRC", espn_player_id: 100, player_name: "Some Player", position: "RB"
         )
+        @team_season = @season.team_seasons.create!(
+          espn_franchise: @source, espn_team_id: 9, team_name: "Source Team",
+          team_abbreviation: "SRC", owner_ids: [ 2 ], owner_names: []
+        )
       end
 
       test "unions aliases and owner ids, reassigns draft picks, and destroys the sources" do
@@ -21,6 +25,7 @@ module DataSources
         assert_equal %w[TGT SRC], result.aliases
         assert_equal [ 1, 2 ], result.owner_ids
         assert_equal @target.id, @pick.reload.espn_franchise_id
+        assert_equal @target.id, @team_season.reload.espn_franchise_id
         assert_not EspnFranchise.exists?(@source.id)
       end
 
@@ -45,6 +50,20 @@ module DataSources
         assert_equal [ 1, 2, 3 ], result.owner_ids
         assert_not EspnFranchise.exists?(@source.id)
         assert_not EspnFranchise.exists?(third.id)
+      end
+
+      test "refuses to collapse two franchises from the same season" do
+        @season.team_seasons.create!(
+          espn_franchise: @target, espn_team_id: 8, team_name: "Target Team",
+          team_abbreviation: "TGT", owner_ids: [ 1 ], owner_names: []
+        )
+
+        error = assert_raises(ArgumentError) do
+          FranchiseMerge.new(target: @target, sources: [ @source ]).call
+        end
+
+        assert_match(/same ESPN season/, error.message)
+        assert EspnFranchise.exists?(@source.id)
       end
     end
   end

@@ -5,7 +5,7 @@ class Components::LeagueHistories::FinishChart < Components::Base
 
   def initialize(seasons:, tendencies:)
     @seasons = seasons
-    @tendencies = tendencies
+    @tendencies = tendencies.select { |tendency| tendency.finishes.any? }
     @years = seasons.map(&:season).sort.select { |year| tendencies.any? { |tendency| tendency.finishes[year] } }
   end
 
