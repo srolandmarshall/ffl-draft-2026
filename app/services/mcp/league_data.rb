@@ -1,7 +1,8 @@
 module Mcp
   class LeagueData
-    def initialize(league)
+    def initialize(league, season: nil)
       @league = league
+      @season = season.presence && season.to_i
     end
 
     def summary
@@ -11,7 +12,7 @@ module Mcp
         season: league.season,
         scoring: { ppr: league.ppr.to_f },
         roster_size: league.roster_size,
-        drafts: league.drafts.order(:created_at).map { |draft| draft_summary(draft) }
+        drafts: league.drafts.sort_by(&:created_at).map { |draft| draft_summary(draft) }
       }
     end
 
@@ -25,13 +26,18 @@ module Mcp
     def history
       {
         league: summary,
-        seasons: league.espn_seasons.includes(draft_picks: :espn_franchise).newest_first.map { |season| season_history(season) }
+        seasons: seasons_scope.includes(draft_picks: :espn_franchise).newest_first.map { |season| season_history(season) }
       }
     end
 
     private
 
     attr_reader :league
+
+    def seasons_scope
+      scope = league.espn_seasons
+      @season ? scope.where(season: @season) : scope
+    end
 
     def draft_summary(draft)
       {

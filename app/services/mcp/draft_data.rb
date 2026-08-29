@@ -10,7 +10,8 @@ module Mcp
         draft: {
           id: draft.public_id, name: draft.name, status: draft.status, draft_type: draft.draft_type,
           rounds: draft.rounds, picks_made: draft.picks.size, total_picks: draft.total_picks,
-          next_overall_pick: draft.next_overall_number, current_round: draft.current_round,
+          next_overall_pick: draft.complete? ? nil : draft.next_overall_number,
+          current_round: draft.complete? ? nil : draft.current_round,
           current_team: draft.current_team && team_data(draft.current_team),
           started_at: draft.started_at&.iso8601, completed_at: draft.completed_at&.iso8601
         },

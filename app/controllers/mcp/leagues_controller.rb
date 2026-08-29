@@ -3,7 +3,8 @@ module Mcp
     before_action :set_league, only: %i[show history]
 
     def index
-      render_json(leagues: visible_leagues.order(:season, :name).map { |league| Mcp::LeagueData.new(league).summary })
+      leagues = visible_leagues.order(:season, :name).preload(drafts: %i[draft_entries picks])
+      render_json(leagues: leagues.map { |league| Mcp::LeagueData.new(league).summary })
     end
 
     def show
@@ -11,7 +12,7 @@ module Mcp
     end
 
     def history
-      render_json(Mcp::LeagueData.new(@league).history)
+      render_json(Mcp::LeagueData.new(@league, season: params[:season]).history)
     end
 
     private
