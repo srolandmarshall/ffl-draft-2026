@@ -44,6 +44,25 @@ Sign-in sends a six-digit code by email through Resend, in development too, so `
 bin/rails runner 'puts User.find_by_any_email("you@example.com").issue_login_code!'
 ```
 
+## Agent data endpoints
+
+Authenticated JSON clients can use the `/mcp` namespace as a read-only outlet for league and draft data. Browser sessions work as usual; agents can use a short-lived bearer token minted from the Rails console:
+
+```ruby
+user = User.find_by_any_email("you@example.com")
+token = ApiToken.issue!(user:, label: "draft assistant")
+puts token
+```
+
+Send it as `Authorization: Bearer <token>`. The available endpoints are:
+
+- `GET /mcp/leagues` — leagues visible to the user
+- `GET /mcp/leagues/:id` — league teams, drafts, scoring, and sync metadata
+- `GET /mcp/leagues/:id/history` — imported ESPN draft history
+- `GET /mcp/drafts/:public_id` — current draft status and teams
+- `GET /mcp/drafts/:public_id/results` — draft status plus picks made
+- `GET /mcp/drafts/:public_id/players` — the existing structured player list
+
 Only addresses assigned to a team — or a commissioner's address — may sign in. A user can hold several addresses (`user_emails`), so managers can sign in with whichever one they remember.
 
 ## How a draft works
