@@ -12,7 +12,7 @@ class Components::Admin::Drafts::Form < Components::Base
 
   def view_template
     render Components::FormErrors.new(@draft)
-    form_with(model: [ :admin, @league, @draft ], class: "space-y-8", data: { controller: "draft-setup" }) do |form|
+    form_with(model: [ :admin, @league, @draft ], class: "space-y-8", data: { controller: "draft-setup", action: "draft-order:changed->draft-setup#update" }) do |form|
       basics(form)
       scoring(form)
       teams
@@ -72,16 +72,25 @@ class Components::Admin::Drafts::Form < Components::Base
 
   def teams
     section do
-      div(class: "mb-4") { section_header("Teams and draft order", "Each card is one draft slot. Add multiple emails with commas or new lines.") }
-      div(class: "space-y-4") do
+      div(class: "mb-4") { section_header("Teams and draft order", "Drag cards to set the order. Add multiple emails with commas or new lines.") }
+      div(class: "space-y-4", data: { controller: "draft-order" }) do
         20.times { |index| team_slot(index, @ordered_teams[index]) }
       end
     end
   end
 
   def team_slot(index, team)
-    fieldset(class: "rounded-xl border border-white/10 bg-slate-900 p-5 #{'hidden' if index >= @draft.team_count}", data: { draft_setup_target: "team", index: }) do
-      legend(class: "px-2 text-sm font-bold text-lime-400") { "Pick #{index + 1}" }
+    fieldset(
+      draggable: "true",
+      class: "cursor-move rounded-xl border border-white/10 bg-slate-900 p-5 #{'hidden' if index >= @draft.team_count}",
+      data: {
+        draft_setup_target: "team",
+        draft_order_target: "item",
+        index:,
+        action: "dragstart->draft-order#dragStart dragover->draft-order#dragOver drop->draft-order#drop dragend->draft-order#dragEnd"
+      }
+    ) do
+      legend(class: "px-2 text-sm font-bold text-lime-400", data: { draft_order_target: "position" }) { "Pick #{index + 1}" }
       input(type: "hidden", name: slot_name(index, :id), value: team&.id)
       div(class: "grid gap-4 md:grid-cols-2 lg:grid-cols-4") do
         slot_field(index, :name, "Team name", team&.name || "Team #{index + 1}")
