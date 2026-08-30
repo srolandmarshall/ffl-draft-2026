@@ -20,13 +20,14 @@ class Player < ApplicationRecord
     league_player_scores.find { |score| score.league_id == league.id && score.season == season }
   end
 
-  normalizes :position, :pro_team, with: ->(value) { value.strip.upcase }
+  normalizes :position, with: ->(value) { value.strip.upcase }
+  normalizes :pro_team, with: ->(value) { value&.strip&.upcase }
 
-  validates :name, :position, :pro_team, presence: true
+  validates :name, :position, presence: true
   validates :position, inclusion: { in: POSITIONS }
   validates :espn_id, uniqueness: true, allow_nil: true
   validates :ffc_id, uniqueness: true, allow_nil: true
-  validates :name, uniqueness: { scope: [ :pro_team, :position ] }
+  validates :name, uniqueness: { scope: [ :pro_team, :position ] }, if: :pro_team?
 
   # Linking straight to a generated portrait means reading its variant record. Preload it
   # alongside the headshot so rendering a player list stays one query instead of one per
