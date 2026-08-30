@@ -249,6 +249,36 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     assert_select "input[name='draft[team_slots][0][id]'][value='#{archived_team.id}']", count: 0
   end
 
+  test "a scheduled draft exposes a draggable saved draft order" do
+    sign_in_as users(:commissioner)
+    league = leagues(:one)
+    draft = league.drafts.create!(
+      name: "Scheduled draft",
+      team_count: 2,
+      qb_slots: 1,
+      rb_slots: 2,
+      wr_slots: 2,
+      te_slots: 1,
+      flex_slots: 1,
+      k_slots: 0,
+      dst_slots: 1,
+      bench_slots: 5,
+      scheduled_start_at: 1.day.from_now
+    )
+    second_team = league.teams.create!(name: "Second Team", owner_name: "Second Owner", abbreviation: "SEC")
+    draft.draft_entries.create!(team: teams(:one), position: 1)
+    draft.draft_entries.create!(team: second_team, position: 2)
+
+    get admin_league_path(league)
+    assert_select "a", text: "Edit draft & order"
+
+    get edit_admin_league_draft_path(league, draft)
+    assert_response :success
+    assert_select "[data-controller='draft-order']", count: 1
+    assert_select "fieldset[draggable='true'][data-draft-order-target='item']", count: 20
+    assert_select "legend[data-draft-order-target='position']", text: "Pick 1"
+  end
+
   test "league settings seed the next draft without changing an existing draft" do
     sign_in_as users(:commissioner)
     league = leagues(:one)

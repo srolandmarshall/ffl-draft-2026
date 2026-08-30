@@ -232,7 +232,7 @@ class Components::Admin::Leagues::Show < Components::Base
     div(class: "mt-4 flex flex-wrap gap-3") do
       if draft.setup?
         button_to("Start draft", start_admin_league_draft_path(@league, draft), method: :patch, class: "cursor-pointer rounded-lg bg-lime-400 px-3 py-2 text-xs font-semibold text-slate-950", form: { data: { turbo_frame: "_top" } })
-        top_link("Edit", edit_admin_league_draft_path(@league, draft), class_name: "rounded-lg border border-white/10 px-3 py-2 text-xs font-bold")
+        top_link("Edit draft & order", edit_admin_league_draft_path(@league, draft), class_name: "rounded-lg border border-white/10 px-3 py-2 text-xs font-bold")
       else
         button_to("Restart draft", restart_admin_league_draft_path(@league, draft), method: :patch, class: "cursor-pointer rounded-lg border border-amber-400/40 px-3 py-2 text-xs font-bold text-amber-200 hover:bg-amber-400/10", form: { data: { turbo_confirm: "Restart #{draft.name}? This permanently removes all picks and starts it over.", turbo_frame: "_top" } })
       end
