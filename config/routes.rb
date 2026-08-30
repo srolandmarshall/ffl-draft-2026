@@ -18,7 +18,12 @@ Rails.application.routes.draw do
 
   namespace :mcp do
     resources :leagues, only: %i[index show] do
-      get :history, on: :member
+      member do
+        get :history
+        get :standings
+        get :matchups
+        get :records
+      end
     end
     resources :drafts, only: :show, param: :public_id do
       get :results, on: :member

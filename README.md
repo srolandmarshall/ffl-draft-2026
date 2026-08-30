@@ -60,7 +60,10 @@ Send it as `Authorization: Bearer <token>`. The available endpoints are:
 
 - `GET /mcp/leagues` — leagues visible to the user
 - `GET /mcp/leagues/:id` — league teams, drafts, scoring, and sync metadata
-- `GET /mcp/leagues/:id/history` — imported ESPN draft history; add `?season=2025` to filter it
+- `GET /mcp/leagues/:id/history` — imported ESPN history with canonical standings and champions; add `?season=2025` to filter or `?picks=false` to omit draft picks
+- `GET /mcp/leagues/:id/standings` — regular-season records and separate winners-bracket finishes; add `?season=2025` to filter
+- `GET /mcp/leagues/:id/matchups` — archived weekly scores; filter with `?season=2025` and `?tier=regular`, `winners`, or `consolation`
+- `GET /mcp/leagues/:id/records` — all-time records, head-to-head series, rivalries, playoff runs, and the consolation-rank audit
 - `GET /mcp/drafts/:public_id` — current draft status and teams
 - `GET /mcp/drafts/:public_id/results` — draft status plus picks made
 - `GET /mcp/drafts/:public_id/players` — the existing structured player list
