@@ -36,6 +36,7 @@ Rails.application.routes.draw do
     resources :leagues do
       patch :team_order, on: :member
       resource :espn_settings_sync, only: :create
+      resource :espn_historical_score_sync, only: :create
       resource :espn_franchise_backfill, only: :create
       resource :espn_connection, only: %i[new create destroy]
       resources :teams, except: :show do

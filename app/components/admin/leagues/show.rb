@@ -61,6 +61,7 @@ class Components::Admin::Leagues::Show < Components::Base
 
     div(class: "flex flex-wrap gap-2") do
       button_to("Sync ESPN league", admin_league_espn_settings_sync_path(@league), class: "cursor-pointer rounded-lg bg-lime-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-lime-300")
+      button_to("Backfill player scores", admin_league_espn_historical_score_sync_path(@league), class: outline_action_classes) if @page.espn_seasons.any?
       button_to(
         "Repair ESPN history",
         admin_league_espn_franchise_backfill_path(@league),
