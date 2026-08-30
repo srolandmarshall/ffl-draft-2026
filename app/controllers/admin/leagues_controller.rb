@@ -11,6 +11,9 @@ module Admin
       @archived_teams = @league.teams.archived.order(:name)
       @drafts = @league.drafts.order(created_at: :desc)
       @espn_seasons = @league.espn_seasons.includes(:draft_picks).newest_first
+      @espn_franchises = @league.espn_franchises.includes(:team, team_seasons: :espn_season).sort_by do |franchise|
+        [ franchise.team ? 0 : 1, franchise.name ]
+      end
       @espn_settings = DataSources::Espn::LeagueSettings.from_settings(@league.espn_settings) if @league.espn_settings.present?
       @league_page = AdminLeaguePage.new(
         league: @league,
@@ -18,6 +21,7 @@ module Admin
         archived_teams: @archived_teams,
         drafts: @drafts,
         espn_seasons: @espn_seasons,
+        espn_franchises: @espn_franchises,
         espn_settings: @espn_settings,
         espn_connected: espn_connected?
       )

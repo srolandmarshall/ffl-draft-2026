@@ -9,6 +9,7 @@ class Components::Admin::Leagues::Show < Components::Base
   def view_template
     header
     espn_panel
+    espn_franchise_archive
     div(class: "grid gap-8 lg:grid-cols-2") do
       teams_frame
       drafts_frame
@@ -76,6 +77,40 @@ class Components::Admin::Leagues::Show < Components::Base
   end
 
   def outline_action_classes = "rounded-lg border border-white/15 px-4 py-2 text-center text-sm font-bold hover:border-lime-400"
+
+  def espn_franchise_archive
+    return if @page.espn_franchises.empty?
+
+    details(class: "mb-8 rounded-lg border border-white/10 bg-slate-900") do
+      summary(class: "cursor-pointer px-4 py-3 text-sm font-bold text-slate-300") do
+        plain "ESPN franchise archive"
+        span(class: "ml-2 text-xs font-normal text-slate-500") { "#{@page.espn_franchises.size} teams across imported history" }
+      end
+      div(class: "border-t border-white/5") do
+        @page.espn_franchises.each { |franchise| espn_franchise_row(franchise) }
+      end
+    end
+  end
+
+  def espn_franchise_row(franchise)
+    seasons = franchise.team_seasons.map { |team_season| team_season.espn_season.season }.sort
+    div(class: "flex flex-col gap-1 border-b border-white/5 px-4 py-3 last:border-0 sm:flex-row sm:items-center") do
+      div(class: "min-w-0 flex-1") do
+        p(class: "truncate text-sm font-semibold") { franchise.name }
+        p(class: "text-xs text-slate-500") { espn_franchise_seasons(seasons) }
+      end
+      span(class: "text-xs font-semibold #{franchise.team ? 'text-lime-400' : 'text-slate-500'}") do
+        franchise.team ? "Linked to #{franchise.team.name}" : "Historical only"
+      end
+    end
+  end
+
+  def espn_franchise_seasons(seasons)
+    return "No imported seasons" if seasons.empty?
+    return seasons.first.to_s if seasons.one?
+
+    "#{seasons.first}–#{seasons.last} · #{seasons.size} seasons"
+  end
 
   def espn_rules
     settings = @page.espn_settings
