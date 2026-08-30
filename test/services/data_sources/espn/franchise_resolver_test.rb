@@ -84,6 +84,34 @@ module DataSources
         assert_equal 3, @league.espn_franchises.count
       end
 
+      test "breaks a shared-owner tie with continuous ESPN team slot history" do
+        season_2024 = @league.espn_seasons.create!(season: 2024, name: "2024", team_count: 2, settings: {}, teams: [], synced_at: Time.current)
+        season_2025 = @league.espn_seasons.create!(season: 2025, name: "2025", team_count: 2, settings: {}, teams: [], synced_at: Time.current)
+        season_2026 = @league.espn_seasons.create!(season: 2026, name: "2026", team_count: 2, settings: {}, teams: [], synced_at: Time.current)
+
+        slot_five = @resolver.resolve(abbreviation: "FIVE", name: "Five", espn_team_id: 5, season: season_2024, owner_ids: [ "shared", "five" ])
+        season_2024.team_seasons.create!(
+          espn_franchise: slot_five, espn_team_id: 5, team_name: "FIVE", team_abbreviation: "FIVE",
+          owner_ids: [ "shared", "five" ], owner_names: []
+        )
+        slot_six = @resolver.resolve(abbreviation: "SIX", name: "Six", espn_team_id: 6, season: season_2024, owner_ids: [ "shared", "six" ])
+        season_2024.team_seasons.create!(
+          espn_franchise: slot_six, espn_team_id: 6, team_name: "SIX", team_abbreviation: "SIX",
+          owner_ids: [ "shared", "six" ], owner_names: []
+        )
+
+        continuing = @resolver.resolve(abbreviation: "SIX", name: "Six", espn_team_id: 6, season: season_2025, owner_ids: [ "shared", "six" ])
+        season_2025.team_seasons.create!(
+          espn_franchise: continuing, espn_team_id: 6, team_name: "SIX", team_abbreviation: "SIX",
+          owner_ids: [ "shared", "six" ], owner_names: []
+        )
+
+        resolved = @resolver.resolve(abbreviation: "SIX", name: "Six", espn_team_id: 6, season: season_2026, owner_ids: [ "shared" ])
+
+        assert_equal slot_six, resolved
+        assert_not_equal slot_five, resolved
+      end
+
       test "does not use an alias fallback when nonmatching owner ids are present" do
         original = @league.espn_franchises.create!(key: "OLD", name: "Old", aliases: [ "SAME" ], owner_ids: [ "owner-old" ])
         season = @league.espn_seasons.create!(season: 2026, name: "2026", team_count: 1, settings: {}, teams: [], synced_at: Time.current)
