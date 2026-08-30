@@ -111,7 +111,7 @@ class LeagueHistoriesControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ "All franchises", "Challenger", "Red Hawks" ], buttons
   end
 
-  test "does not show an archived team in franchise history" do
+  test "keeps an archived team in the all-time book but out of active draft tendencies" do
     teams(:one).update!(archived: true)
     sign_in_as users(:member)
 
@@ -119,7 +119,27 @@ class LeagueHistoriesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "button[data-finish-chart-target='button'][data-name='Red Hawks']", count: 0
-    assert_select "article", text: /Red Hawks/, count: 0
+    assert_select "section[aria-labelledby='record-book-title']", text: /Red Hawks/
+    assert_select "h2", text: "Every team leaves a pattern", count: 0
+  end
+
+  test "shows the record book rivalry grid standings and winners bracket accessibly" do
+    opponent = add_history_opponent
+    sign_in_as users(:member)
+
+    get league_history_path(@league)
+
+    assert_response :success
+    assert_select "#record-book-title", text: "The all-time record book"
+    assert_select "caption.sr-only", text: "All-time regular-season and playoff records by franchise"
+    assert_select "#rivalries-title", text: "The rivalries"
+    assert_select "#head-to-head-title", text: "Head-to-head ledger"
+    assert_select "td[tabindex='0'][aria-label*='regular season'][aria-label*='winners bracket'][aria-label*='consolation']"
+    assert_select "#season-#{@season.id}-standings", text: "Regular-season standings"
+    assert_select "caption.sr-only", text: "2025 regular-season standings"
+    assert_select "[role='list'][aria-label='2025 winners bracket rounds']"
+    assert_select "article[aria-label*='#{opponent.name}']"
+    assert_select ".overflow-x-auto", minimum: 3
   end
 
   test "history remains available while regular-season finishes await import" do
@@ -166,5 +186,32 @@ class LeagueHistoriesControllerTest < ActionDispatch::IntegrationTest
     get league_history_path(@league)
 
     assert_redirected_to root_path
+  end
+
+  private
+
+  def add_history_opponent
+    team = @league.teams.create!(name: "Green Machine", owner_name: "Example Owner", abbreviation: "GRN")
+    franchise = @league.espn_franchises.create!(key: "green", name: "Green Machine", aliases: [ "GRN" ], team:)
+    team_season = @season.team_seasons.create!(
+      espn_franchise: franchise, espn_team_id: 9, team_name: franchise.name,
+      team_abbreviation: "GRN", owner_ids: [], owner_names: [],
+      regular_season_rank: 2, playoff_seed: 2, playoff_finish: 2,
+      wins: 8, losses: 5, ties: 0, points_for: 1_300, points_against: 1_200
+    )
+    home = @season.team_seasons.find_by!(espn_team_id: 7)
+    @season.matchups.create!(
+      espn_matchup_id: 91, matchup_period: 15, scoring_period: 15,
+      playoff_tier: EspnMatchup::WINNERS_BRACKET, winner: "HOME",
+      home_espn_team_season: home, away_espn_team_season: team_season,
+      home_points: 120, away_points: 110, margin: 10
+    )
+    @season.matchups.create!(
+      espn_matchup_id: 92, matchup_period: 16, scoring_period: 16,
+      playoff_tier: EspnMatchup::CONSOLATION_TIERS.first, winner: "AWAY",
+      home_espn_team_season: home, away_espn_team_season: team_season,
+      home_points: 90, away_points: 100, margin: 10
+    )
+    franchise
   end
 end

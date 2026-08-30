@@ -1,18 +1,20 @@
 # frozen_string_literal: true
 
 class Components::LeagueHistories::Show < Components::Base
-  def initialize(league:, seasons:, tendencies:)
-    @league = league
-    @seasons = seasons
-    @tendencies = tendencies
+  def initialize(page:)
+    @page = page
+    @league = page.league
   end
 
   def view_template
     content_for(:title, "#{@league.name} draft history")
     header
-    render Components::LeagueHistories::FinishChart.new(seasons: @seasons, tendencies: @tendencies)
-    render Components::LeagueHistories::Tendencies.new(tendencies: @tendencies)
-    render Components::LeagueHistories::Seasons.new(seasons: @seasons)
+    render Components::LeagueHistories::FinishChart.new(seasons: @page.seasons, tendencies: @page.tendencies)
+    render Components::LeagueHistories::RecordBook.new(record_book: @page.record_book)
+    render Components::LeagueHistories::Rivalries.new(record_book: @page.record_book)
+    render Components::LeagueHistories::HeadToHead.new(record_book: @page.record_book)
+    render Components::LeagueHistories::Tendencies.new(tendencies: @page.tendencies)
+    render Components::LeagueHistories::Seasons.new(seasons: @page.seasons)
   end
 
   private
@@ -22,7 +24,7 @@ class Components::LeagueHistories::Show < Components::Base
       div do
         p(class: "text-sm font-bold uppercase tracking-[.18em] text-lime-400") { "The league vault" }
         h1(class: "mt-1 text-3xl font-black sm:text-4xl") { @league.name }
-        p(class: "mt-2 text-sm text-slate-400") { "#{@seasons.size} ESPN seasons · #{@seasons.sum { |season| season.draft_picks.size }} archived picks" }
+        p(class: "mt-2 text-sm text-slate-400") { "#{@page.seasons.size} ESPN seasons · #{@page.seasons.sum { |season| season.draft_picks.size }} archived picks" }
       end
       a(href: root_path, class: "rounded-lg border border-white/15 px-4 py-2 text-center text-sm font-bold hover:border-lime-400") { "Draft home" }
     end

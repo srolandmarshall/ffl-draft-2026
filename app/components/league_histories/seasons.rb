@@ -31,6 +31,7 @@ class Components::LeagueHistories::Seasons < Components::Base
     picks = season.draft_picks.to_a
     section(class: "overflow-hidden rounded-xl border border-white/10 bg-slate-900", role: "tabpanel", hidden: !index.zero?, data: { history_tabs_target: "panel", year: season.season }) do
       season_header(season, picks)
+      render Components::LeagueHistories::SeasonResults.new(season:)
       picks.any? ? draft_board(season, picks) : no_draft
     end
   end
