@@ -48,6 +48,7 @@ class McpApiTest < ActionDispatch::IntegrationTest
     season = response.parsed_body.fetch("seasons").sole
     assert_equal 2025, season.fetch("season")
     assert_equal "MyString", season.fetch("picks").sole.fetch("player")
+    assert season.fetch("picks").sole.key?("franchise")
     standing = season.fetch("standings").sole
     assert_equal 1, standing.fetch("regular_season_rank")
     assert_equal 1, standing.fetch("playoff_finish")
@@ -59,6 +60,22 @@ class McpApiTest < ActionDispatch::IntegrationTest
     get history_mcp_league_path(leagues(:one)), params: { picks: false }, as: :json
     assert_response :success
     assert_not response.parsed_body.fetch("seasons").sole.key?("picks")
+  end
+
+  test "returns season player scores with position ranks" do
+    league = leagues(:one)
+    LeaguePlayerScore.find_or_initialize_by(league:, player: players(:one), season: 2025).update!(points: 310, stats: {})
+    second = Player.create!(name: "MCP Score QB", position: "QB", pro_team: "FA", espn_id: 543_210_987, active: false)
+    LeaguePlayerScore.create!(league:, player: second, season: 2025, points: 300, stats: {})
+    sign_in_as users(:member)
+
+    get player_scores_mcp_league_path(league), params: { season: 2025 }, as: :json
+
+    assert_response :success
+    scores = response.parsed_body.fetch("player_scores")
+    assert_equal 2025, response.parsed_body.fetch("season")
+    assert_equal [ 1, 2 ], scores.map { |score| score.fetch("position_rank") }
+    assert_equal [ 310.0, 300.0 ], scores.map { |score| score.fetch("points") }
   end
 
   test "returns canonical standings matchups and all-time records" do
@@ -91,6 +108,8 @@ class McpApiTest < ActionDispatch::IntegrationTest
     assert_equal 12, audit.fetch("regular_season_rank")
     assert_equal 7, audit.fetch("espn_final_rank")
     assert_equal true, body.fetch("championship_outcomes").sole.fetch("same_franchise")
+    assert_operator body.dig("superlatives", "highest_combined_scores").size, :>=, 1
+    assert_equal 0, body.fetch("season_movements").size
   end
 
   test "new history endpoints respect visible leagues" do
@@ -220,10 +239,4 @@ class McpApiTest < ActionDispatch::IntegrationTest
     )
     { first:, second: }
   end
-end
-
-class McpApiTest < ActionDispatch::IntegrationTest
-  # test "the truth" do
-  #   assert true
-  # end
 end
