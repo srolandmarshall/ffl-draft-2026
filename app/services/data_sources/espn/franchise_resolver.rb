@@ -10,7 +10,7 @@ module DataSources
         season_record = season_record_for(season)
         existing = season_record&.team_seasons&.find_by(espn_team_id:)
         franchise = existing&.espn_franchise
-        franchise ||= owner_ids.any? ? owner_match(owner_ids, season_record) : alias_match(abbreviation, season_record)
+        franchise ||= owner_ids.any? ? owner_match(owner_ids, season_record, espn_team_id) : alias_match(abbreviation, season_record)
         franchise ||= build_franchise(abbreviation, espn_team_id, season_record&.season || season)
         team = current_team_for(abbreviation, season_record&.season || season.to_i)
         franchise.team ||= team
@@ -31,13 +31,14 @@ module DataSources
         league.espn_seasons.find_by(season:)
       end
 
-      def owner_match(owner_ids, season)
+      def owner_match(owner_ids, season, espn_team_id)
         scored = league.espn_franchises.filter_map do |candidate|
-          overlap = (Array(candidate.owner_ids) & owner_ids).size
+          candidate_owner_ids = owner_ids_for(candidate, season)
+          overlap = (candidate_owner_ids & owner_ids).size
           next if overlap.zero?
 
-          union = (Array(candidate.owner_ids) | owner_ids).size
-          [ candidate, [ overlap, Rational(overlap, union) ] ]
+          union = (candidate_owner_ids | owner_ids).size
+          [ candidate, [ overlap, Rational(overlap, union), slot_continuity?(candidate, season, espn_team_id) ? 1 : 0 ] ]
         end
         return if scored.empty?
 
@@ -47,6 +48,34 @@ module DataSources
 
         candidate = best.first.first
         candidate unless claimed_franchise_ids(season).include?(candidate.id)
+      end
+
+      # A franchise's owner_ids is an all-time display aggregate. Matching with it
+      # makes a later co-owner look like they owned every earlier incarnation.
+      # Match against the most recent identity before this season instead, and use
+      # a continuous ESPN slot only as the final tie-breaker: slots can be reused.
+      def owner_ids_for(franchise, season)
+        latest = latest_team_season_for(franchise, season)
+        latest ? Array(latest.owner_ids) : Array(franchise.owner_ids)
+      end
+
+      def slot_continuity?(franchise, season, espn_team_id)
+        previous = previous_season_for(season)
+        return false unless previous
+
+        previous.team_seasons.exists?(espn_franchise: franchise, espn_team_id:)
+      end
+
+      def latest_team_season_for(franchise, season)
+        scope = franchise.team_seasons.joins(:espn_season).where(espn_seasons: { league_id: league.id })
+        scope = scope.where("espn_seasons.season < ?", season.season) if season
+        scope.order("espn_seasons.season DESC").first
+      end
+
+      def previous_season_for(season)
+        return unless season
+
+        league.espn_seasons.where("season < ?", season.season).order(season: :desc).first
       end
 
       def alias_match(abbreviation, season)
