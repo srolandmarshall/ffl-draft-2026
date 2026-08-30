@@ -28,29 +28,11 @@ module DataSources
       end
 
       def fetch_player_updates(year:, league_id:)
-        payload = fetch(league_player_scores_uri(year:, league_id:))
-        payload.fetch("players", []).map { |entry| entry.fetch("player", entry) }
+        player_scores(year:, league_id:).players
       end
 
       def fetch_player_scores(year:, league_id:)
-        scores = fetch_player_updates(year:, league_id:).filter_map do |player|
-          stat = Array(player["stats"]).find do |candidate|
-            candidate["seasonId"].to_i == year.to_i &&
-              candidate["scoringPeriodId"].to_i.zero? &&
-              candidate["statSourceId"].to_i.zero? &&
-              candidate["statSplitTypeId"].to_i.zero?
-          end
-          if stat&.key?("appliedTotal")
-            PlayerScore.new(
-              espn_id: player.fetch("id").to_i,
-              points: BigDecimal(stat.fetch("appliedTotal").to_s),
-              stats: stat.fetch("stats", {})
-            )
-          end
-        end
-        raise HttpError, "ESPN returned no league-scored player totals for #{year}" if scores.empty?
-
-        scores
+        player_scores(year:, league_id:).scores
       end
 
       private
@@ -87,24 +69,20 @@ module DataSources
       end
 
       def league_snapshot_uri(year:, league_id:)
-        year = Integer(year)
-        league_id = Integer(league_id)
-        uri = if year < 2018
-          URI("https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/leagueHistory/#{league_id}")
-        else
-          URI("#{BASE_URL}/#{year}/segments/0/leagues/#{league_id}")
-        end
-        uri.query = URI.encode_www_form(seasonId: year) if year < 2018
-        existing_query = URI.decode_www_form(uri.query.to_s)
         views = %w[mTeam mSettings mDraftDetail mStandings mMatchup mMatchupScore]
-        uri.query = URI.encode_www_form(existing_query + views.map { |view| [ "view", view ] })
-        uri
+        league_uri(year:, league_id:, views:)
       end
 
       def league_player_scores_uri(year:, league_id:)
-        uri = URI("#{BASE_URL}/#{Integer(year)}/segments/0/leagues/#{Integer(league_id)}")
-        uri.query = URI.encode_www_form(view: "kona_player_info")
-        uri
+        league_uri(year:, league_id:, views: [ "kona_player_info" ])
+      end
+
+      def player_scores(year:, league_id:)
+        PlayerScores.new(fetch(league_player_scores_uri(year:, league_id:)), year:)
+      end
+
+      def league_uri(year:, league_id:, views:)
+        LeagueEndpoint.new(year:, league_id:).uri(views:)
       end
 
       def get(uri)
