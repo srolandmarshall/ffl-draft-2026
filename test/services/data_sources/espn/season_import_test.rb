@@ -23,7 +23,12 @@ module DataSources
       end
 
       test "creates a new season with its settings, team roster, and resolved draft picks" do
-        snapshot = FakeSnapshot.new(2026, "2026 Season", [ { "id" => 1 } ], FakeSettings.new({ "scoringPeriod" => 1 }), [ build_pick(overall_number: 1) ])
+        identity = LeagueSnapshot::TeamIdentity.new(
+          id: 1, name: "Red Hawks", abbreviation: "RED", owner_ids: [ 501 ],
+          owner_names: [ "Riley" ], regular_season_rank: 1, playoff_seed: 1,
+          record: nil, espn_final_rank: 7, rank_final: nil, division_id: nil
+        )
+        snapshot = FakeSnapshot.new(2026, "2026 Season", [ identity ], FakeSettings.new({ "scoringPeriod" => 1 }), [ build_pick(overall_number: 1) ])
 
         season = SeasonImport.new(league: @league, snapshot:, player_catalog: nil).call
 
@@ -34,6 +39,12 @@ module DataSources
         pick = season.draft_picks.sole
         assert_equal "Some Player", pick.player_name
         assert_equal @league.espn_franchises.sole, pick.espn_franchise
+        team_season = season.team_seasons.sole
+        assert_equal pick.espn_franchise, team_season.espn_franchise
+        assert_equal [ 501 ], team_season.owner_ids
+        assert_equal 7, team_season.espn_final_rank
+        assert_nil team_season.regular_season_rank
+        assert_nil team_season.playoff_finish
       end
 
       test "replaces all draft picks on re-import instead of appending to them" do
@@ -67,6 +78,40 @@ module DataSources
         SeasonImport.new(league: @league, snapshot:, player_catalog: nil).call
 
         assert_equal 1, @league.espn_franchises.count
+        assert_equal 1, @league.espn_team_seasons.count
+      end
+
+      test "imports historical matchups and derives regular-season and playoff finishes idempotently" do
+        payload = JSON.parse(file_fixture("espn/league_snapshot_2016.json").read).first
+        snapshot = LeagueSnapshot.from_payload(payload)
+
+        season = SeasonImport.new(league: @league, snapshot:, player_catalog: nil).call
+        SeasonImport.new(league: @league, snapshot:, player_catalog: nil).call
+
+        assert_equal 12, season.team_seasons.count
+        assert_equal 97, season.matchups.count
+        assert_equal 78, season.matchups.regular_season.count
+        assert_equal 7, season.matchups.winners_bracket.count
+        assert_equal 12, season.matchups.consolation.count
+        assert_equal (1..12).to_a, season.team_seasons.reorder(:regular_season_rank).pluck(:regular_season_rank)
+        assert_equal [ 1, 2, 3, 3, 5, 5 ], season.team_seasons.where.not(playoff_finish: nil).reorder(:playoff_finish).pluck(:playoff_finish)
+        assert_equal 6, season.team_seasons.where(playoff_finish: nil).count
+        snapshot.teams.each do |identity|
+          imported = season.team_seasons.find_by!(espn_team_id: identity.id)
+          assert_equal identity.regular_season_rank, imported.regular_season_rank
+          assert_equal [ identity.record.wins, identity.record.losses, identity.record.ties ], [ imported.wins, imported.losses, imported.ties ]
+          assert_equal identity.record.points_for, imported.points_for
+          assert_equal identity.record.points_against, imported.points_against
+        end
+        assert_equal 2, season.regular_season_champion.espn_team_id
+        assert_equal 10, season.champion.espn_team_id
+        assert_equal 2, season.runner_up.espn_team_id
+
+        consolation_winner = season.team_seasons.find_by!(espn_team_id: 12)
+        assert_equal 10, consolation_winner.regular_season_rank
+        assert_nil consolation_winner.playoff_seed
+        assert_nil consolation_winner.playoff_finish
+        assert_equal 7, consolation_winner.espn_final_rank
       end
     end
   end

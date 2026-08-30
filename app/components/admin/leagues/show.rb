@@ -60,6 +60,12 @@ class Components::Admin::Leagues::Show < Components::Base
 
     div(class: "flex flex-wrap gap-2") do
       button_to("Sync ESPN league", admin_league_espn_settings_sync_path(@league), class: "cursor-pointer rounded-lg bg-lime-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-lime-300")
+      button_to(
+        "Repair ESPN history",
+        admin_league_espn_franchise_backfill_path(@league),
+        class: outline_action_classes,
+        form: { data: { turbo_confirm: "Rebuild every ESPN franchise identity and reassign its archived draft picks?" } }
+      ) if @page.espn_seasons.any?
       a(href: league_history_path(@league), class: "rounded-lg border border-blue-400/30 bg-blue-400/10 px-4 py-2 text-sm font-bold text-blue-200") { "View league history" } if @page.espn_seasons.any?
       if @page.espn_connected
         button_to("Disconnect ESPN", admin_league_espn_connection_path(@league), method: :delete, class: "cursor-pointer rounded-lg border border-white/15 px-4 py-2 text-sm font-bold")

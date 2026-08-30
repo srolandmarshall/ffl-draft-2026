@@ -157,8 +157,8 @@ class Admin::EspnSettingsSyncsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 2026, snapshot.season
     assert_equal [ "RED", "NEW" ], snapshot.teams.map(&:abbreviation)
     assert_equal [ "owner-1" ], snapshot.teams.first.owner_ids
-    assert_equal 1, snapshot.teams.first.final_rank
-    assert_equal %w[mTeam mSettings mDraftDetail mStandings], URI.decode_www_form(requested_uri.query).map(&:last)
+    assert_equal 1, snapshot.teams.first.espn_final_rank
+    assert_equal %w[mTeam mSettings mDraftDetail mStandings mMatchup mMatchupScore], URI.decode_www_form(requested_uri.query).map(&:last)
   end
 
   test "ESPN client uses and unwraps the legacy history endpoint before 2018" do
@@ -173,7 +173,7 @@ class Admin::EspnSettingsSyncsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 2017, snapshot.season
     assert_equal "/apis/v3/games/ffl/leagueHistory/123456", requested_uri.path
     assert_equal "2017", URI.decode_www_form(requested_uri.query).to_h.fetch("seasonId")
-    assert_equal %w[mTeam mSettings mDraftDetail mStandings], URI.decode_www_form(requested_uri.query).filter_map { |key, value| value if key == "view" }
+    assert_equal %w[mTeam mSettings mDraftDetail mStandings mMatchup mMatchupScore], URI.decode_www_form(requested_uri.query).filter_map { |key, value| value if key == "view" }
   end
 
   test "league snapshot ignores ESPN's undrafted placeholder picks" do

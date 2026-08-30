@@ -4,14 +4,18 @@ module DataSources
   module Espn
     class LeagueSyncTest < ActiveSupport::TestCase
       class FakeClient
+        attr_reader :snapshot_years
+
         def initialize(snapshots:, players: { "players" => [] }, player_updates: [], player_scores: [])
           @snapshots = snapshots
           @players = players
           @player_updates = player_updates
           @player_scores = player_scores
+          @snapshot_years = []
         end
 
         def fetch_league_snapshot(year:, league_id:)
+          @snapshot_years << year.to_i
           @snapshots.fetch(year.to_i) { raise HttpError, "no snapshot stubbed for #{year}" }
         end
 
@@ -24,12 +28,12 @@ module DataSources
         @league = League.create!(name: "Sync League", season: 2026, espn_league_id: "12345")
       end
 
-      def payload(season:, previous_seasons: [], picks: [])
+      def payload(season:, previous_seasons: [], picks: [], abbreviation: "RED")
         {
           "seasonId" => season,
           "status" => { "previousSeasons" => previous_seasons },
           "members" => [ { "id" => "owner-1", "displayName" => "Riley" } ],
-          "teams" => [ { "id" => 1, "abbrev" => "RED", "name" => "Red Hawks", "owners" => [ "owner-1" ] } ],
+          "teams" => [ { "id" => 1, "abbrev" => abbreviation, "name" => "Red Hawks", "owners" => [ "owner-1" ] } ],
           "settings" => {
             "name" => "ESPN League #{season}",
             "size" => 1,
@@ -61,11 +65,27 @@ module DataSources
         assert_equal 1, result.teams_created
         assert_equal 1, result.seasons_imported
         assert_equal [], result.seasons_skipped
+        assert_equal 1, result.standings_imported
+        assert_equal 0, result.matchups_imported
         assert_equal 1, result.player_scores_imported
         assert_equal 1, @league.reload.qb_slots
         assert_equal 2, @league.rb_slots
         assert_equal @league.espn_seasons.sole.draft_picks.sole.espn_player_id, 100
+        assert_equal 1, @league.espn_team_seasons.count
         assert_equal 12.5, LeaguePlayerScore.find_by(league: @league, player:, season: 2025).points
+      end
+
+      test "imports historical identity from oldest to newest" do
+        current = LeagueSnapshot.from_payload(payload(season: 2026, previous_seasons: [ 2025, 2024 ], abbreviation: "Y26"))
+        season_2025 = LeagueSnapshot.from_payload(payload(season: 2025, abbreviation: "Y25"))
+        season_2024 = LeagueSnapshot.from_payload(payload(season: 2024, abbreviation: "Y24"))
+        client = FakeClient.new(snapshots: { 2024 => season_2024, 2025 => season_2025, 2026 => current })
+
+        LeagueSync.new(league: @league, client:).call
+
+        assert_equal [ 2026, 2024, 2025 ], client.snapshot_years
+        assert_equal %w[Y24 Y25 Y26], @league.espn_franchises.sole.aliases
+        assert_equal 3, @league.espn_team_seasons.count
       end
 
       test "skips a previous season whose fetch fails and still imports the rest" do
@@ -98,6 +118,23 @@ module DataSources
           end
         end
         assert_equal 0, @league.espn_seasons.count
+      end
+
+      test "imports fixture standings and matchups without duplicates on rerun" do
+        @league.update!(season: 2016)
+        payload = JSON.parse(file_fixture("espn/league_snapshot_2016.json").read).first
+        snapshot = LeagueSnapshot.from_payload(payload)
+        client = FakeClient.new(snapshots: { 2016 => snapshot })
+
+        first = LeagueSync.new(league: @league, client:).call
+        second = LeagueSync.new(league: @league, client:).call
+
+        assert_equal 12, first.standings_imported
+        assert_equal 97, first.matchups_imported
+        assert_equal 12, second.standings_imported
+        assert_equal 97, second.matchups_imported
+        assert_equal 12, @league.espn_team_seasons.count
+        assert_equal 97, EspnMatchup.joins(:espn_season).where(espn_seasons: { league_id: @league.id }).count
       end
     end
   end

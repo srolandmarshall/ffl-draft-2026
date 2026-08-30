@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_29_122644) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_30_022349) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -125,6 +125,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_122644) do
     t.index ["team_id"], name: "index_espn_franchises_on_team_id"
   end
 
+  create_table "espn_matchups", force: :cascade do |t|
+    t.integer "away_espn_team_season_id"
+    t.decimal "away_points", precision: 8, scale: 2
+    t.datetime "created_at", null: false
+    t.integer "espn_matchup_id", null: false
+    t.integer "espn_season_id", null: false
+    t.integer "home_espn_team_season_id"
+    t.decimal "home_points", precision: 8, scale: 2
+    t.decimal "margin", precision: 8, scale: 2
+    t.integer "matchup_period", null: false
+    t.string "playoff_tier", default: "NONE", null: false
+    t.integer "scoring_period"
+    t.datetime "updated_at", null: false
+    t.string "winner"
+    t.index ["away_espn_team_season_id"], name: "index_espn_matchups_on_away_espn_team_season_id"
+    t.index ["espn_season_id", "espn_matchup_id"], name: "index_espn_matchups_on_espn_season_id_and_espn_matchup_id", unique: true
+    t.index ["espn_season_id", "matchup_period"], name: "index_espn_matchups_on_espn_season_id_and_matchup_period"
+    t.index ["espn_season_id"], name: "index_espn_matchups_on_espn_season_id"
+    t.index ["home_espn_team_season_id"], name: "index_espn_matchups_on_home_espn_team_season_id"
+    t.index ["margin"], name: "index_espn_matchups_on_margin"
+    t.index ["playoff_tier"], name: "index_espn_matchups_on_playoff_tier"
+  end
+
   create_table "espn_seasons", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "league_id", null: false
@@ -137,6 +160,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_122644) do
     t.datetime "updated_at", null: false
     t.index ["league_id", "season"], name: "index_espn_seasons_on_league_id_and_season", unique: true
     t.index ["league_id"], name: "index_espn_seasons_on_league_id"
+  end
+
+  create_table "espn_team_seasons", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "division_id"
+    t.integer "espn_final_rank"
+    t.integer "espn_franchise_id"
+    t.integer "espn_season_id", null: false
+    t.integer "espn_team_id", null: false
+    t.integer "losses", default: 0, null: false
+    t.json "owner_ids", default: [], null: false
+    t.json "owner_names", default: [], null: false
+    t.integer "playoff_finish"
+    t.integer "playoff_seed"
+    t.decimal "points_against", precision: 8, scale: 2
+    t.decimal "points_for", precision: 8, scale: 2
+    t.integer "regular_season_rank"
+    t.string "team_abbreviation", null: false
+    t.string "team_name", null: false
+    t.integer "ties", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.integer "wins", default: 0, null: false
+    t.index ["espn_franchise_id", "espn_season_id"], name: "idx_on_espn_franchise_id_espn_season_id_21057f2f48", unique: true
+    t.index ["espn_franchise_id"], name: "index_espn_team_seasons_on_espn_franchise_id"
+    t.index ["espn_season_id", "espn_team_id"], name: "index_espn_team_seasons_on_espn_season_id_and_espn_team_id", unique: true
+    t.index ["espn_season_id", "regular_season_rank"], name: "idx_on_espn_season_id_regular_season_rank_8611b00be9"
+    t.index ["espn_season_id"], name: "index_espn_team_seasons_on_espn_season_id"
+    t.index ["playoff_finish"], name: "index_espn_team_seasons_on_playoff_finish"
   end
 
   create_table "league_player_scores", force: :cascade do |t|
@@ -283,7 +334,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_122644) do
   add_foreign_key "espn_draft_picks", "espn_seasons"
   add_foreign_key "espn_franchises", "leagues"
   add_foreign_key "espn_franchises", "teams"
+  add_foreign_key "espn_matchups", "espn_seasons"
+  add_foreign_key "espn_matchups", "espn_team_seasons", column: "away_espn_team_season_id"
+  add_foreign_key "espn_matchups", "espn_team_seasons", column: "home_espn_team_season_id"
   add_foreign_key "espn_seasons", "leagues"
+  add_foreign_key "espn_team_seasons", "espn_franchises"
+  add_foreign_key "espn_team_seasons", "espn_seasons"
   add_foreign_key "league_player_scores", "leagues"
   add_foreign_key "league_player_scores", "players"
   add_foreign_key "picks", "drafts"

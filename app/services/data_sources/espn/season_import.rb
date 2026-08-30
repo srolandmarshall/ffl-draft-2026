@@ -13,20 +13,20 @@ module DataSources
           name: snapshot.name,
           team_count: snapshot.teams.size,
           settings: snapshot.settings.raw_snapshot,
-          teams: snapshot.teams.map(&:to_h),
+          teams: snapshot.teams.map { |identity| archived_identity(identity) },
           synced_at: Time.current
         )
 
+        team_season_import = TeamSeasonImport.new(league:, season:, identities: snapshot.teams)
+        team_season_import.call
+        matchups = snapshot.respond_to?(:matchups) ? Array(snapshot.matchups) : []
+        MatchupImport.new(season:, matchups:).call
+        team_season_import.remove_stale!
+        StandingsImport.new(season:, identities: snapshot.teams).call
+        Leagues::PlayoffFinishCalculator.new(season:).call
         season.draft_picks.delete_all
-        franchise_resolver = FranchiseResolver.new(league:)
         snapshot.draft_picks(player_catalog:).each do |pick|
-          franchise = franchise_resolver.resolve(
-            abbreviation: pick.team_abbreviation,
-            name: pick.team_name,
-            espn_team_id: pick.team_id,
-            season: snapshot.season,
-            owner_ids: pick.team_owner_ids
-          )
+          franchise = season.team_seasons.find_by!(espn_team_id: pick.team_id).espn_franchise
           season.draft_picks.create!(
             espn_franchise: franchise,
             overall_number: pick.overall_number,
@@ -47,6 +47,10 @@ module DataSources
       private
 
       attr_reader :league, :snapshot, :player_catalog
+
+      def archived_identity(identity)
+        identity.to_h.transform_values { |value| value.is_a?(Data) ? value.to_h : value }
+      end
     end
   end
 end

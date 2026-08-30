@@ -1,0 +1,39 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  espn_season: one
+  espn_franchise: one
+  espn_team_id: 1
+  team_name: MyString
+  team_abbreviation: MyString
+  owner_ids: []
+  owner_names: []
+  regular_season_rank: 1
+  playoff_seed: 1
+  wins: 1
+  losses: 1
+  ties: 1
+  points_for: 9.99
+  points_against: 9.99
+  playoff_finish: 1
+  espn_final_rank: 1
+  division_id: 1
+
+two:
+  espn_season: two
+  espn_franchise: two
+  espn_team_id: 1
+  team_name: MyString
+  team_abbreviation: MyString
+  owner_ids: []
+  owner_names: []
+  regular_season_rank: 1
+  playoff_seed: 1
+  wins: 1
+  losses: 1
+  ties: 1
+  points_for: 9.99
+  points_against: 9.99
+  playoff_finish: 1
+  espn_final_rank: 1
+  division_id: 1

@@ -7,11 +7,12 @@ module DataSources
 
       def resolve(abbreviation:, name:, espn_team_id:, season:, owner_ids: [])
         owner_ids = Array(owner_ids).compact.uniq
-        franchise = league.espn_franchises.to_a.find { |candidate| candidate.matches_owner_ids?(owner_ids) }
-        franchise ||= league.espn_franchises.to_a.find { |candidate| candidate.matches_alias?(abbreviation) }
-        franchise ||= league.espn_franchises.find_by(key: key_for(abbreviation, espn_team_id, season))
-        team = league.teams.find { |candidate| candidate.abbreviation.casecmp?(abbreviation.to_s) }
-        franchise ||= league.espn_franchises.build(key: key_for(abbreviation, espn_team_id, season))
+        season_record = season_record_for(season)
+        existing = season_record&.team_seasons&.find_by(espn_team_id:)
+        franchise = existing&.espn_franchise
+        franchise ||= owner_ids.any? ? owner_match(owner_ids, season_record) : alias_match(abbreviation, season_record)
+        franchise ||= build_franchise(abbreviation, espn_team_id, season_record&.season || season)
+        team = current_team_for(abbreviation, season_record&.season || season.to_i)
         franchise.team ||= team
         franchise.name = franchise.team&.name || name
         franchise.aliases = (franchise.aliases + [ abbreviation ]).compact.uniq
@@ -23,6 +24,61 @@ module DataSources
       private
 
       attr_reader :league
+
+      def season_record_for(season)
+        return season if season.is_a?(EspnSeason)
+
+        league.espn_seasons.find_by(season:)
+      end
+
+      def owner_match(owner_ids, season)
+        scored = league.espn_franchises.filter_map do |candidate|
+          overlap = (Array(candidate.owner_ids) & owner_ids).size
+          next if overlap.zero?
+
+          union = (Array(candidate.owner_ids) | owner_ids).size
+          [ candidate, [ overlap, Rational(overlap, union) ] ]
+        end
+        return if scored.empty?
+
+        best_score = scored.map(&:last).max
+        best = scored.select { |_, score| score == best_score }
+        return unless best.one?
+
+        candidate = best.first.first
+        candidate unless claimed_franchise_ids(season).include?(candidate.id)
+      end
+
+      def alias_match(abbreviation, season)
+        candidates = league.espn_franchises.select do |candidate|
+          candidate.matches_alias?(abbreviation) && !claimed_franchise_ids(season).include?(candidate.id)
+        end
+        candidates.one? ? candidates.first : nil
+      end
+
+      def claimed_franchise_ids(season)
+        return [] unless season
+
+        season.team_seasons.where.not(espn_franchise_id: nil).pluck(:espn_franchise_id)
+      end
+
+      def build_franchise(abbreviation, espn_team_id, season)
+        base = key_for(abbreviation, espn_team_id, season)
+        key = base
+        key = "#{base}-#{season}-#{espn_team_id}" if league.espn_franchises.exists?(key:)
+        suffix = 2
+        while league.espn_franchises.exists?(key:)
+          key = "#{base}-#{season}-#{espn_team_id}-#{suffix}"
+          suffix += 1
+        end
+        league.espn_franchises.build(key:)
+      end
+
+      def current_team_for(abbreviation, season)
+        return unless season == league.season
+
+        league.teams.find { |candidate| candidate.abbreviation.casecmp?(abbreviation.to_s) }
+      end
 
       def key_for(abbreviation, espn_team_id, season)
         normalized = ActiveSupport::Inflector.transliterate(abbreviation.to_s).upcase.gsub(/[^A-Z0-9]/, "")

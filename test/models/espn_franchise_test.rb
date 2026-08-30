@@ -34,14 +34,19 @@ class EspnFranchiseTest < ActiveSupport::TestCase
     league = League.create!(name: "Returning Franchise League", season: 2026)
     oconnor = league.teams.create!(name: "Team O'Connor", owner_name: "Eamon", abbreviation: "OCON", espn_team_id: 2)
     league.espn_franchises.create!(team: oconnor, key: "OCON", name: "Team O'Connor", aliases: [ "OCON" ])
-    munz = league.espn_franchises.create!(key: "MUNZ", name: "Diamond Dogs", aliases: [ "MUNZ", "M-U" ])
+    munz = league.espn_franchises.create!(key: "MUNZ", name: "Diamond Dogs", aliases: [ "MUNZ", "M-U" ], owner_ids: [ "owner-munz" ])
     identity = DataSources::Espn::LeagueSnapshot::TeamIdentity.new(
       id: 2,
       name: "Diamond Dogs",
       abbreviation: "MUNZ",
       owner_ids: [ "owner-munz" ],
       owner_names: [ "Munz" ],
-      final_rank: 1
+      regular_season_rank: 1,
+      playoff_seed: 1,
+      record: nil,
+      espn_final_rank: 1,
+      rank_final: nil,
+      division_id: nil
     )
 
     result = DataSources::Espn::TeamImport.new(league:, teams: [ identity ]).call

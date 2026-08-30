@@ -4,6 +4,7 @@ class League < ApplicationRecord
   has_many :drafts, dependent: :destroy
   has_many :espn_seasons, dependent: :destroy
   has_many :espn_franchises, dependent: :destroy
+  has_many :espn_team_seasons, through: :espn_seasons, source: :team_seasons
   has_many :league_player_scores, dependent: :destroy
   has_many :teams, dependent: :destroy
 

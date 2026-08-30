@@ -5,7 +5,7 @@ module Drafts
     PositionRun = Data.define(:position, :length, :season)
     Tendency = Data.define(
       :franchise, :seasons, :pick_count, :repeat_player_name, :repeat_player_count,
-      :position_counts, :round_position_counts, :average_first_rounds, :finishes,
+      :position_counts, :round_position_counts, :average_first_rounds, :finishes, :playoff_finishes,
       :signature_round, :chaos_round, :longest_position_run
     )
 
@@ -41,9 +41,8 @@ module Drafts
         position_counts: position_counts(picks),
         round_position_counts: round_counts,
         average_first_rounds: average_first_rounds(picks),
-        finishes: seasons.filter_map { |season| season.team_finish_for(franchise.owner_ids) }.to_h do |finish|
-          [ finish.season, finish.rank ]
-        end,
+        finishes: finishes_for(franchise),
+        playoff_finishes: playoff_finishes_for(franchise),
         signature_round: signature_round(round_counts, season_count),
         chaos_round: chaos_round(round_counts),
         longest_position_run: longest_position_run(picks)
@@ -52,6 +51,23 @@ module Drafts
 
     def position_counts(picks)
       picks.filter_map(&:position).tally.sort_by { |position, count| [ -count, position ] }.to_h
+    end
+
+    def finishes_for(franchise)
+      season_ids = seasons.index_by(&:id)
+      franchise.team_seasons.filter_map do |team_season|
+        season = season_ids[team_season.espn_season_id]
+        rank = team_season.regular_season_rank.to_i
+        [ season.season, rank ] if season && rank.positive?
+      end.to_h
+    end
+
+    def playoff_finishes_for(franchise)
+      season_ids = seasons.index_by(&:id)
+      franchise.team_seasons.filter_map do |team_season|
+        season = season_ids[team_season.espn_season_id]
+        [ season.season, team_season.playoff_finish ] if season && team_season.playoff_finish
+      end.to_h
     end
 
     def repeat_player(picks)

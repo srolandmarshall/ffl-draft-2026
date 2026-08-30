@@ -31,6 +31,14 @@ class LeagueHistoriesControllerTest < ActionDispatch::IntegrationTest
     franchise.update!(name: "Red Hawks", aliases: [ "RED" ], owner_ids: [ "owner-red" ])
     franchise.draft_picks << @season.draft_picks.first
     franchise.draft_picks << @older_season.draft_picks.first
+    espn_team_seasons(:one).update!(
+      espn_franchise: franchise, espn_team_id: 7, team_name: "Red Hawks",
+      team_abbreviation: "RED", owner_ids: [ "owner-red" ], regular_season_rank: 1, playoff_finish: 1
+    )
+    @older_season.team_seasons.create!(
+      espn_franchise: franchise, espn_team_id: 7, team_name: "Red Hawks",
+      team_abbreviation: "RED", owner_ids: [ "owner-red" ], owner_names: [], regular_season_rank: 2, playoff_finish: 2
+    )
   end
 
   test "league member sees active franchise history at the league route" do
@@ -57,7 +65,8 @@ class LeagueHistoriesControllerTest < ActionDispatch::IntegrationTest
     assert_select "h2", text: "Every team leaves a pattern"
     assert_select "h2", text: "Follow one franchise through history"
     assert_select "svg[aria-label='Historical league finishes by team and season']"
-    assert_select "circle title", text: /1st/
+    assert_select "circle title", text: /1st regular season · Champion/
+    assert_select "circle[stroke='#facc15']", count: 1
     assert_select "[data-controller='finish-chart']"
     assert_select "button[data-finish-chart-target='button'][aria-pressed='true']", count: 1
     assert_select "article [data-round='1']", text: /WR/
@@ -73,13 +82,15 @@ class LeagueHistoriesControllerTest < ActionDispatch::IntegrationTest
   test "orders franchises by championships then years in the league" do
     challenger_team = @league.teams.create!(name: "Challenger", owner_name: "Chally", abbreviation: "CHL")
     challenger = @league.espn_franchises.create!(key: "challenger", name: "Challenger", aliases: [ "CHL" ], team: challenger_team, owner_ids: [ "owner-chl" ])
-    @season.update!(
-      teams: @season.teams.map { |team| team["id"] == 7 ? team.merge("final_rank" => 2) : team } +
-        [ { "id" => 9, "name" => "Challenger", "abbreviation" => "CHL", "owner_ids" => [ "owner-chl" ], "final_rank" => 1 } ]
+    espn_team_seasons(:one).update!(regular_season_rank: 2, playoff_finish: 2)
+    @season.team_seasons.create!(
+      espn_franchise: challenger, espn_team_id: 9, team_name: "Challenger",
+      team_abbreviation: "CHL", owner_ids: [ "owner-chl" ], owner_names: [], regular_season_rank: 1, playoff_finish: 1
     )
-    @older_season.update!(
-      teams: @older_season.teams.map { |team| team["id"] == 7 ? team.merge("final_rank" => 2) : team } +
-        [ { "id" => 9, "name" => "Challenger", "abbreviation" => "CHL", "owner_ids" => [ "owner-chl" ], "final_rank" => 1 } ]
+    @older_season.team_seasons.find_by!(espn_team_id: 7).update!(regular_season_rank: 2, playoff_finish: 2)
+    @older_season.team_seasons.create!(
+      espn_franchise: challenger, espn_team_id: 9, team_name: "Challenger",
+      team_abbreviation: "CHL", owner_ids: [ "owner-chl" ], owner_names: [], regular_season_rank: 1, playoff_finish: 1
     )
     challenger.draft_picks << @season.draft_picks.create!(
       overall_number: 2, round: 1, round_pick: 2,
@@ -109,6 +120,29 @@ class LeagueHistoriesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "button[data-finish-chart-target='button'][data-name='Red Hawks']", count: 0
     assert_select "article", text: /Red Hawks/, count: 0
+  end
+
+  test "history remains available while regular-season finishes await import" do
+    @league.espn_team_seasons.update_all(regular_season_rank: nil)
+    sign_in_as users(:member)
+
+    get league_history_path(@league)
+
+    assert_response :success
+    assert_select "[data-controller='finish-chart']", count: 0
+    assert_select "h2", text: "Every team leaves a pattern"
+  end
+
+  test "finish chart plots regular rank and marks the actual playoff champion" do
+    espn_team_seasons(:one).update!(regular_season_rank: 2, playoff_finish: 1)
+    @older_season.team_seasons.find_by!(espn_team_id: 7).update!(regular_season_rank: 1, playoff_finish: 2)
+    sign_in_as users(:member)
+
+    get league_history_path(@league)
+
+    assert_select "circle title", text: /2025 · 2nd regular season · Champion/
+    assert_select "circle title", text: /2024 · 1st regular season\z/
+    assert_select "circle[stroke='#facc15']", count: 1
   end
 
   test "current season appears after ESPN has drafted" do

@@ -1,8 +1,8 @@
 class EspnSeason < ApplicationRecord
-  TeamFinish = Data.define(:season, :name, :abbreviation, :rank)
-
   belongs_to :league
   has_many :draft_picks, -> { order(:overall_number) }, class_name: "EspnDraftPick", dependent: :destroy, inverse_of: :espn_season
+  has_many :matchups, -> { order(:matchup_period, :espn_matchup_id) }, class_name: "EspnMatchup", dependent: :destroy, inverse_of: :espn_season
+  has_many :team_seasons, -> { order(:espn_team_id) }, class_name: "EspnTeamSeason", dependent: :destroy, inverse_of: :espn_season
 
   validates :season, numericality: { only_integer: true, greater_than: 2000 }, uniqueness: { scope: :league_id }
   validates :name, :synced_at, presence: true
@@ -10,17 +10,24 @@ class EspnSeason < ApplicationRecord
 
   scope :newest_first, -> { order(season: :desc) }
 
-  def team_finish_for(owner_ids)
-    identity = teams.find { |team| (Array(team["owner_ids"]) & Array(owner_ids)).any? }
-    rank = identity&.fetch("final_rank", nil).to_i
-    return if rank <= 0
+  def champion
+    team_seasons.find_by(playoff_finish: 1)
+  end
 
-    TeamFinish.new(
-      season:,
-      name: identity["name"],
-      abbreviation: identity["abbreviation"],
-      rank:
-    )
+  def runner_up
+    team_seasons.find_by(playoff_finish: 2)
+  end
+
+  def regular_season_champion
+    team_seasons.find_by(regular_season_rank: 1)
+  end
+
+  def matchup_period_count
+    settings.dig("scheduleSettings", "matchupPeriodCount").to_i
+  end
+
+  def playoff_team_count
+    settings.dig("scheduleSettings", "playoffTeamCount").to_i
   end
 
   def rounds

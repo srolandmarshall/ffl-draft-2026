@@ -2,6 +2,7 @@ class EspnFranchise < ApplicationRecord
   belongs_to :league
   belongs_to :team, optional: true
   has_many :draft_picks, class_name: "EspnDraftPick", dependent: :nullify, inverse_of: :espn_franchise
+  has_many :team_seasons, class_name: "EspnTeamSeason", dependent: :nullify, inverse_of: :espn_franchise
 
   validates :key, :name, presence: true
   validates :key, uniqueness: { scope: :league_id }

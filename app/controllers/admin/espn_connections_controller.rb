@@ -12,7 +12,7 @@ module Admin
       client = DataSources::Espn::Client.new(espn_s2:, swid:)
       result = DataSources::Espn::LeagueSync.new(league: @league, client:).call
       session[:espn_credentials] = { "espn_s2" => espn_s2, "swid" => swid }
-      redirect_to admin_league_path(@league), notice: "Connected to ESPN and synced #{result.seasons_imported} draft seasons."
+      redirect_to admin_league_path(@league), notice: "Connected to ESPN and synced #{result.seasons_imported} draft seasons, #{result.standings_imported} standings, and #{result.matchups_imported} matchups."
     rescue DataSources::HttpError, ActiveRecord::RecordInvalid => error
       flash.now[:alert] = error.message
       render :new, status: :unprocessable_entity
