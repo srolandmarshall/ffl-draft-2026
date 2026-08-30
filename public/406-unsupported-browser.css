@@ -1,0 +1,281 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: #020617;
+  color-scheme: dark;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: #f8fafc;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(132, 204, 22, 0.14), transparent 34rem),
+    #020617;
+}
+
+.page-shell {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 2rem 1rem;
+}
+
+.message-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 42rem;
+  padding: 2.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.25rem;
+  background: rgba(15, 23, 42, 0.96);
+  box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.35);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+
+.brand-mark {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.6rem;
+  color: #020617;
+  background: #a3e635;
+}
+
+.brand-mark svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.status-icon {
+  display: flex;
+  width: 3.5rem;
+  height: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+  border: 1px solid rgba(163, 230, 53, 0.22);
+  border-radius: 1rem;
+  color: #bef264;
+  background: rgba(132, 204, 22, 0.09);
+}
+
+.status-icon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.eyebrow {
+  margin: 1.5rem 0 0;
+  color: #a3e635;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 34rem;
+  margin: 0.4rem 0 0;
+  font-size: clamp(2rem, 6vw, 3.25rem);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+}
+
+.intro {
+  max-width: 36rem;
+  margin: 1rem 0 0;
+  color: #cbd5e1;
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.steps {
+  display: grid;
+  gap: 1rem;
+  margin: 2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.step-number {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: #bef264;
+  background: #020617;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.steps strong {
+  display: block;
+  padding-top: 0.2rem;
+  font-size: 0.95rem;
+}
+
+.steps small {
+  display: block;
+  margin-top: 0.25rem;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.fallback {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.9rem;
+  background: #020617;
+}
+
+.fallback h2 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.fallback p {
+  margin: 0.4rem 0 0;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.browser-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.browser-links a {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 1rem;
+  border-radius: 0.65rem;
+  color: #020617;
+  background: #a3e635;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.browser-links a:hover,
+.browser-links a:focus-visible {
+  background: #bef264;
+}
+
+.browser-links a:focus-visible {
+  outline: 3px solid #f8fafc;
+  outline-offset: 3px;
+}
+
+.error-code {
+  margin: 1.5rem 0 0;
+  color: #64748b;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+.field-lines {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-around;
+  opacity: 0.08;
+  pointer-events: none;
+  transform: rotate(-8deg) scale(1.15);
+}
+
+.field-lines span {
+  width: 1px;
+  background: #a3e635;
+}
+
+@media (max-width: 36rem) {
+  .page-shell {
+    display: block;
+    padding: 0;
+  }
+
+  .message-card {
+    min-height: 100vh;
+    padding: 1.5rem 1.25rem 2rem;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .status-icon {
+    margin-top: 2.5rem;
+  }
+
+  .browser-links a {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .message-card {
+    animation: arrive 300ms ease-out both;
+  }
+
+  @keyframes arrive {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
