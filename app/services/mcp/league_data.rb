@@ -265,13 +265,13 @@ module Mcp
     end
 
     def superlatives
-      matchups = record_matchups
+      book = Leagues::Superlatives.call(league)
       {
-        highest_single_week_scores: matchups.sort_by { |matchup| -[ matchup.home_points, matchup.away_points ].compact.max }.first(10).map { |matchup| matchup_data(matchup) },
-        lowest_single_week_scores: matchups.sort_by { |matchup| [ matchup.home_points, matchup.away_points ].compact.min }.first(10).map { |matchup| matchup_data(matchup) },
-        largest_margins: matchups.sort_by { |matchup| -matchup.margin.to_d }.first(10).map { |matchup| matchup_data(matchup) },
-        closest_games: matchups.sort_by { |matchup| matchup.margin.to_d }.first(10).map { |matchup| matchup_data(matchup) },
-        highest_combined_scores: matchups.sort_by { |matchup| -(matchup.home_points.to_d + matchup.away_points.to_d) }.first(10).map { |matchup| matchup_data(matchup) }
+        highest_single_week_scores: book.highest_scores.map { |entry| matchup_data(entry.matchup) },
+        lowest_single_week_scores: book.lowest_scores.map { |entry| matchup_data(entry.matchup) },
+        largest_margins: book.largest_margins.map { |entry| matchup_data(entry.matchup) },
+        closest_games: book.closest_games.map { |entry| matchup_data(entry.matchup) },
+        highest_combined_scores: book.highest_combined.map { |entry| matchup_data(entry.matchup) }
       }
     end
 
@@ -291,12 +291,6 @@ module Mcp
             }
           end
         end.sort_by { |movement| [ -movement[:places].abs, -movement[:to_season] ] }
-    end
-
-    def record_matchups
-      @record_matchups ||= matchups_scope.select do |matchup|
-        matchup.home_points && matchup.away_points && matchup.margin
-      end
     end
 
     def league_identity

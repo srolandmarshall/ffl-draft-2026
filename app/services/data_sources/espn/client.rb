@@ -22,9 +22,7 @@ module DataSources
       end
 
       def fetch_league_snapshot(year:, league_id:)
-        payload = fetch(league_snapshot_uri(year:, league_id:))
-        payload = payload.first if payload.is_a?(Array)
-        LeagueSnapshot.from_payload(payload)
+        LeagueSnapshot.from_payload(league_document(fetch(league_snapshot_uri(year:, league_id:))))
       end
 
       def fetch_player_updates(year:, league_id:)
@@ -78,7 +76,12 @@ module DataSources
       end
 
       def player_scores(year:, league_id:)
-        PlayerScores.new(fetch(league_player_scores_uri(year:, league_id:)), year:)
+        PlayerScores.new(league_document(fetch(league_player_scores_uri(year:, league_id:))), year:)
+      end
+
+      # The pre-2018 leagueHistory endpoint wraps the league in a single-element array.
+      def league_document(payload)
+        payload.is_a?(Array) ? payload.first.to_h : payload
       end
 
       def league_uri(year:, league_id:, views:)
