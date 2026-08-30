@@ -11,6 +11,7 @@ class ExportsController < ApplicationController
 
     respond_to do |format|
       format.csv { send_data export.to_csv, filename: filename(draft, "csv") }
+      format.xlsx { send_data export.to_xlsx, filename: filename(draft, "xlsx") }
       format.json { render json: export.as_json }
     end
   end

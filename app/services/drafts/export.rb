@@ -1,4 +1,5 @@
 require "csv"
+require "axlsx"
 
 module Drafts
   class Export
@@ -13,6 +14,13 @@ module Drafts
         csv << HEADERS
         rows.each { |row| csv << HEADERS.map { |header| row.fetch(header) } }
       end
+    end
+
+    def to_xlsx
+      package = Axlsx::Package.new
+      add_sheet(package, name: "By Pick", rows: rows.sort_by { |row| row.fetch("overall_pick") })
+      add_sheet(package, name: "By Team", rows: rows)
+      package.to_stream.read
     end
 
     def as_json(*)
@@ -65,6 +73,14 @@ module Drafts
           round: pick.round,
           overall_pick: pick.overall_number
         }
+      end
+    end
+
+    def add_sheet(package, name:, rows:)
+      package.workbook.add_worksheet(name:) do |sheet|
+        sheet.add_row HEADERS.map(&:titleize)
+        rows.each { |row| sheet.add_row HEADERS.map { |header| row.fetch(header) } }
+        sheet.column_widths(*Array.new(HEADERS.size, 18))
       end
     end
   end

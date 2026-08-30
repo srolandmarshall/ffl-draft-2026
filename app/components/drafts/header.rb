@@ -17,6 +17,7 @@ class Components::Drafts::Header < Components::Base
       div(class: "flex shrink-0 flex-col items-end gap-2 pt-1 sm:pt-0") do
         if @draft.complete?
           a(href: draft_export_path(@draft.public_id, format: :csv), class: "rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-slate-200") { "Export CSV" }
+          a(href: draft_export_path(@draft.public_id, format: :xlsx), class: "rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-slate-200") { "Export XLSX" }
         end
         span(class: "rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[.6rem] font-semibold uppercase tracking-wide text-slate-400 sm:text-xs") do
           "Status: #{@draft.status}"
