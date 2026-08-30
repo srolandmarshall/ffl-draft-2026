@@ -450,6 +450,15 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
     assert_equal "text/csv", response.media_type
   end
 
+  test "draft export is available as XLSX" do
+    sign_in_as users(:member)
+    get draft_export_path(drafts(:one).public_id, format: :xlsx)
+
+    assert_response :success
+    assert_equal "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", response.media_type
+    assert_match(/\.xlsx\"?\z/, response.headers.fetch("content-disposition"))
+  end
+
   test "player list is available as structured JSON" do
     sign_in_as users(:member)
     get players_draft_path(drafts(:one).public_id, format: :json)
@@ -511,6 +520,7 @@ class DraftFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "a", "Export CSV"
+    assert_select "a", "Export XLSX"
     assert_select "a", text: "Export JSON", count: 0
     assert_select "button", text: "Undo last pick", count: 0
     assert_select "h2", "Draft board"

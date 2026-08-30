@@ -18,6 +18,7 @@ class Components::Drafts::HeaderTest < ActiveSupport::TestCase
     html = ApplicationController.renderer.render(Components::Drafts::Header.new(draft))
 
     assert_includes html, "Export CSV"
+    assert_includes html, "Export XLSX"
     assert_includes html, "Status: complete"
   end
 
@@ -25,5 +26,6 @@ class Components::Drafts::HeaderTest < ActiveSupport::TestCase
     html = Components::Drafts::Header.new(drafts(:one)).call
 
     refute_includes html, "Export CSV"
+    refute_includes html, "Export XLSX"
   end
 end
