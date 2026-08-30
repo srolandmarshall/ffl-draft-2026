@@ -19,9 +19,9 @@ module DataSources
           @snapshots.fetch(year.to_i) { raise HttpError, "no snapshot stubbed for #{year}" }
         end
 
-        def fetch_players(year:) = @players
+        def fetch_players(year:) = @players.is_a?(Hash) && @players.key?(year.to_i) ? @players.fetch(year.to_i) : @players
         def fetch_player_updates(year:, league_id:) = @player_updates
-        def fetch_player_scores(year:, league_id:) = @player_scores
+        def fetch_player_scores(year:, league_id:) = @player_scores.is_a?(Hash) ? @player_scores.fetch(year.to_i) : @player_scores
       end
 
       setup do
@@ -73,6 +73,24 @@ module DataSources
         assert_equal @league.espn_seasons.sole.draft_picks.sole.espn_player_id, 100
         assert_equal 1, @league.espn_team_seasons.count
         assert_equal 12.5, LeaguePlayerScore.find_by(league: @league, player:, season: 2025).points
+      end
+
+      test "imports historical scores for every synced season and keeps retired players off the draft board" do
+        current = LeagueSnapshot.from_payload(payload(season: 2026, previous_seasons: [ 2025 ]))
+        historical = LeagueSnapshot.from_payload(payload(season: 2025))
+        client = FakeClient.new(
+          snapshots: { 2025 => historical, 2026 => current },
+          players: { 2025 => [ { "id" => 200, "fullName" => "Retired Player", "defaultPositionId" => 2, "proTeamId" => 0 } ] },
+          player_scores: { 2025 => [ Client::PlayerScore.new(espn_id: 200, points: 99.5, stats: {}) ] }
+        )
+
+        result = LeagueSync.new(league: @league, client:).call
+
+        player = Player.find_by!(espn_id: 200)
+        assert_not player.active?
+        assert_nil player.pro_team
+        assert_equal 1, result.player_scores_imported
+        assert_equal 99.5, LeaguePlayerScore.find_by!(league: @league, player:, season: 2025).points
       end
 
       test "imports historical identity from oldest to newest" do

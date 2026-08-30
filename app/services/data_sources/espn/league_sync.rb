@@ -14,12 +14,15 @@ module DataSources
       def call
         current = client.fetch_league_snapshot(year: league.season, league_id: league.espn_league_id)
         snapshots, skipped = history_snapshots(current)
-        catalogs = snapshots.to_h do |snapshot|
-          [ snapshot.season, PlayerCatalog.new(client.fetch_players(year: snapshot.season)) ]
+        player_rows = snapshots.to_h do |snapshot|
+          [ snapshot.season, client.fetch_players(year: snapshot.season) ]
         end
+        catalogs = player_rows.transform_values { |rows| PlayerCatalog.new(rows) }
         player_updates = client.fetch_player_updates(year: league.season, league_id: league.espn_league_id)
-        score_season = league.season - 1
-        player_scores = client.fetch_player_scores(year: score_season, league_id: league.espn_league_id)
+        historical_seasons = (snapshots.map(&:season) + [ league.season - 1 ]).uniq.select { |season| season < league.season }
+        player_scores = historical_seasons.to_h do |season|
+          [ season, client.fetch_player_scores(year: season, league_id: league.espn_league_id) ]
+        end
 
         team_result = nil
         standings_imported = 0
@@ -29,14 +32,15 @@ module DataSources
           LeagueSettingsImport.new(league:, settings: current.settings).call
           PlayerIdSync.new(player_updates).call
           snapshots.each do |snapshot|
+            HistoricalPlayerImport.new(player_rows.fetch(snapshot.season)).call if snapshot.season < league.season
             imported = SeasonImport.new(league:, snapshot:, player_catalog: catalogs.fetch(snapshot.season)).call
             standings_imported += imported.team_seasons.size
             matchups_imported += imported.matchups.size
           end
           team_result = TeamImport.new(league:, teams: current.teams).call
-          player_scores_imported = LeaguePlayerScore.replace_for!(
-            league:, season: score_season, scores: player_scores
-          )
+          player_scores_imported = player_scores.sum do |season, scores|
+            LeaguePlayerScore.replace_for!(league:, season:, scores:)
+          end
         end
 
         Result.new(
