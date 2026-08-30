@@ -1,6 +1,6 @@
 module Mcp
   class LeaguesController < BaseController
-    before_action :set_league, only: %i[show history standings matchups records]
+    before_action :set_league, only: %i[show history standings matchups records player_scores]
 
     def index
       leagues = visible_leagues.order(:season, :name).preload(drafts: %i[draft_entries picks])
@@ -25,6 +25,10 @@ module Mcp
 
     def records
       render_json(Mcp::LeagueData.new(@league).records)
+    end
+
+    def player_scores
+      render_json(Mcp::LeagueData.new(@league, season: params[:season]).player_scores)
     end
 
     private

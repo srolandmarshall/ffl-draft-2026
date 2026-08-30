@@ -23,6 +23,7 @@ Rails.application.routes.draw do
         get :standings
         get :matchups
         get :records
+        get :player_scores
       end
     end
     resources :drafts, only: :show, param: :public_id do

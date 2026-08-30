@@ -54,7 +54,18 @@ module Mcp
         rivalries: book.rivalries.map { |series| head_to_head_data(series) },
         dynasties: book.dynasties.map { |arc| dynasty_data(arc) },
         championship_outcomes: book.championship_outcomes.map { |outcome| championship_outcome_data(outcome) },
-        consolation_rank_audit: book.consolation_deltas.map { |delta| consolation_delta_data(delta) }
+        consolation_rank_audit: book.consolation_deltas.map { |delta| consolation_delta_data(delta) },
+        superlatives: superlatives,
+        season_movements: season_movements
+      }
+    end
+
+    def player_scores
+      scores = league.league_player_scores.includes(:player).where(season: @season).order(:season, points: :desc).to_a
+      {
+        league: league_identity,
+        season: @season,
+        player_scores: scores_by_position(scores)
       }
     end
 
@@ -117,7 +128,7 @@ module Mcp
       {
         overall_pick: pick.overall_number, round: pick.round, pick_in_round: pick.round_pick,
         player: pick.player_name, position: pick.position, team: pick.team_name,
-        team_abbreviation: pick.team_abbreviation, owner: pick.espn_franchise&.name
+        team_abbreviation: pick.team_abbreviation, franchise: franchise_data(pick.espn_franchise)
       }
     end
 
@@ -216,7 +227,8 @@ module Mcp
         season: outcome.season,
         regular_season_champion: franchise_data(outcome.regular_season_champion),
         champion: franchise_data(outcome.champion),
-        same_franchise: outcome.same_franchise?
+        same_franchise: outcome.same_franchise?,
+        championship_game: championship_game_data(outcome.season)
       }
     end
 
@@ -232,6 +244,59 @@ module Mcp
       return unless franchise
 
       { id: franchise.id, name: franchise.name }
+    end
+
+    def scores_by_position(scores)
+      scores.group_by { |score| score.player.position }.flat_map do |_position, position_scores|
+        position_scores.sort_by { |score| -score.points }.each_with_index.map do |score, index|
+          {
+            player: { espn_id: score.player.espn_id, name: score.player.name, position: score.player.position },
+            points: score.points.to_f,
+            position_rank: index + 1
+          }
+        end
+      end.sort_by { |score| [ score.dig(:player, :position), score[:position_rank] ] }
+    end
+
+    def championship_game_data(season)
+      espn_season = league.espn_seasons.find_by(season:)
+      matchup = espn_season&.matchups&.winners_bracket&.order(matchup_period: :desc, espn_matchup_id: :desc)&.first
+      matchup_data(matchup) if matchup
+    end
+
+    def superlatives
+      matchups = record_matchups
+      {
+        highest_single_week_scores: matchups.sort_by { |matchup| -[ matchup.home_points, matchup.away_points ].compact.max }.first(10).map { |matchup| matchup_data(matchup) },
+        lowest_single_week_scores: matchups.sort_by { |matchup| [ matchup.home_points, matchup.away_points ].compact.min }.first(10).map { |matchup| matchup_data(matchup) },
+        largest_margins: matchups.sort_by { |matchup| -matchup.margin.to_d }.first(10).map { |matchup| matchup_data(matchup) },
+        closest_games: matchups.sort_by { |matchup| matchup.margin.to_d }.first(10).map { |matchup| matchup_data(matchup) },
+        highest_combined_scores: matchups.sort_by { |matchup| -(matchup.home_points.to_d + matchup.away_points.to_d) }.first(10).map { |matchup| matchup_data(matchup) }
+      }
+    end
+
+    def season_movements
+      league.espn_team_seasons.includes(:espn_franchise, :espn_season).where.not(regular_season_rank: nil)
+        .group_by(&:espn_franchise).flat_map do |franchise, seasons|
+          next [] unless franchise
+
+          seasons.sort_by { |team_season| team_season.espn_season.season }.each_cons(2).map do |before, after|
+            {
+              franchise: franchise_data(franchise),
+              from_season: before.espn_season.season,
+              to_season: after.espn_season.season,
+              from_rank: before.regular_season_rank,
+              to_rank: after.regular_season_rank,
+              places: before.regular_season_rank - after.regular_season_rank
+            }
+          end
+        end.sort_by { |movement| [ -movement[:places].abs, -movement[:to_season] ] }
+    end
+
+    def record_matchups
+      @record_matchups ||= matchups_scope.select do |matchup|
+        matchup.home_points && matchup.away_points && matchup.margin
+      end
     end
 
     def league_identity
