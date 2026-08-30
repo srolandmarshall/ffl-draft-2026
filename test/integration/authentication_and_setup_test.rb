@@ -15,6 +15,20 @@ class AuthenticationAndSetupTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_session_path
   end
 
+  test "outdated browsers receive update instructions and browser alternatives" do
+    safari_16 = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) " \
+      "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6.1 Safari/605.1.15"
+
+    get root_path, headers: { "User-Agent" => safari_16 }
+
+    assert_response :not_acceptable
+    assert_select "h1", "Your browser is out of date"
+    assert_select "link[rel='stylesheet'][href='/406-unsupported-browser.css']"
+    assert_select "a[href='https://www.google.com/chrome/']", "Get Chrome"
+    assert_select "a[href='https://www.mozilla.org/firefox/new/']", "Get Firefox"
+    assert_includes response.body, "Software Update"
+  end
+
   test "an unassigned email cannot request a sign-in code" do
     assert_no_difference("User.count") do
       post session_path, params: { email: "unassigned@example.com" }
