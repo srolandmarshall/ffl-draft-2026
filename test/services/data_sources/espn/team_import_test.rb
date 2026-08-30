@@ -9,10 +9,19 @@ module DataSources
         @league = League.create!(name: "Import League", season: 2026)
       end
 
+      def identity(**attributes)
+        Identity.new(**{
+          id: 1, name: "Example Team", abbreviation: "EX",
+          owner_ids: [], owner_names: [], regular_season_rank: nil,
+          playoff_seed: nil, record: nil, espn_final_rank: nil,
+          rank_final: nil, division_id: nil
+        }.merge(attributes))
+      end
+
       test "matches an existing team by franchise alias and updates its espn_team_id" do
         team = @league.teams.create!(name: "Red Hawks", owner_name: "Riley", abbreviation: "RED")
         @league.espn_franchises.create!(key: "RED", name: "Red Hawks", team:, aliases: [ "RHK" ])
-        identity = Identity.new(id: 5, name: "Red Hawks", abbreviation: "RHK", owner_ids: [ 1 ], owner_names: [ "Riley" ], final_rank: nil)
+        identity = identity(id: 5, name: "Red Hawks", abbreviation: "RHK", owner_ids: [ 1 ], owner_names: [ "Riley" ])
 
         result = TeamImport.new(league: @league, teams: [ identity ]).call
 
@@ -23,7 +32,7 @@ module DataSources
 
       test "matches an existing team by abbreviation case-insensitively when no franchise alias matches" do
         team = @league.teams.create!(name: "Red Hawks", owner_name: "Riley", abbreviation: "RED")
-        identity = Identity.new(id: 5, name: "Different Name", abbreviation: "red", owner_ids: [], owner_names: [], final_rank: nil)
+        identity = identity(id: 5, name: "Different Name", abbreviation: "red")
 
         result = TeamImport.new(league: @league, teams: [ identity ]).call
 
@@ -32,7 +41,7 @@ module DataSources
       end
 
       test "creates a new team and franchise when nothing matches" do
-        identity = Identity.new(id: 9, name: "Brand New Squad", abbreviation: "bns", owner_ids: [ 2 ], owner_names: [ "Sam" ], final_rank: nil)
+        identity = identity(id: 9, name: "Brand New Squad", abbreviation: "bns", owner_ids: [ 2 ], owner_names: [ "Sam" ])
 
         result = TeamImport.new(league: @league, teams: [ identity ]).call
 
@@ -50,7 +59,7 @@ module DataSources
         # abbreviation lookup misses it and this reaches team creation - where
         # unique_abbreviation strips the punctuation down to the same "BNS" base.
         @league.teams.create!(name: "Manual Team", owner_name: "Manual Owner", abbreviation: "BNS")
-        identity = Identity.new(id: 9, name: "Brand New Squad", abbreviation: "B.N.S!", owner_ids: [], owner_names: [], final_rank: nil)
+        identity = identity(id: 9, name: "Brand New Squad", abbreviation: "B.N.S!")
 
         TeamImport.new(league: @league, teams: [ identity ]).call
 
@@ -60,7 +69,7 @@ module DataSources
 
       test "releases a reused espn_team_id from whichever team held it previously" do
         stale_holder = @league.teams.create!(name: "Stale Holder", owner_name: "Old Owner", abbreviation: "OLD", espn_team_id: 9)
-        identity = Identity.new(id: 9, name: "New Claimant", abbreviation: "NEW", owner_ids: [], owner_names: [], final_rank: nil)
+        identity = identity(id: 9, name: "New Claimant", abbreviation: "NEW")
 
         TeamImport.new(league: @league, teams: [ identity ]).call
 

@@ -96,7 +96,8 @@ module DataSources
         end
         uri.query = URI.encode_www_form(seasonId: year) if year < 2018
         existing_query = URI.decode_www_form(uri.query.to_s)
-        uri.query = URI.encode_www_form(existing_query + %w[mTeam mSettings mDraftDetail mStandings].map { |view| [ "view", view ] })
+        views = %w[mTeam mSettings mDraftDetail mStandings mMatchup mMatchupScore]
+        uri.query = URI.encode_www_form(existing_query + views.map { |view| [ "view", view ] })
         uri
       end
 

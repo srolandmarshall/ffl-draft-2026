@@ -1,7 +1,15 @@
 module DataSources
   module Espn
     class LeagueSnapshot
-      TeamIdentity = Data.define(:id, :name, :abbreviation, :owner_ids, :owner_names, :final_rank)
+      TeamRecord = Data.define(:wins, :losses, :ties, :points_for, :points_against)
+      TeamIdentity = Data.define(
+        :id, :name, :abbreviation, :owner_ids, :owner_names, :regular_season_rank,
+        :playoff_seed, :record, :espn_final_rank, :rank_final, :division_id
+      )
+      Matchup = Data.define(
+        :id, :matchup_period, :scoring_period, :playoff_tier, :home_team_id,
+        :away_team_id, :home_points, :away_points, :winner
+      )
       DraftPick = Data.define(
         :overall_number, :round, :round_pick, :team_id, :team_name, :team_abbreviation,
         :team_owner_ids, :player_id, :player_name, :position
@@ -46,9 +54,33 @@ module DataSources
               abbreviation: team["abbrev"].presence || "T#{team.fetch('id')}",
               owner_ids:,
               owner_names:,
-              final_rank: final_rank(team)
+              regular_season_rank: positive_integer(team["playoffSeed"]),
+              playoff_seed: playoff_seed(team),
+              record: team_record(team),
+              espn_final_rank: positive_integer(team["rankCalculatedFinal"]),
+              rank_final: positive_integer(team["rankFinal"]),
+              division_id: team["divisionId"]
             )
           end
+        end
+      end
+
+      def matchups
+        @matchups ||= payload.fetch("schedule", []).map do |matchup|
+          home = matchup["home"]
+          away = matchup["away"]
+          scoring_periods = [ home, away ].compact.flat_map { |side| side.fetch("pointsByScoringPeriod", {}).keys.map(&:to_i) }.uniq
+          Matchup.new(
+            id: matchup.fetch("id").to_i,
+            matchup_period: matchup.fetch("matchupPeriodId").to_i,
+            scoring_period: scoring_periods.one? ? scoring_periods.first : nil,
+            playoff_tier: matchup["playoffTierType"].presence || EspnMatchup::REGULAR_SEASON,
+            home_team_id: positive_integer(home&.fetch("teamId", nil)),
+            away_team_id: positive_integer(away&.fetch("teamId", nil)),
+            home_points: decimal(home&.fetch("totalPoints", nil)),
+            away_points: decimal(away&.fetch("totalPoints", nil)),
+            winner: matchup["winner"].presence || "UNDECIDED"
+          )
         end
       end
 
@@ -85,10 +117,28 @@ module DataSources
         team["name"].presence || [ team["location"], team["nickname"] ].compact.join(" ").presence || "ESPN Team #{team.fetch('id')}"
       end
 
-      def final_rank(team)
-        [ team["rankCalculatedFinal"], team["rankFinal"], team["playoffSeed"] ]
-          .map(&:to_i)
-          .find(&:positive?)
+      def playoff_seed(team)
+        rank = positive_integer(team["playoffSeed"])
+        rank if rank && rank <= settings.raw_snapshot.dig("scheduleSettings", "playoffTeamCount").to_i
+      end
+
+      def team_record(team)
+        record = team.dig("record", "overall") || {}
+        TeamRecord.new(
+          wins: record["wins"].to_i,
+          losses: record["losses"].to_i,
+          ties: record["ties"].to_i,
+          points_for: decimal(record["pointsFor"]),
+          points_against: decimal(record["pointsAgainst"])
+        )
+      end
+
+      def positive_integer(value)
+        value.to_i if value.to_i.positive?
+      end
+
+      def decimal(value)
+        BigDecimal(value.to_s).round(2) unless value.nil?
       end
     end
   end

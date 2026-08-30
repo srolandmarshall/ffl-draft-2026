@@ -13,7 +13,7 @@ class Components::LeagueHistories::FinishChart < Components::Base
     return if @years.empty?
 
     @max_finish = @seasons.select { |season| @years.include?(season.season) }.map(&:team_count).max
-    @default = @tendencies.find { |tendency| tendency.finishes[@years.last] == 1 } || @tendencies.first
+    @default = @tendencies.find { |tendency| tendency.playoff_finishes[@years.last] == 1 } || @tendencies.first
     section(data: { controller: "finish-chart" }, class: "mb-8 overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-xl shadow-black/20") do
       controls
       chart
@@ -47,7 +47,7 @@ class Components::LeagueHistories::FinishChart < Components::Base
   def team_button(tendency, index)
     values = tendency.finishes.values
     latest_year = @years.reverse_each.find { |year| tendency.finishes[year] }
-    championships = values.count(1)
+    championships = tendency.playoff_finishes.values.count(1)
     data = button_data(
       key: tendency.franchise.id,
       name: tendency.franchise.team.name,
@@ -79,7 +79,7 @@ class Components::LeagueHistories::FinishChart < Components::Base
       summary("Now following", @default.franchise.team.name, target: "teamName", featured: true, style: "color: #{history_team_color(@tendencies.index(@default))}")
       summary("Average finish", finishes.sum.fdiv(finishes.size).round(1), target: "average")
       summary("Best", finishes.min.ordinalize, target: "best")
-      summary("Titles", finishes.count(1), target: "titles", accent: true)
+      summary("Titles", @default.playoff_finishes.values.count(1), target: "titles", accent: true)
       summary("Latest", @default.finishes[latest_year].ordinalize, target: "latest")
     end
   end
@@ -135,9 +135,11 @@ class Components::LeagueHistories::FinishChart < Components::Base
   def chart_point(canvas, tendency, point, color)
     x = PLOT[:left] + point[:x]
     y = PLOT[:top] + point[:y]
-    canvas.circle(cx: x, cy: y, r: 7, fill: "#0f172a", stroke: "#facc15", stroke_width: 3) if point[:rank] == 1
+    playoff_finish = tendency.playoff_finishes[point[:year]]
+    canvas.circle(cx: x, cy: y, r: 7, fill: "#0f172a", stroke: "#facc15", stroke_width: 3) if playoff_finish == 1
     canvas.circle(cx: x, cy: y, r: 4, fill: color, stroke: "#0f172a", stroke_width: 2) do
-      canvas.title { "#{tendency.franchise.team.name} · #{point[:year]} · #{point[:rank].ordinalize}" }
+      result = playoff_finish == 1 ? " · Champion" : ""
+      canvas.title { "#{tendency.franchise.team.name} · #{point[:year]} · #{point[:rank].ordinalize} regular season#{result}" }
     end
   end
 end

@@ -41,7 +41,12 @@ class EspnFranchiseTest < ActiveSupport::TestCase
       abbreviation: "MUNZ",
       owner_ids: [ "owner-munz" ],
       owner_names: [ "Munz" ],
-      final_rank: 1
+      regular_season_rank: 1,
+      playoff_seed: 1,
+      record: nil,
+      espn_final_rank: 1,
+      rank_final: nil,
+      division_id: nil
     )
 
     result = DataSources::Espn::TeamImport.new(league:, teams: [ identity ]).call

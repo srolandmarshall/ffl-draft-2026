@@ -16,6 +16,7 @@ class Admin::EspnFranchiseBackfillsControllerTest < ActionDispatch::IntegrationT
   end
 
   test "commissioner can rebuild season-scoped franchise identities" do
+    matchup_id = espn_matchups(:one).id
     sign_in_as users(:commissioner)
 
     post admin_league_espn_franchise_backfill_path(@league)
@@ -24,6 +25,7 @@ class Admin::EspnFranchiseBackfillsControllerTest < ActionDispatch::IntegrationT
     assert_equal 1, @league.espn_team_seasons.count
     assert_equal 1, @league.espn_franchises.count
     assert_equal @league.espn_team_seasons.sole.espn_franchise, espn_draft_picks(:one).reload.espn_franchise
+    assert EspnMatchup.exists?(matchup_id)
     assert_match(/Repaired 1 ESPN team season/, flash[:notice])
   end
 

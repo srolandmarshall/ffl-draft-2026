@@ -12,6 +12,7 @@ module DataSources
         League.transaction do
           reset_franchises
           build_team_seasons
+          derive_finishes
           repoint_picks
           link_current_teams
           delete_orphans
@@ -30,7 +31,7 @@ module DataSources
 
       def reset_franchises
         picks.update_all(espn_franchise_id: nil)
-        EspnTeamSeason.where(espn_season_id: seasons.select(:id)).delete_all
+        EspnTeamSeason.where(espn_season_id: seasons.select(:id)).update_all(espn_franchise_id: nil)
         league.espn_franchises.destroy_all
         league.espn_franchises.reset
       end
@@ -49,16 +50,24 @@ module DataSources
               season:,
               owner_ids: identity["owner_ids"]
             )
-            season.team_seasons.create!(
+            season.team_seasons.find_or_initialize_by(espn_team_id:).update!(
               espn_franchise: franchise,
               espn_team_id:,
               team_name:,
               team_abbreviation:,
               owner_ids: Array(identity["owner_ids"]),
               owner_names: Array(identity["owner_names"]),
-              espn_final_rank: positive_integer(identity["final_rank"])
+              espn_final_rank: positive_integer(identity["espn_final_rank"] || identity["final_rank"]),
+              division_id: identity["division_id"]
             )
           end
+        end
+      end
+
+      def derive_finishes
+        seasons.each do |season|
+          StandingsImport.new(season:, identities: season.teams).call
+          Leagues::PlayoffFinishCalculator.new(season:).call
         end
       end
 

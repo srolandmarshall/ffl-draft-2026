@@ -65,6 +65,8 @@ module DataSources
         assert_equal 1, result.teams_created
         assert_equal 1, result.seasons_imported
         assert_equal [], result.seasons_skipped
+        assert_equal 1, result.standings_imported
+        assert_equal 0, result.matchups_imported
         assert_equal 1, result.player_scores_imported
         assert_equal 1, @league.reload.qb_slots
         assert_equal 2, @league.rb_slots
@@ -116,6 +118,23 @@ module DataSources
           end
         end
         assert_equal 0, @league.espn_seasons.count
+      end
+
+      test "imports fixture standings and matchups without duplicates on rerun" do
+        @league.update!(season: 2016)
+        payload = JSON.parse(file_fixture("espn/league_snapshot_2016.json").read).first
+        snapshot = LeagueSnapshot.from_payload(payload)
+        client = FakeClient.new(snapshots: { 2016 => snapshot })
+
+        first = LeagueSync.new(league: @league, client:).call
+        second = LeagueSync.new(league: @league, client:).call
+
+        assert_equal 12, first.standings_imported
+        assert_equal 97, first.matchups_imported
+        assert_equal 12, second.standings_imported
+        assert_equal 97, second.matchups_imported
+        assert_equal 12, @league.espn_team_seasons.count
+        assert_equal 97, EspnMatchup.joins(:espn_season).where(espn_seasons: { league_id: @league.id }).count
       end
     end
   end

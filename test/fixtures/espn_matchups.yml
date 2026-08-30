@@ -1,0 +1,27 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  espn_season: one
+  espn_matchup_id: 1
+  matchup_period: 1
+  scoring_period: 1
+  playoff_tier: NONE
+  home_espn_team_season: one
+  away_espn_team_season: one
+  home_points: 9.99
+  away_points: 9.99
+  margin: 9.99
+  winner: HOME
+
+two:
+  espn_season: two
+  espn_matchup_id: 1
+  matchup_period: 1
+  scoring_period: 1
+  playoff_tier: WINNERS_BRACKET
+  home_espn_team_season: two
+  away_espn_team_season: two
+  home_points: 9.99
+  away_points: 9.99
+  margin: 9.99
+  winner: AWAY

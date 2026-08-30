@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_29_144051) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_30_022349) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -123,6 +123,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_144051) do
     t.index ["league_id", "key"], name: "index_espn_franchises_on_league_id_and_key", unique: true
     t.index ["league_id"], name: "index_espn_franchises_on_league_id"
     t.index ["team_id"], name: "index_espn_franchises_on_team_id"
+  end
+
+  create_table "espn_matchups", force: :cascade do |t|
+    t.integer "away_espn_team_season_id"
+    t.decimal "away_points", precision: 8, scale: 2
+    t.datetime "created_at", null: false
+    t.integer "espn_matchup_id", null: false
+    t.integer "espn_season_id", null: false
+    t.integer "home_espn_team_season_id"
+    t.decimal "home_points", precision: 8, scale: 2
+    t.decimal "margin", precision: 8, scale: 2
+    t.integer "matchup_period", null: false
+    t.string "playoff_tier", default: "NONE", null: false
+    t.integer "scoring_period"
+    t.datetime "updated_at", null: false
+    t.string "winner"
+    t.index ["away_espn_team_season_id"], name: "index_espn_matchups_on_away_espn_team_season_id"
+    t.index ["espn_season_id", "espn_matchup_id"], name: "index_espn_matchups_on_espn_season_id_and_espn_matchup_id", unique: true
+    t.index ["espn_season_id", "matchup_period"], name: "index_espn_matchups_on_espn_season_id_and_matchup_period"
+    t.index ["espn_season_id"], name: "index_espn_matchups_on_espn_season_id"
+    t.index ["home_espn_team_season_id"], name: "index_espn_matchups_on_home_espn_team_season_id"
+    t.index ["margin"], name: "index_espn_matchups_on_margin"
+    t.index ["playoff_tier"], name: "index_espn_matchups_on_playoff_tier"
   end
 
   create_table "espn_seasons", force: :cascade do |t|
@@ -311,6 +334,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_29_144051) do
   add_foreign_key "espn_draft_picks", "espn_seasons"
   add_foreign_key "espn_franchises", "leagues"
   add_foreign_key "espn_franchises", "teams"
+  add_foreign_key "espn_matchups", "espn_seasons"
+  add_foreign_key "espn_matchups", "espn_team_seasons", column: "away_espn_team_season_id"
+  add_foreign_key "espn_matchups", "espn_team_seasons", column: "home_espn_team_season_id"
   add_foreign_key "espn_seasons", "leagues"
   add_foreign_key "espn_team_seasons", "espn_franchises"
   add_foreign_key "espn_team_seasons", "espn_seasons"
