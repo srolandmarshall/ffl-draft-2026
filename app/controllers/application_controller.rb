@@ -27,8 +27,11 @@ class ApplicationController < ActionController::Base
   def authenticate_user_or_bearer_token!
     return if signed_in?
     return authenticate_user! if request.format.html?
-    return if (api_token = ApiToken.find_by_raw_token(bearer_token)) && set_api_token_user(api_token)
 
+    api_token = ApiToken.find_by_raw_token(bearer_token)
+    return if api_token&.bearer_access? && set_api_token_user(api_token)
+
+    add_mcp_authentication_challenge if request.path == "/mcp"
     head :unauthorized
   end
 
@@ -37,8 +40,13 @@ class ApplicationController < ActionController::Base
   end
 
   def set_api_token_user(api_token)
+    @current_api_token = api_token
     @current_user = api_token.user
     api_token.touch(:last_used_at)
     true
+  end
+
+  def add_mcp_authentication_challenge
+    response.set_header("WWW-Authenticate", Mcp::Oauth.www_authenticate(request.base_url))
   end
 end

@@ -169,3 +169,24 @@ bin/system-test
 It runs Rails in one container and Chrome/Selenium in another, so it does not require a browser on the host. By default it simulates a 12-team, 16-round snake draft (192 picks); set `DRAFT_SIMULATION_TEAM_COUNT` and `DRAFT_SIMULATION_ROUNDS` to rehearse a different format.
 
 Authentication, pick clocks, traded picks, keepers, roster-position validation, and a supported direct ESPN adapter are intentionally left as later increments.
+
+
+## MCP server and OAuth
+
+The app also serves a real, stateless Streamable HTTP MCP server at `POST /mcp`. It is intended for ChatGPT, Codex, and other remote MCP clients that need recurring access without copying a long-lived bearer token into a prompt or project instruction.
+
+The server exposes three read-only tools:
+
+- `list_leagues` resolves the local IDs of leagues visible to the connected user.
+- `get_league` returns league rules, teams, drafts, and ESPN sync metadata.
+- `get_week_snapshot` returns the connected user's team IDs plus live ESPN lineups for every team. Pass an optional `scoring_period` to request a specific week.
+
+OAuth 2.1 discovery and endpoints are hosted by the same Rails app:
+
+- `GET /.well-known/oauth-protected-resource`
+- `GET /.well-known/oauth-authorization-server`
+- `POST /oauth/register` for dynamic client registration
+- `GET|POST /oauth/authorize` for login and consent
+- `POST /oauth/token` for authorization-code + PKCE and rotated refresh tokens
+
+The authorization server accepts public clients, requires PKCE with `S256`, issues one-hour access tokens and rotating 180-day refresh tokens, and restricts access to the `league:read` scope. Existing `GET /mcp/*` JSON endpoints and console-minted API tokens remain available for direct integrations.
