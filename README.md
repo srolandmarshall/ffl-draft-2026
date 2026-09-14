@@ -48,12 +48,18 @@ Only addresses assigned to a team — or a commissioner's address — may sign i
 
 ## Agent data endpoints
 
-Authenticated JSON clients can use the `/mcp` namespace as a read-only outlet for league and draft data. Browser sessions work as usual; agents can use a short-lived bearer token minted from the Rails console:
+Authenticated JSON clients can use the `/mcp` namespace as a read-only outlet for league and draft data. Browser sessions work as usual; agents can use a bearer token minted from the Rails console:
 
 ```ruby
 user = User.find_by_any_email("you@example.com")
 token = ApiToken.issue!(user:, label: "draft assistant")
 puts token
+```
+
+Tokens expire after two hours by default. For a recurring read-only integration, set an explicit lifetime and rotate the token on that schedule:
+
+```ruby
+token = ApiToken.issue!(user:, label: "roster reader", expires_in: 90.days)
 ```
 
 Send it as `Authorization: Bearer <token>`. The available endpoints are:
@@ -64,9 +70,17 @@ Send it as `Authorization: Bearer <token>`. The available endpoints are:
 - `GET /mcp/leagues/:id/standings` — regular-season records and separate winners-bracket finishes; add `?season=2025` to filter
 - `GET /mcp/leagues/:id/matchups` — archived weekly scores; filter with `?season=2025` and `?tier=regular`, `winners`, or `consolation`
 - `GET /mcp/leagues/:id/records` — all-time records, head-to-head series, rivalries, playoff runs, and the consolation-rank audit
+- `GET /mcp/leagues/:id/lineups` — live ESPN rosters for every team, including starter/bench/IR slots, injuries, and ownership rates; add `?scoring_period=3` to request a week
 - `GET /mcp/drafts/:public_id` — current draft status and teams
 - `GET /mcp/drafts/:public_id/results` — draft status plus picks made
 - `GET /mcp/drafts/:public_id/players` — the existing structured player list
+
+The lineup endpoint fetches ESPN when requested and reports `fetched_at` and `scoring_period` in its response. Private leagues require `ESPN_S2` and `ESPN_SWID` in the server environment for bearer-token requests; browser-session requests may also use the temporary credentials from **Admin → Connect private league**. ESPN cookies are never returned by the API.
+
+```sh
+curl -H "Authorization: Bearer $FFL_DRAFT_TOKEN" \
+  https://example.com/mcp/leagues/1/lineups
+```
 
 ## How a draft works
 

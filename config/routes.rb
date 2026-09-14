@@ -24,6 +24,7 @@ Rails.application.routes.draw do
         get :matchups
         get :records
         get :player_scores
+        get :lineups
       end
     end
     resources :drafts, only: :show, param: :public_id do

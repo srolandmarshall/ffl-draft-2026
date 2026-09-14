@@ -7,8 +7,8 @@ module DataSources
           @league_id = Integer(league_id)
         end
 
-        def uri(views:)
-          request_uri.query = URI.encode_www_form(query(views))
+        def uri(views:, scoring_period: nil)
+          request_uri.query = URI.encode_www_form(query(views, scoring_period:))
           request_uri
         end
 
@@ -24,8 +24,10 @@ module DataSources
           end
         end
 
-        def query(views)
-          [ *(year < 2018 ? [ [ "seasonId", year ] ] : []), *views.map { |view| [ "view", view ] } ]
+        def query(views, scoring_period:)
+          values = [ *(year < 2018 ? [ [ "seasonId", year ] ] : []), *views.map { |view| [ "view", view ] } ]
+          values << [ "scoringPeriodId", Integer(scoring_period) ] if scoring_period
+          values
         end
       end
     end

@@ -7,7 +7,8 @@ class McpApiTest < ActionDispatch::IntegrationTest
       history_mcp_league_path(leagues(:one)),
       standings_mcp_league_path(leagues(:one)),
       matchups_mcp_league_path(leagues(:one)),
-      records_mcp_league_path(leagues(:one))
+      records_mcp_league_path(leagues(:one)),
+      lineups_mcp_league_path(leagues(:one))
     ]
 
     paths.each do |path|
@@ -76,6 +77,64 @@ class McpApiTest < ActionDispatch::IntegrationTest
     assert_equal 2025, response.parsed_body.fetch("season")
     assert_equal [ 1, 2 ], scores.map { |score| score.fetch("position_rank") }
     assert_equal [ 310.0, 300.0 ], scores.map { |score| score.fetch("points") }
+  end
+
+  test "bearer token returns every ESPN team lineup" do
+    league = leagues(:one)
+    league.update!(espn_league_id: "123456")
+    teams(:one).update!(espn_team_id: 7)
+    token = ApiToken.issue!(user: users(:member), label: "roster reader")
+    requested_uri = nil
+    fetcher = lambda do |uri|
+      requested_uri = uri
+      Struct.new(:code, :body).new("200", file_fixture("espn/league_lineups.json").read)
+    end
+
+    get lineups_mcp_league_path(league),
+      params: { scoring_period: 3 },
+      headers: { "Authorization" => "Bearer #{token}" },
+      env: { "ffl.espn_fetcher" => fetcher },
+      as: :json
+
+    assert_response :success
+    body = response.parsed_body
+    assert_equal 3, body.fetch("scoring_period")
+    assert_equal "123456", body.dig("league", "espn_league_id")
+    assert_equal 2, body.fetch("teams").size
+    red = body.fetch("teams").find { |team| team.fetch("espn_team_id") == 7 }
+    assert_equal teams(:one).id, red.fetch("team_id")
+    assert_equal %w[starter bench injured_reserve], red.fetch("lineup").map { |entry| entry.fetch("status") }
+    assert_equal "Example Quarterback", red.dig("lineup", 0, "player", "name")
+    assert_equal "3", URI.decode_www_form(requested_uri.query).to_h.fetch("scoringPeriodId")
+    assert_equal "mRoster", URI.decode_www_form(requested_uri.query).to_h.fetch("view")
+  end
+
+  test "lineups validates configuration and scoring period" do
+    token = ApiToken.issue!(user: users(:member))
+    headers = { "Authorization" => "Bearer #{token}" }
+
+    get lineups_mcp_league_path(leagues(:one)), headers:, as: :json
+    assert_response :unprocessable_entity
+    assert_equal "espn_league_not_configured", response.parsed_body.fetch("error")
+
+    leagues(:one).update!(espn_league_id: "123456")
+    get lineups_mcp_league_path(leagues(:one)), params: { scoring_period: "nope" }, headers:, as: :json
+    assert_response :unprocessable_entity
+    assert_equal "invalid_scoring_period", response.parsed_body.fetch("error")
+  end
+
+  test "lineups preserve league visibility and report ESPN failures" do
+    league = leagues(:one)
+    league.update!(espn_league_id: "123456")
+    sign_in_as users(:member)
+
+    get lineups_mcp_league_path(leagues(:two)), as: :json
+    assert_response :not_found
+
+    denied = ->(_uri) { Struct.new(:code, :body).new("403", "") }
+    get lineups_mcp_league_path(league), env: { "ffl.espn_fetcher" => denied }, as: :json
+    assert_response :bad_gateway
+    assert_equal "espn_unavailable", response.parsed_body.fetch("error")
   end
 
   test "returns canonical standings matchups and all-time records" do
