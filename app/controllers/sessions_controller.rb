@@ -1,4 +1,6 @@
 class SessionsController < ApplicationController
+  skip_forgery_protection only: %i[oauth_register oauth_token]
+
   def new
     redirect_to root_path if signed_in?
   end
@@ -66,7 +68,50 @@ class SessionsController < ApplicationController
     redirect_to new_session_path, notice: "Signed out."
   end
 
+  def oauth_metadata
+    render json: Mcp::Oauth.authorization_server_metadata(request.base_url)
+  end
+
+  def oauth_register
+    render json: Mcp::Oauth.register_client(params.to_unsafe_h), status: :created
+  rescue Mcp::Oauth::Error => error
+    render_oauth_json_error(error)
+  end
+
+  def oauth_authorize
+    authenticate_user!
+    return if performed?
+
+    @oauth_request = Mcp::Oauth.authorization_request(params.to_unsafe_h, request.base_url)
+  rescue Mcp::Oauth::Error => error
+    render plain: error.description, status: :bad_request
+  end
+
+  def oauth_approve
+    authenticate_user!
+    return if performed?
+
+    location = Mcp::Oauth.complete_authorization(
+      params.expect(:oauth_request),
+      user: current_user,
+      approved: params[:decision] == "approve"
+    )
+    redirect_to location, allow_other_host: true
+  rescue Mcp::Oauth::Error => error
+    render plain: error.description, status: :bad_request
+  end
+
+  def oauth_token
+    render json: Mcp::Oauth.exchange_token(params.to_unsafe_h, request.base_url)
+  rescue Mcp::Oauth::Error => error
+    render_oauth_json_error(error)
+  end
+
   private
+
+  def render_oauth_json_error(error)
+    render json: { error: error.code, error_description: error.description }, status: error.status
+  end
 
   def pending_user
     @pending_user ||= User.find_by(id: session[:pending_user_id])
@@ -82,6 +127,8 @@ class SessionsController < ApplicationController
   end
 
   def team_name_for(user)
-    user.teams.joins(:league).order(leagues: { season: :desc, id: :desc }, draft_order: :asc, id: :asc).pick(:name) || "Commissioner"
+    user.teams.joins(:league)
+      .order(leagues: { season: :desc, id: :desc }, draft_order: :asc, id: :asc)
+      .pick(:name) || "Commissioner"
   end
 end

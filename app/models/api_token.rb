@@ -1,6 +1,7 @@
 class ApiToken < ApplicationRecord
   TOKEN_PREFIX = "ffld_"
   DEFAULT_LIFETIME = 2.hours
+  NON_BEARER_LABEL_PREFIXES = %w[oauth_code: oauth_refresh:].freeze
 
   belongs_to :user
 
@@ -9,8 +10,8 @@ class ApiToken < ApplicationRecord
 
   scope :active, -> { where(revoked_at: nil).where("expires_at > ?", Time.current) }
 
-  def self.issue!(user:, label: nil, expires_in: DEFAULT_LIFETIME)
-    raw_token = "#{TOKEN_PREFIX}#{SecureRandom.urlsafe_base64(32)}"
+  def self.issue!(user:, label: nil, expires_in: DEFAULT_LIFETIME, token_prefix: TOKEN_PREFIX)
+    raw_token = "#{token_prefix}#{SecureRandom.urlsafe_base64(32)}"
     create!(
       user:,
       token_digest: digest(raw_token),
@@ -32,6 +33,10 @@ class ApiToken < ApplicationRecord
 
   def active?
     revoked_at.blank? && expires_at&.future?
+  end
+
+  def bearer_access?
+    NON_BEARER_LABEL_PREFIXES.none? { |prefix| label.to_s.start_with?(prefix) }
   end
 
   def self.digest(raw_token)

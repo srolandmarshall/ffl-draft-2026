@@ -7,6 +7,17 @@ Rails.application.routes.draw do
     post :resend_login_code
   end
 
+  get "/.well-known/oauth-protected-resource", to: "mcp/base#protected_resource_metadata",
+    as: :mcp_protected_resource_metadata
+  get "/.well-known/oauth-protected-resource/mcp", to: "mcp/base#protected_resource_metadata"
+  get "/.well-known/oauth-authorization-server", to: "sessions#oauth_metadata",
+    as: :oauth_authorization_server_metadata
+  get "/oauth/authorize", to: "sessions#oauth_authorize", as: :oauth_authorize
+  post "/oauth/authorize", to: "sessions#oauth_approve"
+  post "/oauth/register", to: "sessions#oauth_register", as: :oauth_register
+  post "/oauth/token", to: "sessions#oauth_token", as: :oauth_token
+  post "/mcp", to: "mcp/base#handle", as: :mcp_server
+
   resources :drafts, only: :show, param: :public_id do
     get :players, on: :member
     resources :picks, only: %i[create destroy]
@@ -56,16 +67,5 @@ Rails.application.routes.draw do
     resource :nflverse_player_sync, only: :create
   end
 
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
-
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
-
-  # Defines the root path route ("/")
-  # root "posts#index"
 end
