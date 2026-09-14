@@ -35,6 +35,12 @@ module DataSources
         player_scores(year:, league_id:).scores
       end
 
+      def fetch_league_lineups(year:, league_id:, scoring_period: nil)
+        payload = fetch(league_lineups_uri(year:, league_id:, scoring_period:))
+        payload = payload.first if payload.is_a?(Array)
+        LeagueLineups.from_payload(payload, scoring_period:, fetched_at: Time.current)
+      end
+
       private
 
       attr_reader :fetcher, :espn_s2, :swid
@@ -75,6 +81,10 @@ module DataSources
 
       def league_player_scores_uri(year:, league_id:)
         league_uri(year:, league_id:, views: [ "kona_player_info" ])
+      end
+
+      def league_lineups_uri(year:, league_id:, scoring_period:)
+        LeagueEndpoint.new(year:, league_id:).uri(views: [ "mRoster" ], scoring_period:)
       end
 
       def player_scores(year:, league_id:)

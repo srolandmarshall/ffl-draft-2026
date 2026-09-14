@@ -1,0 +1,100 @@
+{
+  "scoringPeriodId": 3,
+  "status": { "latestScoringPeriod": 3 },
+  "members": [
+    { "id": "owner-1", "displayName": "Example Manager" }
+  ],
+  "teams": [
+    {
+      "id": 7,
+      "name": "Red Examples",
+      "abbrev": "RED",
+      "owners": ["owner-1"],
+      "roster": {
+        "entries": [
+          {
+            "lineupSlotId": 0,
+            "playerId": 9001,
+            "acquisitionType": "DRAFT",
+            "acquisitionDate": 1788782400000,
+            "playerPoolEntry": {
+              "id": 9001,
+              "player": {
+                "id": 9001,
+                "fullName": "Example Quarterback",
+                "defaultPositionId": 1,
+                "proTeamId": 3,
+                "eligibleSlots": [0, 20, 21],
+                "injuryStatus": "ACTIVE",
+                "injured": false,
+                "ownership": { "percentOwned": 97.251, "percentStarted": 72.499 }
+              }
+            }
+          },
+          {
+            "lineupSlotId": 20,
+            "playerId": 9002,
+            "acquisitionType": "WAIVER",
+            "acquisitionDate": 1789214400000,
+            "playerPoolEntry": {
+              "id": 9002,
+              "player": {
+                "id": 9002,
+                "fullName": "Example Receiver",
+                "defaultPositionId": 3,
+                "proTeamId": 17,
+                "eligibleSlots": [3, 4, 5, 20, 21, 23],
+                "injuryStatus": "QUESTIONABLE",
+                "injured": false,
+                "ownership": { "percentOwned": 41.0, "percentStarted": 3.5 }
+              }
+            }
+          },
+          {
+            "lineupSlotId": 21,
+            "playerId": 9003,
+            "acquisitionType": "FREEAGENT",
+            "acquisitionDate": null,
+            "playerPoolEntry": {
+              "id": 9003,
+              "player": {
+                "id": 9003,
+                "fullName": "Example Running Back",
+                "defaultPositionId": 2,
+                "proTeamId": 2,
+                "eligibleSlots": [2, 3, 20, 21, 23],
+                "injuryStatus": "OUT",
+                "injured": true,
+                "ownership": { "percentOwned": 88.0, "percentStarted": 0.0 }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "location": "Blue",
+      "nickname": "Examples",
+      "abbrev": "BLU",
+      "owners": [],
+      "roster": {
+        "entries": [
+          {
+            "lineupSlotId": 99,
+            "playerId": 9004,
+            "playerPoolEntry": { "id": 9004, "player": { "id": 9004, "eligibleSlots": [], "proTeamId": 0 } }
+          }
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "name": "Inactive Examples",
+      "abbrev": "OLD",
+      "owners": [],
+      "isActive": false,
+      "roster": { "entries": [] }
+    }
+  ]
+}

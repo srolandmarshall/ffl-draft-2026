@@ -34,5 +34,14 @@ module Mcp
     def render_not_found
       render json: { error: "not_found" }, status: :not_found
     end
+
+    def espn_client
+      credentials = session[:espn_credentials]
+      options = { fetcher: request.env["ffl.espn_fetcher"] }.compact
+      if credentials.present?
+        options.merge!(espn_s2: credentials["espn_s2"], swid: credentials["swid"])
+      end
+      DataSources::Espn::Client.new(**options)
+    end
   end
 end
