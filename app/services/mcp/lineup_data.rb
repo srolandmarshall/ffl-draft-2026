@@ -14,7 +14,7 @@ module Mcp
           season: league.season
         },
         scoring_period: snapshot.scoring_period,
-        fetched_at: snapshot.fetched_at.iso8601,
+        fetched_at: snapshot.fetched_at.utc.iso8601,
         teams: snapshot.teams.map { |team| team_data(team) }
       }
     end

@@ -111,7 +111,7 @@ module DataSources
       end
 
       def timestamp(milliseconds)
-        Time.zone.at(milliseconds.to_i / 1000.0).iso8601 if milliseconds
+        Time.zone.at(milliseconds.to_i / 1000.0).utc.iso8601 if milliseconds
       end
 
       def decimal(value)
