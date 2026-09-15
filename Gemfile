@@ -74,7 +74,7 @@ end
 
 gem "phlex-rails", "~> 2.4"
 
-gem "resend", "~> 1.13"
+gem "resend", "~> 1.15"
 
 gem "timecop", "~> 0.9.11", group: :test
 
