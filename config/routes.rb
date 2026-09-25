@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   end
 
   get "league/:id/history", to: "league_histories#show", as: :league_history
+  get "league/:id/story", to: "league_stories#show", as: :league_story
 
   namespace :mcp do
     resources :leagues, only: %i[index show] do

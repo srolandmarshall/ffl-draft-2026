@@ -211,8 +211,8 @@ module Leagues
     end
 
     def decided_matchups
-      @decided_matchups ||= EspnMatchup
-        .where(espn_season_id: league.espn_seasons.select(:id), winner: %w[HOME AWAY TIE])
+      @decided_matchups ||= EspnMatchup.decided
+        .where(espn_season_id: league.espn_seasons.select(:id))
         .includes(home_espn_team_season: :espn_franchise, away_espn_team_season: :espn_franchise)
         .to_a
     end

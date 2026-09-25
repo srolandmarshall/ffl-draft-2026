@@ -26,7 +26,10 @@ class Components::LeagueHistories::Show < Components::Base
         h1(class: "mt-1 text-3xl font-black sm:text-4xl") { @league.name }
         p(class: "mt-2 text-sm text-slate-400") { "#{@page.seasons.size} ESPN seasons · #{@page.seasons.sum { |season| season.draft_picks.size }} archived picks" }
       end
-      a(href: root_path, class: "rounded-lg border border-white/15 px-4 py-2 text-center text-sm font-bold hover:border-lime-400") { "Draft home" }
+      div(class: "flex gap-2") do
+        a(href: league_story_path(@league), class: "rounded-lg border border-lime-400/60 bg-lime-400/10 px-4 py-2 text-center text-sm font-bold text-lime-300 hover:bg-lime-400/20") { "The long story" }
+        a(href: root_path, class: "rounded-lg border border-white/15 px-4 py-2 text-center text-sm font-bold hover:border-lime-400") { "Draft home" }
+      end
     end
   end
 end
